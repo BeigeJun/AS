@@ -1,0 +1,374 @@
+#ifndef DEF_H
+#define DEF_H
+#include"Node.h"
+#include"LinkedList.h"
+
+LinkedList* Create()
+{
+	LinkedList* _ptList = (LinkedList*)calloc(1, sizeof(LinkedList));
+	_ptList->m_pHead = _ptList->m_pTail;
+	_ptList->m_pTail = _ptList->m_pHead;
+	_ptList->m_pCurrent = NULL;
+	_ptList->m_uCount = 0;
+	return _ptList;
+}
+void Destroy(LinkedList* _ptList)
+{
+	free(_ptList);
+}
+Node* GetNode(int _Object)
+{
+	Node* pNode = (Node*)malloc(sizeof(Node));
+	pNode->m_pNext = pNode;
+	pNode->m_Previous = pNode;
+	pNode->m_iObject = _Object;
+	return pNode;
+}
+Node* Read(LinkedList* _ptList, unsigned int num)
+{
+	Node* view = _ptList->m_pHead;
+	for (int i = 1; i < num; i++)
+	{
+		view = view->m_pNext;
+	}
+	printf("%d 번째 노드의 값은 %d", num, view->m_iObject);
+	return 0;
+}
+void Traversal(LinkedList* _ptList)
+{
+
+	Node* view = _ptList->m_pHead;
+
+
+	for (int i = 0; i != _ptList->m_uCount; i++) {
+		printf("%d  ", view->m_iObject);
+		view = view->m_pNext;
+	}
+	printf("\n");
+}
+Node* AppendFromHead(LinkedList* _ptList, int _iObject)
+{
+	_ptList->m_pCurrent = GetNode(_iObject);
+
+	if (_ptList->m_pHead) {
+		_ptList->m_pCurrent->m_pNext = _ptList->m_pHead;
+		_ptList->m_pHead->m_Previous = _ptList->m_pCurrent;
+	}
+	else
+		_ptList->m_pTail = _ptList->m_pCurrent;
+
+	_ptList->m_pHead = _ptList->m_pCurrent;
+	(_ptList->m_uCount)++;
+	_ptList->m_pCurrent = NULL;
+	printf("맨 앞에 %d 추가\n", _iObject);
+	return 0;
+}
+Node* AppendFromTail(LinkedList* _ptList, int _iObject)
+{
+	_ptList->m_pCurrent = GetNode(_iObject);
+
+	if (_ptList->m_pTail) {
+		_ptList->m_pTail->m_pNext = _ptList->m_pCurrent;
+		_ptList->m_pCurrent->m_Previous = _ptList->m_pTail;
+	}
+	else
+		_ptList->m_pHead = _ptList->m_pCurrent;
+
+	_ptList->m_pTail = _ptList->m_pCurrent;
+	(_ptList->m_uCount)++;
+	_ptList->m_pCurrent = NULL;
+	printf("맨 뒤에 %d 추가\n", _iObject);
+	return 0;
+}
+Node* DeleteFromHead(LinkedList* _ptList)
+{
+	if (_ptList->m_uCount < 1)
+	{
+		printf("노드의 개수가 0개입니다.\n");
+		return 0;
+	}
+	Node* pointer;
+	pointer = _ptList->m_pHead;            // pointer가 리스트의 맨 앞 노드를 가르킨다
+	pointer = pointer->m_pNext;            // 그 다음 노드로 이동한다
+	pointer->m_Previous = pointer;         // 노드의 Pv값을 자신으로 지정하여 앞 노드와 끊어준다
+
+	pointer = _ptList->m_pHead;            //pointer가 리스트의 맨앞 노드를 가르킨다.
+	_ptList->m_pHead = pointer->m_pNext;   //맨 앞 노드를 가르키는 값을 다음 노드로 변경해준다
+	(_ptList->m_uCount)--;                 //노드의 갯수를 1개 줄여준다
+	free(pointer);                         //pointer는 맨앞 노드를 가르키고 있었으니 노드를 삭제해줌으로써 맨앞 노드가 사라진다.
+	return 0;
+}
+Node* DeleteFromTail(LinkedList* _ptList)
+{
+	if (_ptList->m_uCount < 1)
+	{
+		printf("노드의 개수가 0개입니다.\n");
+		return 0;
+	}
+	Node* pointer;
+	pointer = _ptList->m_pTail;
+	pointer = pointer->m_Previous;
+	pointer->m_pNext = pointer;
+
+	pointer = _ptList->m_pTail;
+	_ptList->m_pTail = pointer->m_Previous;
+	free(pointer);
+	(_ptList->m_uCount)--;
+	return 0;
+}
+void DeleteAll(LinkedList* _ptList)
+{
+	Node* First;
+	First = _ptList->m_pHead;
+	for (int i = _ptList->m_uCount; i > 2; i--)
+	{
+		First = First->m_pNext;
+		free(First->m_Previous);
+	}
+	free(First);
+	_ptList->m_pHead = _ptList->m_pTail;
+	_ptList->m_pTail = _ptList->m_pHead;
+	_ptList->m_uCount = 0;
+}
+Node* InsertBefor(LinkedList* _ptList, int num, int a) //기존노드 앞 삽입
+{
+	return 0;
+}
+Node* InsertAfter(LinkedList* _ptList, int num, int a)  //기존노드 뒷 삽입
+{
+	return 0;
+}
+Node* Delete(LinkedList* _ptList, int a)
+{
+	Node* SomeThing;
+	Node* SomeThingBefore;
+	Node* SomeThingNext;
+	if (_ptList->m_uCount == 0)
+	{
+		printf("노드의 갯수가 0개 이하입니다.\n");
+	}
+	else if (_ptList->m_uCount < a)
+	{
+		printf("%d번째 노드는 없습니다.\n", a);
+	}
+	else {
+		if (_ptList->m_uCount == a) {
+			DeleteFromTail(_ptList);
+		}
+		else if (a == 1) {
+			DeleteFromHead(_ptList);
+		}
+		else if (a <= 2147483647 && a >= 0)
+		{
+			SomeThing = _ptList->m_pHead;
+			for(int i = 0; i <= a-2; i++)
+			{
+				SomeThing = SomeThing->m_pNext;
+			}
+			SomeThingBefore = SomeThing->m_Previous;
+			SomeThingNext = SomeThing->m_pNext;
+
+
+			SomeThingBefore->m_pNext = SomeThing->m_pNext;
+			SomeThingNext->m_Previous = SomeThing->m_Previous;
+
+			free(SomeThing);
+			(_ptList->m_uCount)--;
+		}
+		else
+			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+	}
+	return 0;
+}
+Node* Modify(LinkedList* _ptList, int a, int b)
+{
+	Node* SomeThing;
+	if (_ptList->m_uCount == 0)
+	{
+		printf("노드의 갯수가 0개 이하입니다.\n");
+	}
+	else if (_ptList->m_uCount < a)
+	{
+		printf("%d번째 노드는 없습니다.\n", a);
+	}
+	else {
+		SomeThing = _ptList->m_pHead;
+		for (int i = 0; i <= a - 2; i++)
+		{
+			SomeThing = SomeThing->m_pNext;
+		}
+		SomeThing->m_iObject = b;
+	}
+	return 0;
+}
+Node* LinearSearchByUnique(LinkedList* _ptList, int x) 
+{
+	int ox = 0;
+	int i = 0;
+	Node* pointer = _ptList->m_pHead;
+	for (i = 0; i != _ptList->m_uCount; i++)
+	{
+		if (pointer->m_iObject == x)
+		{
+			printf("%d번째에 있습니다.\n", i+1);
+			ox++;
+		}
+		pointer = pointer->m_pNext;
+		if (i == _ptList->m_uCount-1) {
+			if (ox != 0)
+			{
+				continue;
+			}
+			else if(ox==0){
+				printf("없는 숫자 입니다.\n");
+			}
+		}
+	}
+	return 0;
+}
+
+void LinearSearchByDuplicate(LinkedList* _ptList){}
+
+Node* BinarySearchByUnique(LinkedList* _ptList, int target) {
+
+	Node* pointer = _ptList->m_pHead;
+	Node* head_pointer = _ptList->m_pHead;
+	int half;
+	int count = _ptList->m_uCount;
+	for (int a = 0; a < _ptList->m_uCount; a++)
+	{
+		if (_ptList->m_uCount % 2 == 1) {
+			half = count / 2 + 1;
+			count = count / 2;
+			printf("%d\n", half);
+		}
+		else {
+			half = count / 2;
+			count = count / 2;
+			printf("%d\n", half);
+		}
+
+
+
+		for (int i = 1; i < half; i++)
+		{
+			pointer = pointer->m_pNext;
+		}
+
+
+
+
+		if (pointer->m_iObject == target)
+		{
+			printf("%d번째", half);
+			break;
+		}
+		else if (pointer->m_iObject < target)
+		{ 
+			pointer = pointer->m_pNext;
+			head_pointer = pointer;
+			printf("내용:%d,타겟:%d 보다 큼 \n",pointer->m_iObject, target);
+		}
+		else if(pointer->m_iObject > target)
+		{
+			pointer = head_pointer;
+			printf("내용:%d,타겟:%d 보다 작음 \n", pointer->m_iObject, target);
+		}
+		else {
+			printf("?\n");
+		}
+	}
+	return 0;
+}
+
+void BinarySearchByDuplicate(LinkedList* _ptList, int x) {}
+
+void SortByBubble(LinkedList* _ptList)
+{
+	for (int i = 0; i != _ptList->m_uCount - 1; i++)
+	{
+		Node* pointer = _ptList->m_pHead;
+		Node* pointerNext = pointer->m_pNext;
+		for (int j = 0; j != _ptList->m_uCount - 1 - i; j++)
+		{
+			if (pointer->m_iObject > pointerNext->m_iObject)
+			{
+				int temp = 0;
+				temp = pointerNext->m_iObject;
+				pointerNext->m_iObject = pointer->m_iObject;
+				pointer->m_iObject = temp;
+				pointer = pointer->m_pNext;
+				pointerNext = pointerNext->m_pNext;
+			}
+		}
+	}
+}
+void SortByInsertion(LinkedList* _ptList)
+{
+	Node* pointer = _ptList->m_pHead->m_pNext;
+	for (int i = 1; i < _ptList->m_uCount; i++)
+	{
+		Node* before_pointer = pointer->m_Previous;
+		for (int k = 1; k < _ptList->m_uCount; k++)
+		{
+			if (pointer->m_iObject < before_pointer->m_iObject)
+			{
+				int temp;
+				temp = pointer->m_iObject;
+				pointer->m_iObject = before_pointer->m_iObject;
+				before_pointer->m_iObject = temp;
+			}
+			before_pointer = before_pointer->m_Previous;
+		}
+		pointer = pointer->m_pNext;
+	}
+}
+void SortBySelection(LinkedList* _ptList)
+{
+
+	for (int z = 0; z < _ptList->m_uCount; z++)
+	{
+		Node* pointer = _ptList->m_pHead;
+		Node* head = _ptList->m_pHead;
+		int Min;
+		
+		for (int x = 0; x < z; x++)
+		{
+			pointer = pointer->m_pNext;
+		}
+		Min = pointer->m_iObject;
+
+		for (int i = z; i < _ptList->m_uCount; i++)
+		{
+			if (pointer->m_iObject < Min)
+			{
+				Min = pointer->m_iObject;
+			}
+			pointer = pointer->m_pNext;
+		}
+
+		pointer = _ptList->m_pHead;
+		for (int x = 0; x < z; x++)
+		{
+			pointer = pointer->m_pNext;
+		}
+
+		for (int x = 0; x < _ptList->m_uCount; x++)
+		{
+			if (pointer->m_iObject != Min)
+			{
+				pointer = pointer->m_pNext;
+			}
+		}
+
+		for (int x = 0; x < z; x++)
+		{
+			head = head->m_pNext;
+		}
+		int temp = 0;
+		temp = head->m_iObject;
+		head->m_iObject = pointer->m_iObject;
+		pointer->m_iObject = temp;
+	}
+}
+#endif
