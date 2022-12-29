@@ -68,18 +68,19 @@ Node* AppendFromHead(LinkedList* _ptList, int _iObject)
 }
 Node* AppendFromTail(LinkedList* _ptList, int _iObject)
 {
-	_ptList->m_pCurrent = GetNode(_iObject);
-
-	if (_ptList->m_pTail) {
-		_ptList->m_pTail->m_pNext = _ptList->m_pCurrent;
-		_ptList->m_pCurrent->m_Previous = _ptList->m_pTail;
+	Node* New = GetNode(_iObject);
+	Node* pointer = _ptList->m_pTail;
+	if (_ptList->m_uCount==0) {
+		_ptList->m_pHead = New;
+		_ptList->m_pTail = New;
+		(_ptList->m_uCount)++;
 	}
-	else
-		_ptList->m_pHead = _ptList->m_pCurrent;
-
-	_ptList->m_pTail = _ptList->m_pCurrent;
-	(_ptList->m_uCount)++;
-	_ptList->m_pCurrent = NULL;
+	else {
+		pointer->m_pNext = New;
+		New->m_Previous = pointer;
+		_ptList->m_pTail = New;
+		(_ptList->m_uCount)++;
+	}
 	printf("맨 뒤에 %d 추가\n", _iObject);
 	return 0;
 }
@@ -123,7 +124,7 @@ void DeleteAll(LinkedList* _ptList)
 {
 	Node* First;
 	First = _ptList->m_pHead;
-	for (int i = _ptList->m_uCount; i > 2; i--)
+	for (int i = _ptList->m_uCount; i > 0; i--)
 	{
 		First = First->m_pNext;
 		free(First->m_Previous);
@@ -262,6 +263,7 @@ Node* LinearSearchByUnique(LinkedList* _ptList, int x)
 		if (pointer->m_iObject == x)
 		{
 			printf("%d번째에 있습니다.\n", i+1);
+			break;
 			ox++;
 		}
 		pointer = pointer->m_pNext;
@@ -400,8 +402,9 @@ void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end
 			{
 				printf("%d번째", where);
 				BinarySearchByDuplicate(_ptList, target, start, half - 1);
-				BinarySearchByDuplicate(_ptList, target, half + 1, end);
+				break;
 			}
+
 		}
 		else if (what > target)
 		{
@@ -409,12 +412,13 @@ void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end
 			where = head_where;
 			what = pointer->m_iObject;
 			if (what == target)
+
 			{
 				printf("%d번째", where);
-				BinarySearchByDuplicate(_ptList, target, start, half - 1);
 				BinarySearchByDuplicate(_ptList, target, half + 1, end);
 				break;
 			}
+
 		}
 		else {
 			printf("?\n");
@@ -560,12 +564,30 @@ int menu()
 		printf(" ----------------------------------------------\n");
 		printf("입력 : ");
 		scanf_s("%d", &number);
+		rewind(stdin);
+		if (number == '\0')
+		{
+			printf("잘못된 입력입니다.\n");
+			continue;
+		}
+		if (number > 2147483647 && number < 0)
+		{
+			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+			continue;
+		}
+
 		system("cls");
 
 		if (number == 1) {
 			unsigned int append_num = 0;
 			printf("추가할 노드의 고유 숫자를 입력하시오: ");
 			scanf_s("%d", &append_num);
+			rewind(stdin);
+			if (append_num == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
 			if (append_num <= 2147483647 && append_num >= 0)
 			{
 				AppendFromHead(master, append_num);
@@ -573,11 +595,18 @@ int menu()
 				continue;
 			}
 			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+			continue;
 		}
 		else if (number == 2) {
 			unsigned int append_num = 0;
 			printf("추가할 노드의 고유 숫자를 입력하시오: ");
 			scanf_s("%d", &append_num);
+			rewind(stdin);
+			if (append_num == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
 			if (append_num <= 2147483647 && append_num >= 0)
 			{
 				AppendFromTail(master, append_num);
@@ -601,27 +630,76 @@ int menu()
 			DeleteFromTail(master);
 		}
 		else if (number == 7) {
+			if (master->m_uCount == 0)
+			{
+				printf("노드의 개수가 0개입니다.");
+				continue;
+			}
 			DeleteAll(master);
 		}
 		else if (number == 8) {
 			unsigned int append_num = 0;
 			printf("몇번째 노드를 삭제하겠습니까? : ");
 			scanf_s("%d", &append_num);
-			Delete(master, append_num);
+			rewind(stdin);
+			if (append_num == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
+			if (append_num <= 2147483647 && append_num >= 0)
+			{
+				Delete(master, append_num);
+				continue;
+			}
+			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
 		}
 		else if (number == 9) {
 			unsigned int aNum;
 			unsigned int bNum;
 			printf("몇번째 노드를 변경하시겠습니까? : ");
 			scanf_s("%d", &aNum);
+			rewind(stdin);
+			if (aNum == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
+			if (aNum > 2147483647 && aNum < 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			printf("노드의 고유 번호를 무엇으로 바꾸시겠습니까? : ");
 			scanf_s("%d", &bNum);
+			rewind(stdin);
+			if (bNum == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
+			if (bNum > 2147483647 && bNum < 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			Modify(master, aNum, bNum);
 		}
 		else if (number == 10) {
 			unsigned int Num;
 			printf("찾을 고유 숫자를 입력하십시오 : ");
 			scanf_s("%d", &Num);
+			rewind(stdin);
+			if (Num == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
+			if (Num > 2147483647 && Num < 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			LinearSearchByUnique(master, Num);
 		}
 		else if (number == 11)
@@ -641,6 +719,17 @@ int menu()
 			int target;
 			printf("찾을 고유 숫자를 입력하십시오 : ");
 			scanf_s("%d", &target);
+			rewind(stdin);
+			if (target == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
+			if (target > 2147483647 && target < 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			BinarySearchByUnique(master, target);
 		}
 		else if (number == 15)
@@ -648,22 +737,77 @@ int menu()
 			int target;
 			printf("찾을 고유 숫자를 입력하십시오 : ");
 			scanf_s("%d", &target);
+			rewind(stdin);
+			if (target == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
+			if (target > 2147483647 && target < 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			LinearSearchByDuplicate(master, target);
 		}
 		else if (number == 16) {
 			int where, num;
 			printf("추가할 위치를 입력하십시오 : ");
 			scanf_s("%d", &where);
+			rewind(stdin);
+			if (where == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
+			if (where > 2147483647 && where < 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			printf("추가할 숫자를 입력하십시오 : ");
 			scanf_s("%d", &num);
+			rewind(stdin);
+			if (num == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
+			if (num > 2147483647 && num < 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			InsertBefor(master, where, num);
 		}
 		else if (number == 17) {
 			int where, num;
 			printf("추가할 위치를 입력하십시오 : ");
 			scanf_s("%d", &where);
+			rewind(stdin);
+			if (where == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
+			if (where > 2147483647 && where < 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			printf("추가할 숫자를 입력하십시오 : ");
 			scanf_s("%d", &num);
+			rewind(stdin);
+			if (num == '\0')
+			{
+				printf("잘못된 입력입니다.\n");
+				continue;
+			}
+			if (num > 2147483647 && num < 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			InsertAfter(master, where, num);
 		}
 		else if (number == 18) {
@@ -673,6 +817,17 @@ int menu()
 				end = master->m_uCount;
 				printf("찾을 고유 숫자를 입력하십시오 : ");
 				scanf_s("%d", &target);
+				rewind(stdin);
+				if (target == '\0')
+				{
+					printf("잘못된 입력입니다.\n");
+					continue;
+				}
+				if (target > 2147483647 && target < 0)
+				{
+					printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+					continue;
+				}
 				BinarySearchByDuplicate(master, target, start, end);
 			}
 		}
