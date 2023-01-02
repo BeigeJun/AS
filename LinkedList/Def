@@ -63,7 +63,7 @@ Node* AppendFromHead(LinkedList* _ptList, int _iObject)
 	_ptList->m_pHead = _ptList->m_pCurrent;
 	(_ptList->m_uCount)++;
 	printf("맨 앞에 %d 추가\n", _iObject);
-	return _ptList->m_pCurrent;
+	return 0;
 }
 Node* AppendFromTail(LinkedList* _ptList, int _iObject)
 {
@@ -78,7 +78,7 @@ Node* AppendFromTail(LinkedList* _ptList, int _iObject)
 	_ptList->m_pTail = _ptList->m_pCurrent;
 	(_ptList->m_uCount)++;
 	printf("맨 뒤에 %d 추가\n", _iObject);
-	return _ptList->m_pCurrent;
+	return 0;
 }
 Node* DeleteFromHead(LinkedList* _ptList)
 {
@@ -87,14 +87,27 @@ Node* DeleteFromHead(LinkedList* _ptList)
 		printf("노드의 개수가 0개입니다.\n");
 		return 0;
 	}
-	_ptList->m_pCurrent = _ptList->m_pHead;           
-	_ptList->m_pCurrent = _ptList->m_pCurrent->m_pNext;
-	_ptList->m_pCurrent->m_Previous = _ptList->m_pCurrent; 
-
-	_ptList->m_pCurrent = _ptList->m_pHead;  
-	_ptList->m_pHead = _ptList->m_pCurrent->m_pNext; 
-	(_ptList->m_uCount)--;                  
-	return _ptList->m_pCurrent;
+	if (_ptList->m_uCount == 1)
+	{
+		Node* pointer;
+		pointer = _ptList->m_pHead;
+		free(pointer);
+		_ptList->m_pHead = NULL;
+		_ptList->m_pTail = NULL;
+		_ptList->m_pCurrent = NULL;
+		_ptList->m_uCount = 0;
+	}
+	else {
+		Node* pointer;
+		pointer = _ptList->m_pHead;            
+		pointer = pointer->m_pNext;            
+		pointer->m_Previous = pointer;        
+		pointer = _ptList->m_pHead;          
+		_ptList->m_pHead = pointer->m_pNext;  
+		(_ptList->m_uCount)--;                
+		free(pointer);
+	}
+	return 0;
 }
 Node* DeleteFromTail(LinkedList* _ptList)
 {
@@ -103,16 +116,42 @@ Node* DeleteFromTail(LinkedList* _ptList)
 		printf("노드의 개수가 0개입니다.\n");
 		return 0;
 	}
-
-	_ptList->m_pCurrent = _ptList->m_pTail;
-	_ptList->m_pCurrent = _ptList->m_pCurrent->m_Previous;
-	_ptList->m_pCurrent->m_pNext = _ptList->m_pCurrent;
-
-	_ptList->m_pCurrent = _ptList->m_pTail;
-	_ptList->m_pTail = _ptList->m_pCurrent->m_Previous;
-	(_ptList->m_uCount)--;
-	return _ptList->m_pCurrent;
-}   
+	if (_ptList->m_uCount == 1)
+	{
+		Node* pointer;
+		pointer = _ptList->m_pHead;
+		free(pointer);
+		_ptList->m_pHead = NULL;
+		_ptList->m_pTail = NULL;
+		_ptList->m_pCurrent = NULL;
+		_ptList->m_uCount = 0;
+	}
+	else {
+		Node* pointer;
+		pointer = _ptList->m_pTail;
+		pointer = pointer->m_Previous;
+		pointer->m_pNext = pointer;
+		pointer = _ptList->m_pTail;
+		_ptList->m_pTail = pointer->m_Previous;
+		free(pointer);
+		(_ptList->m_uCount)--;
+	}
+	return 0;
+}
+void DeleteAll(LinkedList* _ptList)
+{
+	_ptList->m_pCurrent = _ptList->m_pHead;
+	for (int i = _ptList->m_uCount; i > 2; i--)
+	{
+		_ptList->m_pCurrent = _ptList->m_pCurrent->m_pNext;
+		free(_ptList->m_pCurrent->m_Previous);
+	}
+	free(_ptList->m_pCurrent);
+	_ptList->m_pCurrent = NULL;
+	_ptList->m_pHead = _ptList->m_pTail;
+	_ptList->m_pTail = _ptList->m_pHead;
+	_ptList->m_uCount = 0;
+}
 Node* InsertBefor(LinkedList* _ptList, int num, int a)
 {
 	if (_ptList->m_uCount < 1)
