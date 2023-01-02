@@ -148,8 +148,8 @@ void DeleteAll(LinkedList* _ptList)
 	}
 	free(_ptList->m_pCurrent);
 	_ptList->m_pCurrent = NULL;
-	_ptList->m_pHead = _ptList->m_pTail;
-	_ptList->m_pTail = _ptList->m_pHead;
+	_ptList->m_pHead = NULL;
+	_ptList->m_pTail = NULL;
 	_ptList->m_uCount = 0;
 }
 Node* InsertBefor(LinkedList* _ptList, int num, int a)
@@ -652,7 +652,7 @@ int menu()
 		else if (number == 7) {
 			if (master->m_uCount == 0)
 			{
-				printf("노드의 개수가 0개입니다.");
+				printf("노드의 개수가 0개입니다.\n");
 				continue;
 			}
 			DeleteAll(master);
