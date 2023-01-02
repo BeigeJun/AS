@@ -322,15 +322,67 @@ void LinearSearchByDuplicate(LinkedList* _ptList, int x)
 		}
 	}
 }
-Node* BinarySearchByUnique(LinkedList* _ptList, int target) {
+Node* BinarySearchByUnique(LinkedList* _ptList, int target,int start, int end) {
+
+	Node* pointer = _ptList->m_pHead;
+	Node* head_pointer = _ptList->m_pHead;
+	int half = 0;
+	int where=1;
+	int head_where = 1;
+	half = start + end / 2 + 1;
+	for (int i = 1; i < half; i++)
+	{
+		pointer = pointer->m_pNext;
+		where = where + 1;
+	}
+	int what = pointer->m_iObject;
+	if (what == target)
+	{
+		printf("%d번째", where);
+		return 0;
+	}
+	else if (what < target)
+	{ 
+		pointer = pointer->m_pNext;
+		head_pointer = pointer;
+		where = where + 1;
+		head_where = where;
+		what = pointer->m_iObject;
+		if (what == target)
+		{
+			printf("%d번째", where);
+			return 0;
+			
+		}
+		BinarySearchByUnique(_ptList, target, head_where, end);
+	}
+	else if(what > target)
+	{
+		pointer = head_pointer;
+		where = head_where;
+		what = pointer->m_iObject;
+		if (what == target)
+		{
+			printf("%d번째", where);
+			return 0;
+		}
+		BinarySearchByUnique(_ptList, target, 1, head_where);
+	}
+	else {
+		printf("?\n");
+	}
+	return 0;
+}
+void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end)
+{
 
 	Node* pointer = _ptList->m_pHead;
 	Node* head_pointer = _ptList->m_pHead;
 	int half = 0;
 	int count = _ptList->m_uCount;
-	int where=1;
+	int where = 1;
 	int head_where = 1;
-	for (int a = 0; a < _ptList->m_uCount+1; a++)
+	for (int a = 0; a < _ptList->m_uCount + 1; a++)
 	{
 		if (_ptList->m_uCount % 2 == 1) {
 			half = count / 2 + 1;
@@ -341,60 +393,6 @@ Node* BinarySearchByUnique(LinkedList* _ptList, int target) {
 			count = count / 2;
 		}
 
-		for (int i = 0; i < half-1; i++)
-		{
-			pointer = pointer->m_pNext;
-			where = where + 1;
-		}
-
-		int what = pointer->m_iObject;
-		if (what == target)
-		{
-			printf("%d번째", where);
-			break;
-		}
-		else if (what < target)
-		{ 
-			pointer = pointer->m_pNext;
-			head_pointer = pointer;
-			where = where + 1;
-			head_where = where;
-			what = pointer->m_iObject;
-			if (what == target)
-			{
-				printf("%d번째", where);
-				break;
-			}
-		}
-		else if(what > target)
-		{
-			pointer = head_pointer;
-			where = head_where;
-			what = pointer->m_iObject;
-			if (what == target)
-			{
-				printf("%d번째", where);
-				break;
-			}
-		}
-		else {
-			printf("?\n");
-		}
-	}
-	return 0;
-}
-void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end)
-{
-
-	Node* pointer = _ptList->m_pHead;
-	Node* head_pointer = _ptList->m_pHead;
-	int half = (start + end) / 2;
-	int where = 1;
-	int head_where = 1;
-	for (int a = 0; a < half; a++)
-	{
-		half = (start + end) / 2;
-	
 		for (int i = 0; i < half - 1; i++)
 		{
 			pointer = pointer->m_pNext;
@@ -404,9 +402,22 @@ void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end
 		int what = pointer->m_iObject;
 		if (what == target)
 		{
+			for (int i = 0; where > 1; i++) {
+				if (pointer->m_Previous->m_iObject == target)
+				{
+					pointer = pointer->m_Previous;
+					where = where - 1;
+				}
+			}
 			printf("%d번째", where);
-			BinarySearchByDuplicate(_ptList,target,start,half-1);
-			BinarySearchByDuplicate(_ptList,target,half+1,end);
+			for (int i = 0; i < _ptList->m_uCount-1; i++) {
+				if (pointer->m_pNext->m_iObject == target)
+				{
+					pointer = pointer->m_pNext;
+					where = where + 1;
+					printf("%d번째", where);
+				}
+			}
 			break;
 		}
 		else if (what < target)
@@ -418,11 +429,24 @@ void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end
 			what = pointer->m_iObject;
 			if (what == target)
 			{
+				for (int i = 0; where > 1; i++) {
+					if (pointer->m_Previous->m_iObject == target)
+					{
+						pointer = pointer->m_Previous;
+						where = where - 1;
+					}
+				}
 				printf("%d번째", where);
-				BinarySearchByDuplicate(_ptList, target, start, half - 1);
+				for (int i = 0; i < _ptList->m_uCount - 1; i++) {
+					if (pointer->m_pNext->m_iObject == target)
+					{
+						pointer = pointer->m_pNext;
+						where = where + 1;
+						printf("%d번째", where);
+					}
+				}
 				break;
 			}
-
 		}
 		else if (what > target)
 		{
@@ -430,17 +454,28 @@ void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end
 			where = head_where;
 			what = pointer->m_iObject;
 			if (what == target)
-
 			{
+				for (int i = 0; where > 1; i++) {
+					if (pointer->m_Previous->m_iObject == target)
+					{
+						pointer = pointer->m_Previous;
+						where = where - 1;
+					}
+				}
 				printf("%d번째", where);
-				BinarySearchByDuplicate(_ptList, target, half + 1, end);
+				for (int i = 0; i < _ptList->m_uCount - 1; i++) {
+					if (pointer->m_pNext->m_iObject == target)
+					{
+						pointer = pointer->m_pNext;
+						where = where + 1;
+						printf("%d번째", where);
+					}
+				}
 				break;
 			}
-
 		}
 		else {
 			printf("?\n");
-			break;
 		}
 	}
 }
@@ -750,7 +785,7 @@ int menu()
 				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
 				continue;
 			}
-			BinarySearchByUnique(master, target);
+			BinarySearchByUnique(master, target,1,master->m_uCount);
 		}
 		else if (number == 15)
 		{
