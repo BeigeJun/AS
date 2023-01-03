@@ -640,8 +640,12 @@ int menu()
 			continue;
 		}
 		number = atoi(tmp);
+		if (a > 2147483647 && a < 0)
+		{
+			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+			continue;
+		}
 		system("cls");
-
 		if (number == 1) {
 			char tmp[100];
 			unsigned int append_num = 0;
@@ -667,8 +671,14 @@ int menu()
 				continue;
 			}
 			append_num = atoi(tmp);
-			system("cls");
-			AppendFromHead(master, append_num);
+			if (append_num < 2147483647 && append_num >= 0)
+			{
+				AppendFromHead(master, append_num);
+				Traversal(master);
+				continue;
+			}
+			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+			continue;
 		}
 		else if (number == 2) {
 			char tmp[100];
@@ -695,8 +705,14 @@ int menu()
 				continue;
 			}
 			append_num = atoi(tmp);
-			AppendFromTail(master, append_num);
-			system("cls");
+			if (append_num < 2147483647 && append_num >= 0)
+			{
+				AppendFromTail(master, append_num);
+				Traversal(master);
+				continue;
+			}
+			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+			continue;
 		}
 		else if (number == 3) {
 			Traversal(master);
@@ -745,8 +761,14 @@ int menu()
 				continue;
 			}
 			append_num = atoi(tmp);
-			system("cls");
-			Delete(master, append_num);
+			if (append_num < 2147483647 && append_num >= 0)
+			{
+				Delete(master, append_num);
+				Traversal(master);
+				continue;
+			}
+			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+			continue;
 		}
 		else if (number == 9) {
 			unsigned int aNum;
