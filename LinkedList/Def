@@ -203,7 +203,7 @@ Node* InsertAfter(LinkedList* _ptList, int num, int a)  //기존노드 뒷 삽�
 		pointer_next = pointer->m_pNext;
 		New->m_pNext = pointer_next;
 		pointer->m_pNext = New;
-		New->m_Previous = pointer_next;
+		New->m_Previous = pointer;
 		pointer_next->m_Previous = New;
 		(_ptList->m_uCount)++;
 	}
@@ -434,24 +434,13 @@ Node* BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int en
 			{
 				if (where >= _ptList->m_uCount)
 				{
-
+					where = _ptList->m_uCount;
 				}
 				else {
 					printf("%d번째",where);
 					pointer = pointer->m_pNext;
 					where = where + 1;
 				}
-			}
-		}
-		if (pointer->m_pNext->m_iObject == what)
-		{
-			if (where <= _ptList->m_uCount)
-			{
-
-			}
-			else
-			{
-
 			}
 		}
 		printf("%d번째", where);
@@ -864,6 +853,7 @@ int menu()
 		}
 		else if (number == 14)
 		{
+			SortByInsertion(master);
 			int target;
 			printf("찾을 고유 숫자를 입력하십시오 : ");
 			char tmp[100];
@@ -1024,6 +1014,7 @@ int menu()
 		}
 		else if (number == 18) {
 			{
+				SortByInsertion(master);
 				int target, start, end;
 				start = 1;
 				end = master->m_uCount;
