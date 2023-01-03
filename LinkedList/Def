@@ -4,6 +4,7 @@
 #include<stdio.h>
 #include <stdlib.h>
 #include<Windows.h>
+#include <ctype.h>
 #include"Node.h"
 #include"LinkedList.h"
 LinkedList* Create()
@@ -273,6 +274,11 @@ Node* Modify(LinkedList* _ptList, int a, int b)
 }
 Node* LinearSearchByUnique(LinkedList* _ptList, int x) 
 {
+	if (_ptList->m_uCount < 1)
+	{
+		printf("노드의 개수가 0개입니다.\n");
+		return 0;
+	}
 	int ox = 0;
 	int i = 0;
 	Node* pointer = _ptList->m_pHead;
@@ -297,9 +303,13 @@ Node* LinearSearchByUnique(LinkedList* _ptList, int x)
 	}
 	return 0;
 }
-void LinearSearchByDuplicate(LinkedList* _ptList, int x)
+Node* LinearSearchByDuplicate(LinkedList* _ptList, int x)
 {
-	
+	if (_ptList->m_uCount < 1)
+	{
+		printf("노드의 개수가 0개입니다.\n");
+		return 0;
+	}
 	int ox = 0;
 	int i = 0;
 	Node* pointer = _ptList->m_pHead;
@@ -321,9 +331,14 @@ void LinearSearchByDuplicate(LinkedList* _ptList, int x)
 			}
 		}
 	}
+	return 0;
 }
 Node* BinarySearchByUnique(LinkedList* _ptList, int target,int start, int end) {
-
+	if (_ptList->m_uCount < 1)
+	{
+		printf("노드의 개수가 0개입니다.\n");
+		return 0;
+	}
 	Node* pointer = _ptList->m_pHead;
 	int half = 0;
 	int where=1;
@@ -368,11 +383,17 @@ Node* BinarySearchByUnique(LinkedList* _ptList, int target,int start, int end) {
 	}
 	return 0;
 }
-void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end)
+Node* BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end)
 {
+	if (_ptList->m_uCount == 0)
+	{
+		printf("노드의 개수가 0개입니다.\n");
+		return 0;
+	}
 	Node* pointer = _ptList->m_pHead;
 	int half = 0;
 	int where = 1;
+	int count = 0;
 	if (_ptList->m_uCount % 2 == 1) {
 		half = start + end / 2 + 1;
 	}
@@ -402,7 +423,6 @@ void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end
 
 				}
 				else {
-					printf("앞에도 같은값\n");
 					pointer = pointer->m_Previous;
 					where = where - 1;
 				}
@@ -431,7 +451,7 @@ void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end
 			}
 			else
 			{
-				printf("뒤에도 같은값\n");
+
 			}
 		}
 		printf("%d번째", where);
@@ -452,6 +472,11 @@ void BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end
 	}
 	else {
 		printf("유효하지 않는 값입니다.\n");
+		return 0;
+	}
+	if (count == 0) {
+		printf("에 있습니다.\n");
+		count++;
 	}
 }
 void SortByBubble(LinkedList* _ptList)
@@ -548,7 +573,8 @@ void SortBySelection(LinkedList* _ptList)
 int menu()
 {
 	char a;
-	int number = 0;
+	int number;
+	int word = 0;
 	printf("관리자를 만드시겠습니까? x입력시 종료(o/x) : ");
 	scanf_s("%c", &a);
 	system("cls");
@@ -566,7 +592,7 @@ int menu()
 		printf("잘못입력하셨습니다. 프로그램을 종료합니다.");
 		return 0;
 	}
-	system("cls");
+
 	LinkedList* master = Create();
 	while (1)
 	{
@@ -591,59 +617,86 @@ int menu()
 		printf("|18.다중 이진 탐색                             |\n");
 		printf(" ----------------------------------------------\n");
 		printf("입력 : ");
-		scanf_s("%d", &number);
-		rewind(stdin);
-		if (number == '\0')
-		{
-			system("cls");
-			printf("잘못된 입력입니다.\n\n\n");
-			continue;
-		}
-		if (number > 2147483647 && number < 0)
-		{
-			system("cls");
-			printf("2147483647이하의 양의 정수를 입력해주십시오\n\n\n");
-			continue;
-		}
 
+		char tmp[100];
+		rewind(stdin);
+		gets_s(tmp);
+		for (int f= 0; tmp[f] != '\0'; f++)
+		{
+			if (tmp[f] >= '0' && tmp[f] <= '9')
+			{
+			}
+			else
+			{
+				word = word + 1;
+				break;
+			}
+		}
+		if (word != 0)
+		{
+			system("cls");
+			word = 0;
+			printf("문자가 포함되어있음 다시 입력하시오\n");
+			continue;
+		}
+		number = atoi(tmp);
 		system("cls");
 
 		if (number == 1) {
+			char tmp[100];
 			unsigned int append_num = 0;
 			printf("추가할 노드의 고유 숫자를 입력하시오: ");
-			scanf_s("%d", &append_num);
 			rewind(stdin);
-			if (append_num == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (append_num <= 2147483647 && append_num >= 0)
-			{
-				AppendFromHead(master, append_num);
-				Traversal(master);
-				continue;
-			}
-			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-			continue;
+			append_num = atoi(tmp);
+			system("cls");
+			AppendFromHead(master, append_num);
 		}
 		else if (number == 2) {
+			char tmp[100];
 			unsigned int append_num = 0;
 			printf("추가할 노드의 고유 숫자를 입력하시오: ");
-			scanf_s("%d", &append_num);
 			rewind(stdin);
-			if (append_num == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (append_num <= 2147483647 && append_num >= 0)
-			{
-				AppendFromTail(master, append_num);
-				Traversal(master);
-				continue;
-			}
-			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+			append_num = atoi(tmp);
+			AppendFromTail(master, append_num);
+			system("cls");
 		}
 		else if (number == 3) {
 			Traversal(master);
@@ -670,66 +723,109 @@ int menu()
 		else if (number == 8) {
 			unsigned int append_num = 0;
 			printf("몇번째 노드를 삭제하겠습니까? : ");
-			scanf_s("%d", &append_num);
+			char tmp[100];
 			rewind(stdin);
-			if (append_num == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (append_num <= 2147483647 && append_num >= 0)
-			{
-				Delete(master, append_num);
-				continue;
-			}
-			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+			append_num = atoi(tmp);
+			system("cls");
+			Delete(master, append_num);
 		}
 		else if (number == 9) {
 			unsigned int aNum;
 			unsigned int bNum;
 			printf("몇번째 노드를 변경하시겠습니까? : ");
-			scanf_s("%d", &aNum);
+			char tmp[100];
 			rewind(stdin);
-			if (aNum == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (aNum > 2147483647 && aNum < 0)
-			{
-				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-				continue;
-			}
+			aNum = atoi(tmp);
+
 			printf("노드의 고유 번호를 무엇으로 바꾸시겠습니까? : ");
-			scanf_s("%d", &bNum);
+
 			rewind(stdin);
-			if (bNum == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (bNum > 2147483647 && bNum < 0)
-			{
-				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-				continue;
-			}
+			bNum = atoi(tmp);
+			system("cls");
 			Modify(master, aNum, bNum);
 		}
 		else if (number == 10) {
 			unsigned int Num;
 			printf("찾을 고유 숫자를 입력하십시오 : ");
-			scanf_s("%d", &Num);
+			char tmp[100];
 			rewind(stdin);
-			if (Num == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (Num > 2147483647 && Num < 0)
-			{
-				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-				continue;
-			}
+			Num = atoi(tmp);
 			LinearSearchByUnique(master, Num);
 		}
 		else if (number == 11)
@@ -748,96 +844,160 @@ int menu()
 		{
 			int target;
 			printf("찾을 고유 숫자를 입력하십시오 : ");
-			scanf_s("%d", &target);
+			char tmp[100];
 			rewind(stdin);
-			if (target == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (target > 2147483647 && target < 0)
-			{
-				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-				continue;
-			}
+			target = atoi(tmp);
+			system("cls");
 			BinarySearchByUnique(master, target,1,master->m_uCount);
 		}
 		else if (number == 15)
 		{
 			int target;
 			printf("찾을 고유 숫자를 입력하십시오 : ");
-			scanf_s("%d", &target);
+			char tmp[100];
 			rewind(stdin);
-			if (target == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (target > 2147483647 && target < 0)
-			{
-				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-				continue;
-			}
+			target = atoi(tmp);
+			system("cls");
 			LinearSearchByDuplicate(master, target);
 		}
 		else if (number == 16) {
 			int where, num;
 			printf("추가할 위치를 입력하십시오 : ");
-			scanf_s("%d", &where);
+			char tmp[100];
 			rewind(stdin);
-			if (where == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (where > 2147483647 && where < 0)
-			{
-				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-				continue;
-			}
+			where = atoi(tmp);
+			system("cls");
 			printf("추가할 숫자를 입력하십시오 : ");
-			scanf_s("%d", &num);
 			rewind(stdin);
-			if (num == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (num > 2147483647 && num < 0)
-			{
-				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-				continue;
-			}
+			num = atoi(tmp);
+			system("cls");
 			InsertBefor(master, where, num);
 		}
 		else if (number == 17) {
 			int where, num;
 			printf("추가할 위치를 입력하십시오 : ");
-			scanf_s("%d", &where);
+			char tmp[100];
 			rewind(stdin);
-			if (where == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (where > 2147483647 && where < 0)
-			{
-				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-				continue;
-			}
+			where = atoi(tmp);
+			system("cls");
 			printf("추가할 숫자를 입력하십시오 : ");
-			scanf_s("%d", &num);
 			rewind(stdin);
-			if (num == '\0')
+			gets_s(tmp);
+			for (int f = 0; tmp[f] != '\0'; f++)
 			{
-				printf("잘못된 입력입니다.\n");
+				if (tmp[f] >= '0' && tmp[f] <= '9')
+				{
+				}
+				else
+				{
+					word = word + 1;
+					break;
+				}
+			}
+			if (word != 0)
+			{
+				system("cls");
+				word = 0;
+				printf("문자가 포함되어있음 다시 입력하시오\n");
 				continue;
 			}
-			if (num > 2147483647 && num < 0)
-			{
-				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-				continue;
-			}
+			num = atoi(tmp);
+			system("cls");
 			InsertAfter(master, where, num);
 		}
 		else if (number == 18) {
@@ -846,18 +1006,28 @@ int menu()
 				start = 1;
 				end = master->m_uCount;
 				printf("찾을 고유 숫자를 입력하십시오 : ");
-				scanf_s("%d", &target);
+				char tmp[100];
 				rewind(stdin);
-				if (target == '\0')
+				gets_s(tmp);
+				for (int f = 0; tmp[f] != '\0'; f++)
 				{
-					printf("잘못된 입력입니다.\n");
+					if (tmp[f] >= '0' && tmp[f] <= '9')
+					{
+					}
+					else
+					{
+						word = word + 1;
+						break;
+					}
+				}
+				if (word != 0)
+				{
+					system("cls");
+					word = 0;
+					printf("문자가 포함되어있음 다시 입력하시오\n");
 					continue;
 				}
-				if (target > 2147483647 && target < 0)
-				{
-					printf("2147483647이하의 양의 정수를 입력해주십시오\n");
-					continue;
-				}
+				target = atoi(tmp);
 				BinarySearchByDuplicate(master, target, start, end);
 			}
 		}
