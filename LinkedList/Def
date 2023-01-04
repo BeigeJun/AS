@@ -160,6 +160,11 @@ Node* InsertBefor(LinkedList* _ptList, int num, int a)
 		printf("노드의 개수가 0개입니다.\n");
 		return 0;
 	}
+	if (_ptList->m_uCount < num)
+	{
+		printf("%d번째 노드는 없습니다.\n", num);
+		return 0;
+	}
 	Node* pointer = _ptList->m_pHead;
 	Node* pointer_before;
 	Node* New = GetNode(a);
@@ -186,6 +191,11 @@ Node* InsertAfter(LinkedList* _ptList, int num, int a)  //기존노드 뒷 삽�
 	if (_ptList->m_uCount < 1)
 	{
 		printf("노드의 개수가 0개입니다.\n");
+		return 0;
+	}
+	else if (_ptList->m_uCount < num)
+	{
+		printf("%d번째 노드는 없습니다.\n", num);
 		return 0;
 	}
 	Node* pointer = _ptList->m_pHead;
