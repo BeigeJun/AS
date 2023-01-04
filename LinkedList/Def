@@ -344,54 +344,71 @@ Node* LinearSearchByDuplicate(LinkedList* _ptList, int x)
 	return 0;
 }
 Node* BinarySearchByUnique(LinkedList* _ptList, int target,int start, int end) {
-	if (_ptList->m_uCount < 1)
+	if (_ptList->m_uCount == 0)
 	{
 		printf("노드의 개수가 0개입니다.\n");
 		return 0;
 	}
 	Node* pointer = _ptList->m_pHead;
-	int half = 0;
-	int where=1;
-	if (_ptList->m_uCount % 2 == 1) {
-		half = start + end / 2+1;
+	int where = 1;
+	int ox = 0;
+	int i = 0;
+	int half;
+	int what;
+	for (i = 0; i != _ptList->m_uCount; i++)
+	{
+		if (pointer->m_iObject == target)
+		{
+			ox++;
+		}
+		pointer = pointer->m_pNext;
+		if (i == _ptList->m_uCount - 1) {
+			if (ox != 0)
+			{
+				continue;
+			}
+			else if (ox == 0) {
+				printf("없는 숫자 입니다.\n");
+				return 0;
+			}
+		}
 	}
-	else {
-		half = start + end / 2;
-	}
-
+	pointer = _ptList->m_pHead;
+	half = (start + end) / 2;
+	/*
+	printf("start : %d\n", start);
+	printf("half : %d\n", half);
+	printf("end : %d\n", end);
+	*/
 	for (int i = 1; i < half; i++)
 	{
 		pointer = pointer->m_pNext;
 		where = where + 1;
 	}
-	int what = pointer->m_iObject;
+
+	what = pointer->m_iObject;
 	if (what == target)
 	{
-		if (where > _ptList->m_uCount)
-		{
-			where = _ptList->m_uCount;
-		}
-		printf("%d번째", where);
+		/*
+		printf("target : %d\n", target);
+		printf("what : %d\n", what);
+		*/
+		printf("%d번째\n", where);
 		return 0;
 	}
+
 	else if (what < target)
-	{ 
+	{
 		where = where + 1;
-		BinarySearchByUnique(_ptList, target, where+1, end-1);
+		pointer = pointer->m_pNext;
+		BinarySearchByUnique(_ptList, target, where, end);
 	}
-	else if(what > target)
+	else if (what > target)
 	{
 		where = where - 1;
-		if (where == 1)
-		{
-			where = 2;
-		}
-		BinarySearchByUnique(_ptList, target, 0, where-1);
+		pointer = pointer->m_Previous;
+		BinarySearchByUnique(_ptList, target, start, where);
 	}
-	else {
-		printf("유효하지 않는 값입니다.\n");
-	}
-	return 0;
 }
 Node* BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int end)
 {
@@ -401,83 +418,93 @@ Node* BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int en
 		return 0;
 	}
 	Node* pointer = _ptList->m_pHead;
-	int half = 0;
 	int where = 1;
-	int count = 0;
-	if (_ptList->m_uCount % 2 == 1) {
-		half = start + end / 2 + 1;
+	int ox = 0;
+	int i = 0;
+	int half;
+	int what;
+	
+	for (i = 0; i != _ptList->m_uCount; i++)
+	{
+		if (pointer->m_iObject == target)
+		{
+			ox++;
+		}
+		pointer = pointer->m_pNext;
+		if (i == _ptList->m_uCount - 1) {
+			if (ox != 0)
+			{
+				continue;
+			}
+			else if (ox == 0) {
+				printf("없는 숫자 입니다.\n");
+				return 0;
+			}
+		}
 	}
-	else {
-		half = start + end / 2;
-	}
+	pointer = _ptList->m_pHead;
+	half = (start + end) / 2;
+	/*
+	printf("start : %d\n", start);
+	printf("half : %d\n", half);
+	printf("end : %d\n", end);
+	*/
 
 	for (int i = 1; i < half; i++)
 	{
 		pointer = pointer->m_pNext;
 		where = where + 1;
 	}
-	int what = pointer->m_iObject;
+	what = pointer->m_iObject;
+	if (start == end)
+	{
+		if (target == what)
+		{
+			printf("%d번째", where);
+		}
+		return 0;
+	}
+
 	if (what == target)
 	{
-		if (where > _ptList->m_uCount)
-		{
-			where = _ptList->m_uCount;
-		}
-		
-		for (int i = 1; i < _ptList->m_uCount; i++)
-		{
-			if (pointer->m_Previous->m_iObject == what)
-			{
-				if (where == 1)
-				{
-
-				}
-				else {
-					pointer = pointer->m_Previous;
-					where = where - 1;
-				}
-			}
-		}
-		for (int i = 1; i < _ptList->m_uCount; i++)
-		{
-			if (pointer->m_pNext->m_iObject == what)
-			{
-				if (where >= _ptList->m_uCount)
-				{
-					where = _ptList->m_uCount;
-				}
-				else {
-					printf("%d번째",where);
-					pointer = pointer->m_pNext;
-					where = where + 1;
-				}
-			}
-		}
 		printf("%d번째", where);
+		where = where + 1;
+		BinarySearchByDuplicate(_ptList, target, where, end);
+		where = where - 1;
+		BinarySearchByDuplicate(_ptList, target, start, where);
 	}
+
 	else if (what < target)
 	{
 		where = where + 1;
-		BinarySearchByDuplicate(_ptList, target, where + 1, end - 1);
+		pointer = pointer->m_pNext;
+		BinarySearchByDuplicate(_ptList, target, where, end);
 	}
 	else if (what > target)
 	{
 		where = where - 1;
-		if (where == 1)
-		{
-			where = 2;
-		}
-		BinarySearchByDuplicate(_ptList, target, 0, where - 1);
+		pointer = pointer->m_Previous;
+		BinarySearchByDuplicate(_ptList, target, start, where);
 	}
-	else {
-		printf("유효하지 않는 값입니다.\n");
-		return 0;
+	if (ox != 0)
+	{
+		printf("에 있습니다.\n");
 	}
 }
 void SortByBubble(LinkedList* _ptList)
 {
-	for (int i = 2; i != _ptList->m_uCount; i++)
+
+	for (int i = 1; i != _ptList->m_uCount; i++)
 	{
+		if (_ptList->m_uCount == 0)
+		{
+			printf("노드의 개수가 0개입니다.\n");
+			break;
+		}
+		if (_ptList->m_uCount == 1)
+		{
+			break;
+		}
 		Node* pointer = _ptList->m_pHead;
 		Node* pointerNext = pointer->m_pNext;
 		for (int j = 1; j != _ptList->m_uCount; j++)
@@ -497,13 +524,22 @@ void SortByBubble(LinkedList* _ptList)
 		}
 	}
 }
-void SortByInsertion(LinkedList* _ptList)
+int SortByInsertion(LinkedList* _ptList)
 {
+	if (_ptList->m_uCount == 0)
+	{
+		printf("노드의 개수가 0개입니다.\n");
+		return 0;
+	}
 	Node* pointer = _ptList->m_pHead;
 	for (int i = 1; i < _ptList->m_uCount; i++)
 	{
+		if (_ptList->m_uCount == 1)
+		{
+			break;
+		}
 		Node* Next_pointer = pointer->m_pNext;
-		for (int k = 2; k < _ptList->m_uCount; k++)
+		for (int k = 1; k < _ptList->m_uCount; k++)
 		{
 			if (pointer->m_iObject > Next_pointer->m_iObject)
 			{
@@ -516,12 +552,22 @@ void SortByInsertion(LinkedList* _ptList)
 		}
 		pointer = pointer->m_pNext;
 	} 
+	return 0;
 }
 void SortBySelection(LinkedList* _ptList)
 {
 
 	for (int z = 0; z < _ptList->m_uCount-1; z++)
 	{
+		if (_ptList->m_uCount == 0)
+		{
+			printf("노드의 개수가 0개입니다.\n");
+			break;
+		}
+		if (_ptList->m_uCount == 1)
+		{
+			break;
+		}
 		Node* pointer = _ptList->m_pHead;
 		Node* head = _ptList->m_pHead;
 		int Min;
@@ -885,6 +931,13 @@ int menu()
 			}
 			target = atoi(tmp);
 			system("cls");
+			int mid;
+			if ((1 + master->m_uCount) % 2 == 1) {
+				mid = 1 + master->m_uCount / 2 - 1;
+			}
+			else {
+				mid = 1 + master->m_uCount / 2;
+			}
 			BinarySearchByUnique(master, target,1,master->m_uCount);
 		}
 		else if (number == 15)
@@ -1048,7 +1101,6 @@ int menu()
 				}
 				target = atoi(tmp);
 				BinarySearchByDuplicate(master, target, start, end);
-				printf("에 있습니다.\n");
 			}
 		}
 		else {
