@@ -142,7 +142,7 @@ Node* DeleteFromTail(LinkedList* _ptList)
 void DeleteAll(LinkedList* _ptList)
 {
 	_ptList->m_pCurrent = _ptList->m_pHead;
-	for (int i = _ptList->m_uCount; i > 2; i--)
+	for (int i = _ptList->m_uCount; i > 1; i--)
 	{
 		_ptList->m_pCurrent = _ptList->m_pCurrent->m_pNext;
 		free(_ptList->m_pCurrent->m_Previous);
@@ -240,8 +240,8 @@ Node* Delete(LinkedList* _ptList, int a)
 			SomeThingNext = SomeThing->m_pNext;
 
 
-			SomeThingBefore->m_pNext = SomeThing->m_pNext;
-			SomeThingNext->m_Previous = SomeThing->m_Previous;
+			SomeThingBefore->m_pNext = SomeThingNext;
+			SomeThingNext->m_Previous = SomeThingBefore;
 
 			free(SomeThing);
 			(_ptList->m_uCount)--;
@@ -463,18 +463,14 @@ Node* BinarySearchByDuplicate(LinkedList* _ptList, int target, int start, int en
 		printf("유효하지 않는 값입니다.\n");
 		return 0;
 	}
-	if (count == 0) {
-		printf("에 있습니다.\n");
-		count++;
-	}
 }
 void SortByBubble(LinkedList* _ptList)
 {
-	for (int i = 0; i != _ptList->m_uCount; i++)
+	for (int i = 2; i != _ptList->m_uCount; i++)
 	{
 		Node* pointer = _ptList->m_pHead;
 		Node* pointerNext = pointer->m_pNext;
-		for (int j = 0; j != _ptList->m_uCount; j++)
+		for (int j = 1; j != _ptList->m_uCount; j++)
 		{
 			if (pointer->m_iObject > pointerNext->m_iObject)
 			{
@@ -497,7 +493,7 @@ void SortByInsertion(LinkedList* _ptList)
 	for (int i = 1; i < _ptList->m_uCount; i++)
 	{
 		Node* Next_pointer = pointer->m_pNext;
-		for (int k = 1; k < _ptList->m_uCount; k++)
+		for (int k = 2; k < _ptList->m_uCount; k++)
 		{
 			if (pointer->m_iObject > Next_pointer->m_iObject)
 			{
@@ -509,12 +505,12 @@ void SortByInsertion(LinkedList* _ptList)
 			Next_pointer = Next_pointer->m_pNext;
 		}
 		pointer = pointer->m_pNext;
-	}
+	} 
 }
 void SortBySelection(LinkedList* _ptList)
 {
 
-	for (int z = 0; z < _ptList->m_uCount; z++)
+	for (int z = 0; z < _ptList->m_uCount-1; z++)
 	{
 		Node* pointer = _ptList->m_pHead;
 		Node* head = _ptList->m_pHead;
@@ -1042,6 +1038,7 @@ int menu()
 				}
 				target = atoi(tmp);
 				BinarySearchByDuplicate(master, target, start, end);
+				printf("에 있습니다.\n");
 			}
 		}
 		else {
@@ -1050,4 +1047,4 @@ int menu()
 		Traversal(master);
 	}
 }
-#endif
+#endif 
