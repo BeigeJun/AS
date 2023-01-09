@@ -709,7 +709,7 @@ int menu()
 				continue;
 			}
 			append_num = atoi(tmp);
-			if (append_num < 2147483647 && append_num >= 0)
+			if (append_num < 2147483647 && append_num > 0)
 			{
 				AppendFromHead(master, append_num);
 				Traversal(master);
@@ -717,6 +717,7 @@ int menu()
 			}
 			printf("2147483647이하의 양의 정수를 입력해주십시오\n");
 			continue;
+
 		}
 		else if (number == 2) {
 			char tmp[100];
@@ -743,7 +744,7 @@ int menu()
 				continue;
 			}
 			append_num = atoi(tmp);
-			if (append_num < 2147483647 && append_num >= 0)
+			if (append_num < 2147483647 && append_num > 0)
 			{
 				AppendFromTail(master, append_num);
 				Traversal(master);
@@ -799,7 +800,7 @@ int menu()
 				continue;
 			}
 			append_num = atoi(tmp);
-			if (append_num < 2147483647 && append_num >= 0)
+			if (append_num < 2147483647 && append_num > 0)
 			{
 				Delete(master, append_num);
 				Traversal(master);
@@ -834,7 +835,11 @@ int menu()
 				continue;
 			}
 			aNum = atoi(tmp);
-
+			if (aNum >= 2147483647 || aNum <= 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			printf("노드의 고유 번호를 무엇으로 바꾸시겠습니까? : ");
 
 			rewind(stdin);
@@ -858,6 +863,11 @@ int menu()
 				continue;
 			}
 			bNum = atoi(tmp);
+			if (bNum >= 2147483647 || bNum <= 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			system("cls");
 			Modify(master, aNum, bNum);
 		}
@@ -886,6 +896,11 @@ int menu()
 				continue;
 			}
 			Num = atoi(tmp);
+			if (Num >= 2147483647 || Num <= 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			LinearSearchByUnique(master, Num);
 		}
 		else if (number == 11)
@@ -927,6 +942,11 @@ int menu()
 				continue;
 			}
 			target = atoi(tmp);
+			if (target >= 2147483647 || target <= 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			system("cls");
 			int mid;
 			if ((1 + master->m_uCount) % 2 == 1) {
@@ -963,6 +983,11 @@ int menu()
 				continue;
 			}
 			target = atoi(tmp);
+			if (target >= 2147483647 || target <= 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			system("cls");
 			LinearSearchByDuplicate(master, target);
 		}
@@ -991,6 +1016,11 @@ int menu()
 				continue;
 			}
 			where = atoi(tmp);
+			if (where >= 2147483647 || where <= 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			system("cls");
 			printf("추가할 숫자를 입력하십시오 : ");
 			rewind(stdin);
@@ -1014,6 +1044,11 @@ int menu()
 				continue;
 			}
 			num = atoi(tmp);
+			if (num >= 2147483647 || num <= 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			system("cls");
 			InsertBefor(master, where, num);
 		}
@@ -1042,6 +1077,11 @@ int menu()
 				continue;
 			}
 			where = atoi(tmp);
+			if (where >= 2147483647 || where <= 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			system("cls");
 			printf("추가할 숫자를 입력하십시오 : ");
 			rewind(stdin);
@@ -1065,6 +1105,11 @@ int menu()
 				continue;
 			}
 			num = atoi(tmp);
+			if (num >= 2147483647 || num <= 0)
+			{
+				printf("2147483647이하의 양의 정수를 입력해주십시오\n");
+				continue;
+			}
 			system("cls");
 			InsertAfter(master, where, num);
 		}
