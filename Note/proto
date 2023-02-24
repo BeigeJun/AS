@@ -3,7 +3,7 @@
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, 
 			WPARAM wParam, LPARAM lParam);
 
-LPCTSTR lpszClass = TEXT("김소희의 첫번째 윈도우");			// LPCSTR = char *
+LPCTSTR lpszClass = TEXT("메모짱");			// LPCSTR = char *
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈도우 프로그램이라는 의미
 		   LPSTR lpszCmdLine, int nCmdShow)						 //hInstance : 운영체제의 커널이 응용 프로그램에 부여한 ID
@@ -18,7 +18,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	WndClass.hInstance		= hInstance;						 //응용 프로그램 ID
 	WndClass.hIcon			= LoadIcon(NULL, IDI_QUESTION);	 //아이콘 유형
 	WndClass.hCursor		= LoadCursor(NULL, IDC_ARROW);		 //커서 유형
-	WndClass.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);//배경색   
+	WndClass.hbrBackground	= (HBRUSH)GetStockObject(WHITE_BRUSH);//배경색   
 	WndClass.lpszMenuName	= NULL;								 //메뉴 이름
 	WndClass.lpszClassName	= lpszClass;						 //클래스 이름
 	RegisterClass(&WndClass);									 //앞서 정의한 윈도우 클래스의 주소 // os 에다가 지금 이 클래스를 등록시킴 
@@ -26,10 +26,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	hwnd = CreateWindow(lpszClass,								 //윈도우가 생성되면 핸들(hwnd)이 반환		//실제 윈도우를 만들기 시작 
 		lpszClass,                        
         WS_OVERLAPPEDWINDOW,                        
-        200,                                  
-        300,                           
-        600,               
-        400,                   
+        100,              //x좌표                   
+        100,              //y좌표             
+        640,              //너비
+        480,              //높이     
         NULL,                         
         NULL,                                    
         hInstance,                            
@@ -73,3 +73,33 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	} 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
 }
+
+
+/*
+show window
+- SW_HIDE : 윈도우 숨기기
+- SW_MINIMIZE : 윈도우를 최소화하고 활성화 시키지 않는다
+- SW_RESTORE : 윈도우를 활성화 시킨다
+- SW_SHOW : 윈도우를 활성화하여 보여준다
+- SW_SHOWNORMAL : 윈도우를 활성화하여 보여준다
+
+GetMessage()
+ - 이 함수는 읽어들인 메시지가 프로그램을 종료하라는 WM_QUIT일 경우 FALSE를 리턴하고 그외에는 전부 TRUE를 리턴한다.
+
+TranslateMessage()
+- 문자를 입력하면 그 문자가 입력되었다는 메시지를 만든다.
+
+DispatchMessage()
+- 메시지 큐에서 꺼낸 메시지를 윈도우릐 메시지 처리함수로 전달한다. 이 함수에 의해 메시지가 윈도우로 전달되며 프로그램에서는 전달된 메시지를 점검하여 다음 동작을 결정한다. 이 함수가 메시지를 전달하면 다시 루프의 선두로 돌아가 다음 메시지를 기다린다.
+
+_______________________________________________________________________
+WM_QUIT - 프로그램을 끝낼꺠 발생하는 메시지이다
+WM_LBUTTONDOWN - 마우스의 좌측 버튼을 누를 경우 발생한다
+WM_KEYDOWN - 키보드의 키를 눌렀다
+WM_CHAR - 키보드로부터 문자가 입력될떄 발생한다
+WM_PAINT - 화면을 다시 그려야 할 필요가 있을 떄 발생한다
+WM_CREATE - 윈도우가 처음 만들어질때 발생한다
+WM_DESTROY - 윈도우가 메모리에서 파괴될때 발생한다
+WM_SIZE - 윈도우의 크기가 변경되었을때 발생한다
+_______________________________________________________________________
+*/
