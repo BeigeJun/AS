@@ -28,8 +28,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	hwnd = CreateWindow(lpszClass,								 //윈도우가 생성되면 핸들(hwnd)이 반환		//실제 윈도우를 만들기 시작 
 		lpszClass,                        
         WS_OVERLAPPEDWINDOW,                        
-        100,              //x좌표                   
-        100,              //y좌표             
+        400,              //x좌표                   
+        200,              //y좌표             
         640,              //너비
         480,              //높이     
         NULL,                         
