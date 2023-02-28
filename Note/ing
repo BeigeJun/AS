@@ -1,24 +1,27 @@
-
+//WndClass정의(윈도우의 기반이 되는 클래스를 정의한다) -> CreateWindow(메모리상에 윈도우를 만든다) -> ShowWindow(화면상에 윈도우를 표시한다) -> 메시지루프(사용자로부터 메시
 #include <windows.h>
 
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, 
 			WPARAM wParam, LPARAM lParam);
 
-LPCTSTR lpszClass = TEXT("메모짱");			// LPCSTR = char *
+LPCTSTR lpszClass = TEXT("메모장");			// LPCSTR = char *
 
+///////////////////////////시작점///////////////////////////////
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈도우 프로그램이라는 의미
-		   LPSTR lpszCmdLine, int nCmdShow)						 //hInstance : 운영체제의 커널이 응용 프로그램에 부여한 ID
+		   LPSTR lpszCmdLine, int nCmdShow)						 //hInstance : 운영체제의 커널이 응용 프로그램에 부여한 ID ex) 메모장1 메모장2
 {																 //szCmdLine : 커멘트라인 상에서 프로그램 구동 시 전달된 문자열
 	HWND	hwnd;												 //iCmdShow : 윈도우가 화면에 출력될 형태
 	MSG		msg;
 	WNDCLASS WndClass;											 //WndClass 라는 구조체 정의									 
+
+
 	WndClass.style			= CS_HREDRAW | CS_VREDRAW;			 //출력스타일 : 수직/수평의 변화시 다시 그림		//Horizontal, Vertical 
 	WndClass.lpfnWndProc	= WndProc;							 //프로시저 함수명	
 	WndClass.cbClsExtra		= 0;								 //O/S 사용 여분 메모리 (Class)
 	WndClass.cbWndExtra		= 0;								 //O/s 사용 여분 메모리 (Window)
 	WndClass.hInstance		= hInstance;						 //응용 프로그램 ID
-	WndClass.hIcon			= LoadIcon(NULL, IDI_QUESTION);	 //아이콘 유형
+	WndClass.hIcon			= LoadIcon(NULL, IDI_QUESTION);	     //아이콘 유형
 	WndClass.hCursor		= LoadCursor(NULL, IDC_ARROW);		 //커서 유형
 	WndClass.hbrBackground	= (HBRUSH)GetStockObject(WHITE_BRUSH);//배경색   
 	WndClass.lpszMenuName	= NULL;								 //메뉴 이름
@@ -28,8 +31,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	hwnd = CreateWindow(lpszClass,								 //윈도우가 생성되면 핸들(hwnd)이 반환		//실제 윈도우를 만들기 시작 
 		lpszClass,                        
         WS_OVERLAPPEDWINDOW,                        
-        400,              //x좌표                   
-        200,              //y좌표             
+        100,              //x좌표                   
+        100,              //y좌표             
         640,              //너비
         480,              //높이     
         NULL,                         
@@ -40,10 +43,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	ShowWindow(hwnd, nCmdShow);									 //윈도우의 화면 출력
 	UpdateWindow(hwnd);											 //O/S 에 WM_PAINT 메시지 전송
 
-	while(GetMessage(&msg, NULL, 0, 0))							 //WinProc()에서 PostQuitMessage() 호출 때까지 처리 
+	while(GetMessage(&msg, NULL, 0, 0))							 //WinProc()에서 PostQuitMessage() 호출 때까지 처리 이 함수가 읽어들인 메시지가 프로그램을 종료하라는 WM_Quit일경우 Fail 리턴.
 	{															 // 
-		TranslateMessage(&msg);
+		TranslateMessage(&msg);                                  //키보드 입력 메시지를 가공하여 프로그램에서 쉽게 쓸 수 있도록 해 준다. 
+																 //윈도우즈는 키보드의 어떤 키가 눌러졌다거나 떨어졌을 때 키보드 메시지를 발생시키는데 이 함수는 키보드의 눌림(WM_KEYDOWN)과 떨어짐(WM_KEYUP)이 
+																 //연속적으로 발생할 때 문자가 입력되었다는 메시지(WM_CHAR)를 만드는 역할을 한다. 예를 들어 A키를 누른 후 다시 A키를 떼면 A문자가 입력되었다는 메시지를 만들어 낸다.
+		
+		
 		DispatchMessage(&msg);									 //WinMain -> WinProc  
+																 //시스템 메시지 큐에서 꺼낸 메시지를 프로그램의 메시지 처리 함수(WndProc)로 전달한다. 
+																 //이 함수에 의해 메시지가 프로그램으로 전달되며 프로그램에서는 전달된 메시지를 점검하여 다음 동작을 결정하게 된다.
+																 //메시지 루프에서 하는 일은 메시지를 꺼내고, 필요한 경우 약간 형태를 바꾼 후 응용 프로그램으로 전달하는 것 뿐이다. 이 과정은 WM_QUIT 메시지가 전달될 때까지, 
+		                                                         //즉 프로그램이 종료될때까지 반복된다. 결국 메시지 루프가 하는 일이란 메시지 큐에서 메시지를 꺼내 메시지 처리 함수로 보내주는 것 뿐이다.
+																 //실제 메시지 처리는 별도의 메시지 처리 함수(WndProc)에서 수행한다. 메시지는 시스템의 변화에 대한 정보이며 MSG라는 구조체에 보관된다. MSG 구조체는 다음과 같이 정의되어 있다.
 	}
 	return (int)msg.wParam;
 }
@@ -55,23 +67,80 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 
 	PAINTSTRUCT ps;
+	HDC hdc;
+	static char str[256];
+	int len;
 
-	
-	 
+	static int x=100;
+	static int y=100;
+
 	switch (iMsg) 
 	{
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	case WM_CREATE:			// 윈도우가 생성 (처음생성 될경우) // 단 한번 실행됨 
 		//hdc = GetDC(hwnd);
 		break;
 
+	case WM_CHAR:                            // 4-1-나
+		if ((TCHAR)wParam == 8) {
+			str[0]=0;
+		}
+		else {
+			len = strlen(str);
+			str[len]=(TCHAR)wParam;
+			str[len+1]=0;
+		}
+		InvalidateRect(hwnd,NULL,TRUE);
+		return 0;
 
-	case WM_CHAR:
-		InvalidateRect(hwnd, NULL, TRUE);
-		break; 
+	/*
+	case WM_PAINT:
+		hdc=BeginPaint(hwnd,&ps);
+		TextOut(hdc,0,0,str,strlen(str));
+		EndPaint(hwnd,&ps);
+		return 0;
+	*/
+	case WM_KEYDOWN:
+		switch(wParam) {
+		case VK_LEFT:
+			x-=8;
+			break;
+		case VK_RIGHT:
+			x+=8;
+			break;
+		case VK_UP:
+			y-=8;
+			break;
+		case VK_DOWN:
+			y+=8;
+			break;
+		}
+		InvalidateRect(hwnd,NULL,TRUE);
+		return 0;
+
+	case WM_PAINT:
+		hdc=BeginPaint(hwnd,&ps);
+		TextOut(hdc,x,y,"A",1);
+		EndPaint(hwnd,&ps);
+		return 0;
+	
+	
 
 	case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
-		PostQuitMessage(0);
-		break;
+		int num = MessageBox(hwnd, TEXT("종료하시겠습니까?"),TEXT("메시지 박스"),MB_YESNOCANCEL);
+		switch(num){
+			case IDYES:
+				PostQuitMessage(0);
+				break;
+			case IDNO:
+				PostQuitMessage(0);
+				break;
+			case IDCANCEL:
+				PostQuitMessage(0);
+				break;
+		}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	} 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
 }
