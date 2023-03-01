@@ -4,14 +4,16 @@
 #include <wchar.h>
 #include <stdio.h>
 
-
+#define IDR_MYMENU 101
+#define ID_FILE_SAVE 1001
+#define ID_ABOUT     1002
 #define		ROW			5	//	메모장의 세로 크기
 #define		COL			5	//	메모장의 가로 크기
 
 static TCHAR NOTE[ROW][COL] = { 0, };	//	메모장으로 사용할 이차원 배열
 static size_t coordinate_ROW = 0;		//	메모장(이차원 배열)에서의 문자를 저장할 행 위치
 static size_t coordinate_COL = 0;		//	메모장(이차원 배열)에서의 문자를 저장할 열 위치
-
+HMENU hMenu, hSubMenu;    //메모장 메뉴 생성
 //size_t 는 unsigned int 이며, 문자열이나 메모리의 사이즈를 나타낼 때 사용합니다. "unsigned int"를
 //typedef unsigned int size_t;
 //이렇게 size_t 라는 이름으로 정의해 놓은 것입니다.
@@ -19,6 +21,14 @@ static size_t coordinate_COL = 0;		//	메모장(이차원 배열)에서의 문�
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, 
 			WPARAM wParam, LPARAM lParam);
 
+/*
+void SetWindowTextForDebug( HWND hwnd )
+{
+	TCHAR szStr[128] = { 0, };
+	_stprintf_s( szStr,sizeof(szStr), "행 : %d, 열 : %d", coordinate_ROW,coordinate_COL );
+	SetWindowText( hwnd, szStr );
+}
+*/
 LPCTSTR lpszClass = TEXT("메모장");			// LPCSTR = char *
 
 ///////////////////////////시작점///////////////////////////////
@@ -87,8 +97,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	switch (iMsg) 
 	{
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	case WM_CREATE:
-		break;
+
+
+	case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
+        hMenu = CreateMenu();
+
+        hSubMenu = CreatePopupMenu();
+        AppendMenu(hSubMenu, MF_STRING, ID_FILE_SAVE, "Save");
+        AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "File");
+
+        hSubMenu = CreatePopupMenu();
+        AppendMenu(hSubMenu, MF_STRING, ID_ABOUT, "Help");
+        AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "About");
+
+        SetMenu(hwnd, hMenu);
+        break;
+
 
 	case WM_CHAR:
 		{
@@ -114,7 +138,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		EndPaint(hwnd,&ps);
 		return 0;
 	
-	case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
+	case WM_CLOSE:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
 		int num = MessageBox(hwnd, TEXT("종료하시겠습니까?"),TEXT("메시지 박스"),MB_YESNOCANCEL);
 		switch(num){
 			case IDYES:
