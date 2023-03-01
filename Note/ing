@@ -1,6 +1,20 @@
+
 //WndClass정의(윈도우의 기반이 되는 클래스를 정의한다) -> CreateWindow(메모리상에 윈도우를 만든다) -> ShowWindow(화면상에 윈도우를 표시한다) -> 메시지루프(사용자로부터 메시
 #include <windows.h>
+#include <wchar.h>
+#include <stdio.h>
 
+
+#define		ROW			5	//	메모장의 세로 크기
+#define		COL			5	//	메모장의 가로 크기
+
+static TCHAR NOTE[ROW][COL] = { 0, };	//	메모장으로 사용할 이차원 배열
+static size_t coordinate_ROW = 0;		//	메모장(이차원 배열)에서의 문자를 저장할 행 위치
+static size_t coordinate_COL = 0;		//	메모장(이차원 배열)에서의 문자를 저장할 열 위치
+
+//size_t 는 unsigned int 이며, 문자열이나 메모리의 사이즈를 나타낼 때 사용합니다. "unsigned int"를
+//typedef unsigned int size_t;
+//이렇게 size_t 라는 이름으로 정의해 놓은 것입니다.
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, 
 			WPARAM wParam, LPARAM lParam);
@@ -30,7 +44,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 
 	hwnd = CreateWindow(lpszClass,								 //윈도우가 생성되면 핸들(hwnd)이 반환		//실제 윈도우를 만들기 시작 
 		lpszClass,                        
-        WS_OVERLAPPEDWINDOW,                        
+        WS_OVERLAPPEDWINDOW|  
+            WS_HSCROLL | WS_VSCROLL,                        
         100,              //x좌표                   
         100,              //y좌표             
         640,              //너비
@@ -60,72 +75,45 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	return (int)msg.wParam;
 }
 
-HDC hdc;
-
-
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
-
 	PAINTSTRUCT ps;
 	HDC hdc;
 	static char str[256];
 	int len;
-
-	static int x=100;
-	static int y=100;
+	static int x=0;
+	static int y=0;
 
 	switch (iMsg) 
 	{
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	case WM_CREATE:			// 윈도우가 생성 (처음생성 될경우) // 단 한번 실행됨 
-		//hdc = GetDC(hwnd);
+	case WM_CREATE:
 		break;
 
-	case WM_CHAR:                            // 4-1-나
-		if ((TCHAR)wParam == 8) {
-			str[0]=0;
-		}
-		else {
+	case WM_CHAR:
+		{
+			switch(wParam)
+			{
+			case VK_RETURN:
+				{
+				}
+			case VK_BACK:
+				{
+					int strLen = strlen( NOTE[coordinate_ROW] );
+				}
+			}
 			len = strlen(str);
 			str[len]=(TCHAR)wParam;
 			str[len+1]=0;
+			InvalidateRect(hwnd,NULL,TRUE);
+			return 0;
 		}
-		InvalidateRect(hwnd,NULL,TRUE);
-		return 0;
-
-	/*
 	case WM_PAINT:
 		hdc=BeginPaint(hwnd,&ps);
 		TextOut(hdc,0,0,str,strlen(str));
 		EndPaint(hwnd,&ps);
 		return 0;
-	*/
-	case WM_KEYDOWN:
-		switch(wParam) {
-		case VK_LEFT:
-			x-=8;
-			break;
-		case VK_RIGHT:
-			x+=8;
-			break;
-		case VK_UP:
-			y-=8;
-			break;
-		case VK_DOWN:
-			y+=8;
-			break;
-		}
-		InvalidateRect(hwnd,NULL,TRUE);
-		return 0;
-
-	case WM_PAINT:
-		hdc=BeginPaint(hwnd,&ps);
-		TextOut(hdc,x,y,"A",1);
-		EndPaint(hwnd,&ps);
-		return 0;
 	
-	
-
 	case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
 		int num = MessageBox(hwnd, TEXT("종료하시겠습니까?"),TEXT("메시지 박스"),MB_YESNOCANCEL);
 		switch(num){
@@ -138,9 +126,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			case IDCANCEL:
 				PostQuitMessage(0);
 				break;
+			}
 		}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	} 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
 }
