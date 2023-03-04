@@ -96,7 +96,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 
    case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
-	   /*
+      /*
         hMenu = CreateMenu();
 
         hSubMenu = CreatePopupMenu();
@@ -108,10 +108,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
         AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "About");
 
         SetMenu(hwnd, hMenu);
-				*/
+            */
         break;
 
-	case WM_SETFOCUS:  
+   case WM_SETFOCUS:  
         CreateCaret(hwnd, (HBITMAP) NULL, 2, 12); 
         SetCaretPos(0, 12); 
         ShowCaret(hwnd); 
@@ -184,18 +184,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                InvalidateRect( hwnd, NULL, TRUE );
                return 0;
             }
-			case VK_LEFT:
-				coordinate_ROW-=1;
-				break;
-			case VK_RIGHT:
-				coordinate_ROW+=1;
-				break;
-			case VK_UP:
-				coordinate_COL-=1;
-				break;
-			case VK_DOWN:
-				coordinate_COL+=1;
-				break;
+         case VK_LEFT:
+            coordinate_ROW-=1;
+            break;
+         case VK_RIGHT:
+            coordinate_ROW+=1;
+            break;
+         case VK_UP:
+            coordinate_COL-=1;
+            break;
+         case VK_DOWN:
+            coordinate_COL+=1;
+            break;
          }
          
          /*   메모장의 라인을 벗어난 경우로 더 이상 글쓰기 불가   */
