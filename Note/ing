@@ -96,7 +96,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 
    case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
-      /*
         hMenu = CreateMenu();
 
         hSubMenu = CreatePopupMenu();
@@ -108,7 +107,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
         AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "About");
 
         SetMenu(hwnd, hMenu);
-            */
         break;
 
    case WM_SETFOCUS:  
