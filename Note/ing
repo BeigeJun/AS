@@ -96,6 +96,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 
    case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
+      /*
         hMenu = CreateMenu();
 
         hSubMenu = CreatePopupMenu();
@@ -107,11 +108,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
         AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "About");
 
         SetMenu(hwnd, hMenu);
+            */
         break;
 
    case WM_SETFOCUS:  
         CreateCaret(hwnd, (HBITMAP) NULL, 2, 12); 
-        SetCaretPos(0, 12); 
+        SetCaretPos(0, 0); 
         ShowCaret(hwnd); 
         break; 
 
@@ -134,7 +136,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                   coordinate_ROW = ROW;
 
               // SetWindowTextForDebug( hwnd );   //   위치를 표시
-
+			   SetCaretPos(coordinate_COL*9, coordinate_ROW*16);
                InvalidateRect( hwnd, NULL, FALSE );
 
                return 0;
@@ -172,7 +174,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                   //g_curColIndex--;
 
               //    SetWindowTextForDebug( hwnd );
-
+				  SetCaretPos(coordinate_COL*9, coordinate_ROW*16);
                   InvalidateRect( hwnd, NULL, TRUE );
                   return 0;
                }
@@ -182,18 +184,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                InvalidateRect( hwnd, NULL, TRUE );
                return 0;
             }
-         case VK_LEFT:
-            coordinate_ROW-=1;
-            break;
-         case VK_RIGHT:
-            coordinate_ROW+=1;
-            break;
-         case VK_UP:
-            coordinate_COL-=1;
-            break;
-         case VK_DOWN:
-            coordinate_COL+=1;
-            break;
+			 case VK_HOME:       // Home 
+                    break; 
+ 
+                case VK_END:        // End 
+                    break; 
+ 
+                case VK_PRIOR:      // Page Up 
+                    break; 
+ 
+                case VK_NEXT:       // Page Down 
+                    break; 
+ 
+                case VK_LEFT:       // Left arrow 
+                    break; 
+ 
+                case VK_RIGHT:      // Right arrow 
+                    break; 
+ 
+                case VK_UP:         // Up arrow 
+                    break; 
+ 
+                case VK_DOWN:       // Down arrow 
+                    break; 
          }
          
          /*   메모장의 라인을 벗어난 경우로 더 이상 글쓰기 불가   */
@@ -212,6 +225,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
             NOTE[coordinate_ROW][coordinate_COL] = (TCHAR)wParam;         
             NOTE[coordinate_ROW][coordinate_COL + 1] = NULL;         
             coordinate_COL++;
+
             
             /*   다음에 데이터를 저장할 열의 위치가 널 문자의 위치인 경우 개행 */
             if ( coordinate_COL == COL - 1 )
@@ -225,9 +239,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
          }
          
      //    SetWindowTextForDebug( hwnd );         //   위치를 표시
-
+		 SetCaretPos(coordinate_COL*9, coordinate_ROW*16);
          InvalidateRect( hwnd, NULL, FALSE );
-
          break;
       }
 
@@ -236,12 +249,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
          HDC hDC;
          PAINTSTRUCT ps;
 
+
          hDC = BeginPaint( hwnd, &ps );
          
          //   이차원 배열의 각 행들이 문자열이므로, 행을 탐색해서 문자열 출력
          for( int i = 0; i < ROW; i++ )
          {
-            TextOut( hDC, 0, 10 + 16*i , NOTE[i], lstrlen( NOTE[i] ) );
+            TextOut( hDC, 0,16*i , NOTE[i], lstrlen( NOTE[i] ) );
          }
 
 
