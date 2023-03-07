@@ -89,13 +89,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
-
-   switch (iMsg) 
+	SIZE size;
+	HDC hDC;
+    PAINTSTRUCT ps;
+	static int pos = 0;
+    switch (iMsg) 
    {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-   case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
+    case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
       /*
         hMenu = CreateMenu();
 
@@ -109,15 +112,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
         SetMenu(hwnd, hMenu);
             */
-        break;
+         break;
 
-   case WM_SETFOCUS:  
-        CreateCaret(hwnd, (HBITMAP) NULL, 2, 12); 
-        SetCaretPos(0, 0); 
-        ShowCaret(hwnd); 
-        break; 
+    case WM_SETFOCUS:  
+            CreateCaret(hwnd, (HBITMAP) NULL, 2, 12); 
+            SetCaretPos(0, 0); 
+            ShowCaret(hwnd); 
+            break; 
+    case WM_KILLFOCUS:
+            HideCaret(hwnd); // 캐럿 숨기기
+            DestroyCaret(); // 캐럿 파괴
+            break;
 
-   case WM_CHAR:
+    case WM_CHAR:
       {
          switch(wParam)
          {
@@ -225,6 +232,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
             NOTE[coordinate_ROW][coordinate_COL] = (TCHAR)wParam;         
             NOTE[coordinate_ROW][coordinate_COL + 1] = NULL;         
             coordinate_COL++;
+			
 
             
             /*   다음에 데이터를 저장할 열의 위치가 널 문자의 위치인 경우 개행 */
@@ -239,35 +247,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
          }
          
      //    SetWindowTextForDebug( hwnd );         //   위치를 표시
-		 SetCaretPos(coordinate_COL*9, coordinate_ROW*16);
+		 
          InvalidateRect( hwnd, NULL, FALSE );
          break;
       }
 
-   case WM_PAINT:
+    case WM_PAINT:
       {
-         HDC hDC;
-         PAINTSTRUCT ps;
-
-
-         hDC = BeginPaint( hwnd, &ps );
-         
+		 hDC = BeginPaint( hwnd, &ps );
          //   이차원 배열의 각 행들이 문자열이므로, 행을 탐색해서 문자열 출력
          for( int i = 0; i < ROW; i++ )
          {
             TextOut( hDC, 0,16*i , NOTE[i], lstrlen( NOTE[i] ) );
          }
-
-
+		 GetTextExtentPoint(hDC, NOTE[coordinate_ROW], lstrlen(NOTE[coordinate_ROW]), &size);
+		 SetCaretPos(size.cx, coordinate_ROW*16);
          EndPaint( hwnd, &ps );
-
          break;
       }
    
    
    
    
-   case WM_CLOSE:         //프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
+    case WM_CLOSE:         //프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
       int num = MessageBox(hwnd, TEXT("종료하시겠습니까?"),TEXT("메시지 박스"),MB_YESNOCANCEL);
       switch(num){
          case IDYES:
