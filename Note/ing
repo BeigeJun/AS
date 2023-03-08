@@ -99,20 +99,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 
     case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
-      /*
         hMenu = CreateMenu();
 
         hSubMenu = CreatePopupMenu();
-        AppendMenu(hSubMenu, MF_STRING, ID_FILE_SAVE, "Save");
-        AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "File");
+        AppendMenu(hSubMenu, MF_STRING, ID_FILE_SAVE, L"&Save");
+        AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, L"&File");
 
         hSubMenu = CreatePopupMenu();
-        AppendMenu(hSubMenu, MF_STRING, ID_ABOUT, "Help");
-        AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "About");
+        AppendMenu(hSubMenu, MF_STRING, ID_ABOUT, L"&Help");
+        AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, L"&About");
 
         SetMenu(hwnd, hMenu);
-            */
-         break;
+        break;
 
     case WM_SETFOCUS:  
             CreateCaret(hwnd, (HBITMAP) NULL, 2, 12); 
