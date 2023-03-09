@@ -12,8 +12,8 @@
 #define      COL         10   //   메모장의 가로 크기
 
 static TCHAR NOTE[ROW][COL] = { 0, };   //   메모장으로 사용할 이차원 배열
-static size_t coordinate_ROW = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 행 위치
-static size_t coordinate_COL = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 열 위치
+static size_t Line = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 행 위치
+static size_t Word = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 열 위치
 HMENU hMenu, hSubMenu;    //메모장 메뉴 생성
 //size_t 는 unsigned int 이며, 문자열이나 메모리의 사이즈를 나타낼 때 사용합니다. "unsigned int"를
 //typedef unsigned int size_t;
@@ -129,19 +129,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
             case VK_RETURN:   //   엔터 키가 눌린 경우
             {
                /*   개행이 가능한지 확인   */
-               if( coordinate_ROW< ROW - 1 )
+               if( Line< ROW - 1 )
                {
-                  NOTE[coordinate_ROW][coordinate_COL] = NULL;      
+                  NOTE[Line][Word] = NULL;      
                }
 
-               coordinate_ROW++;      
-               coordinate_COL = 0;   
+               Line++;      
+               Word = 0;   
                
-               if ( coordinate_ROW >= ROW )
-                  coordinate_ROW = ROW;
+               if ( Line >= ROW )
+                  Line = ROW;
 
               // SetWindowTextForDebug( hwnd );   //   위치를 표시
-			   SetCaretPos(coordinate_COL*9, coordinate_ROW*16);
+			   SetCaretPos(Word*9, Line*16);
                InvalidateRect( hwnd, NULL, FALSE );
 
                return 0;
@@ -149,9 +149,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
             case VK_BACK:   //   백스페이스 키가 눌린 경우
             {
-               if ( coordinate_ROW == 0 && coordinate_COL == 0 )
+               if ( Line == 0 && Word == 0 )
                {
-                  NOTE[coordinate_ROW][coordinate_COL] = NULL;
+                  NOTE[Line][Word] = NULL;
 
                //   SetWindowTextForDebug( hwnd );
 
@@ -160,26 +160,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                   return 0;
                }
                
-               if( coordinate_COL == 0 )
+               if( Word == 0 )
                {
-                  if ( coordinate_ROW < ROW )
-                     NOTE[coordinate_ROW][coordinate_COL] = NULL;
+                  if ( Line < ROW )
+                     NOTE[Line][Word] = NULL;
                   
-                  coordinate_ROW--;
+                  Line--;
                   
-                  int strLen = wcslen( NOTE[coordinate_ROW] );
+                  int strLen = wcslen( NOTE[Line] );
 
-                  if ( strLen == 0 )      coordinate_COL = 0;
-                  else               coordinate_COL = strLen;
+                  if ( strLen == 0 )      Word = 0;
+                  else               Word = strLen;
                }
 
                else
                {
-                  NOTE[coordinate_ROW][--coordinate_COL] = NULL;
+                  NOTE[Line][--Word] = NULL;
                   //g_curColIndex--;
 
-              //    SetWindowTextForDebug( hwnd );
-				  SetCaretPos(coordinate_COL*9, coordinate_ROW*16);
+              //    SetWindowTextForDebug( hwnd )
                   InvalidateRect( hwnd, NULL, TRUE );
                   return 0;
                }
@@ -215,32 +214,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
          }
          
          /*   메모장의 라인을 벗어난 경우로 더 이상 글쓰기 불가   */
-         if ( coordinate_ROW >=ROW )
+         if ( Line >=ROW )
          {
-            coordinate_ROW = ROW;
-            coordinate_COL= 0;
+            Line = ROW;
+            Word= 0;
 
        //     SetWindowTextForDebug( hwnd );      //   위치를 표시
 
             return 0;
          }
       
-         if( coordinate_ROW < ROW )
+         if( Line < ROW )
          {
-            NOTE[coordinate_ROW][coordinate_COL] = (TCHAR)wParam;         
-            NOTE[coordinate_ROW][coordinate_COL + 1] = NULL;         
-            coordinate_COL++;
+            NOTE[Line][Word] = (TCHAR)wParam;         
+            NOTE[Line][Word + 1] = NULL;         
+            Word++;
 			
 
             
             /*   다음에 데이터를 저장할 열의 위치가 널 문자의 위치인 경우 개행 */
-            if ( coordinate_COL == COL - 1 )
+            if ( Word == COL - 1 )
             {
-               coordinate_COL = 0;
-               coordinate_ROW++;
+               Word = 0;
+               Line++;
 
-               if ( coordinate_ROW >= ROW )
-                  coordinate_ROW = ROW;
+               if ( Line >= ROW )
+                  Line = ROW;
             }
          }
          
@@ -258,8 +257,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
          {
             TextOut( hDC, 0,16*i , NOTE[i], lstrlen( NOTE[i] ) );
          }
-		 GetTextExtentPoint(hDC, NOTE[coordinate_ROW], lstrlen(NOTE[coordinate_ROW]), &size);
-		 SetCaretPos(size.cx, coordinate_ROW*16);
+		 GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+		 SetCaretPos(size.cx, Line*16);
          EndPaint( hwnd, &ps );
          break;
       }
