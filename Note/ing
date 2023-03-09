@@ -90,9 +90,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
 	SIZE size;
-	HDC hDC;
+	HDC hDC = GetDC(hwnd);
     PAINTSTRUCT ps;
 	static int pos = 0;
+
+	int F_Line = 0;
+	int F_Wored = 0;
     switch (iMsg) 
    {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +144,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                   Line = ROW;
 
               // SetWindowTextForDebug( hwnd );   //   위치를 표시
-			   SetCaretPos(Word*9, Line*16);
+			   GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+			   SetCaretPos(size.cx, Line*16);
                InvalidateRect( hwnd, NULL, FALSE );
 
                return 0;
@@ -154,7 +158,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                   NOTE[Line][Word] = NULL;
 
                //   SetWindowTextForDebug( hwnd );
-
+				  GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+			      SetCaretPos(size.cx, Line*16);
                   InvalidateRect( hwnd, NULL, TRUE );
             
                   return 0;
@@ -179,38 +184,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                   //g_curColIndex--;
 
               //    SetWindowTextForDebug( hwnd )
+				  GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+			      SetCaretPos(size.cx, Line*16);
                   InvalidateRect( hwnd, NULL, TRUE );
                   return 0;
                }
                
           //     SetWindowTextForDebug( hwnd );
-
+			   GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+			   SetCaretPos(size.cx, Line*16);
                InvalidateRect( hwnd, NULL, TRUE );
                return 0;
             }
-			 case VK_HOME:       // Home 
-                    break; 
- 
-                case VK_END:        // End 
-                    break; 
- 
-                case VK_PRIOR:      // Page Up 
-                    break; 
- 
-                case VK_NEXT:       // Page Down 
-                    break; 
- 
-                case VK_LEFT:       // Left arrow 
-                    break; 
- 
-                case VK_RIGHT:      // Right arrow 
-                    break; 
- 
-                case VK_UP:         // Up arrow 
-                    break; 
- 
-                case VK_DOWN:       // Down arrow 
-                    break; 
          }
          
          /*   메모장의 라인을 벗어난 경우로 더 이상 글쓰기 불가   */
@@ -230,7 +215,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
             NOTE[Line][Word + 1] = NULL;         
             Word++;
 			
-
             
             /*   다음에 데이터를 저장할 열의 위치가 널 문자의 위치인 경우 개행 */
             if ( Word == COL - 1 )
@@ -244,12 +228,83 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
          }
          
      //    SetWindowTextForDebug( hwnd );         //   위치를 표시
-		 
+		 GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+		 SetCaretPos(size.cx, Line*16);
          InvalidateRect( hwnd, NULL, FALSE );
          break;
       }
 
-    case WM_PAINT:
+	case WM_KEYDOWN:
+				switch(wParam){
+				case VK_HOME:       // Home 
+					SetCaretPos(0, Line*16);
+					InvalidateRect(hwnd, NULL, TRUE);
+		            break; 
+
+			    case VK_END:        // End 
+					GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+					SetCaretPos(size.cx, Line*16);
+					InvalidateRect(hwnd, NULL, TRUE);
+					break; 
+ 
+				case VK_PRIOR:      // Page Up 
+					break; 
+ 
+				case VK_NEXT:       // Page Down 
+					break; 
+ 
+				case VK_LEFT:       // Left arrow
+					if(0==lstrlen(NOTE[Line]))
+					{
+						Line--;
+						Word = lstrlen(NOTE[Line]);
+					}
+					else
+					{
+						Word--;
+					}
+					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+					SetCaretPos(size.cx, Line*16);
+					InvalidateRect(hwnd, NULL, TRUE);
+					break; 
+ 
+				case VK_RIGHT:      // Right arrow
+					if(ROW == lstrlen(NOTE[Line]))
+					{
+						Line++;
+						Word = 0;
+					}
+					else{
+						Word++;
+					}
+					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+					SetCaretPos(size.cx, Line*16);
+					InvalidateRect(hwnd, NULL, TRUE);
+					break; 
+ 
+				case VK_UP:         // Up arrow 
+					if(Line != 0)
+					{
+						Line--;
+					}
+					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+					SetCaretPos(size.cx, Line*16);
+					InvalidateRect(hwnd, NULL, TRUE);
+
+					break; 
+ 
+				case VK_DOWN:       // Down arrow 
+					if(Line != ROW)
+					{
+						Line++;
+					}
+					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+					SetCaretPos(size.cx, Line*16);
+					InvalidateRect(hwnd, NULL, TRUE);
+					break; 
+			}
+
+	case WM_PAINT:
       {
 		 hDC = BeginPaint( hwnd, &ps );
          //   이차원 배열의 각 행들이 문자열이므로, 행을 탐색해서 문자열 출력
@@ -257,8 +312,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
          {
             TextOut( hDC, 0,16*i , NOTE[i], lstrlen( NOTE[i] ) );
          }
-		 GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
-		 SetCaretPos(size.cx, Line*16);
          EndPaint( hwnd, &ps );
          break;
       }
