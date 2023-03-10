@@ -11,10 +11,6 @@
 #define      ROW         10   //   메모장의 세로 크기
 #define      COL         10   //   메모장의 가로 크기
 
-static TCHAR NOTE[ROW][COL] = { 0, };   //   메모장으로 사용할 이차원 배열
-static size_t Line = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 행 위치
-static size_t Word = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 열 위치
-int F_Line = 0;
 HMENU hMenu, hSubMenu;    //메모장 메뉴 생성
 //size_t 는 unsigned int 이며, 문자열이나 메모리의 사이즈를 나타낼 때 사용합니다. "unsigned int"를
 //typedef unsigned int size_t;
@@ -87,6 +83,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
    }
    return (int)msg.wParam;
 }
+
+HDC hdc;
+static TCHAR NOTE[ROW][COL] = { 0, };   //   메모장으로 사용할 이차원 배열
+static size_t Line = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 행 위치
+static size_t Word = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 열 위치
+int F_Line = 0;
+int BF_Word = 0;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
@@ -281,6 +284,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							Line++;
 							Word = 0;
 						}
+						else if(Line == F_Line)
+						{}
 					}
 					else{
 						Word++;
@@ -293,6 +298,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				case VK_UP:         // Up arrow 
 					if(Line != 0)
 					{
+						if(lstrlen(NOTE[Line-1])<Word)
+						{
+							Word = lstrlen(NOTE[Line-1]);
+						}
 						Line--;
 					}
 					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
@@ -304,8 +313,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				case VK_DOWN:       // Down arrow 
 					if(Line != F_Line)
 					{
+						if(lstrlen(NOTE[Line+1])<Word)
+						{
+							Word = lstrlen(NOTE[Line+1]);
+						}
 						Line++;
 					}
+					else if(Line==F_Line)
+					{}
 					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 					SetCaretPos(size.cx, Line*16);
 					InvalidateRect(hwnd, NULL, TRUE);
