@@ -14,6 +14,7 @@
 static TCHAR NOTE[ROW][COL] = { 0, };   //   메모장으로 사용할 이차원 배열
 static size_t Line = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 행 위치
 static size_t Word = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 열 위치
+int F_Line = 0;
 HMENU hMenu, hSubMenu;    //메모장 메뉴 생성
 //size_t 는 unsigned int 이며, 문자열이나 메모리의 사이즈를 나타낼 때 사용합니다. "unsigned int"를
 //typedef unsigned int size_t;
@@ -94,8 +95,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
     PAINTSTRUCT ps;
 	static int pos = 0;
 
-	int F_Line = 0;
-	int F_Wored = 0;
+
     switch (iMsg) 
    {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,7 +115,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
         SetMenu(hwnd, hMenu);
         break;
 
-    case WM_SETFOCUS:  
+    case WM_SETFOCUS:                                   //처음 캐럿을 만들어주는 문자가 시작하는 위치
             CreateCaret(hwnd, (HBITMAP) NULL, 2, 12); 
             SetCaretPos(0, 0); 
             ShowCaret(hwnd); 
@@ -132,12 +132,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
             case VK_RETURN:   //   엔터 키가 눌린 경우
             {
                /*   개행이 가능한지 확인   */
-               if( Line< ROW - 1 )
+               if( Line< ROW - 1 )                
                {
                   NOTE[Line][Word] = NULL;      
                }
 
-               Line++;      
+               Line++;
+			   F_Line++;
                Word = 0;   
                
                if ( Line >= ROW )
@@ -170,7 +171,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                   if ( Line < ROW )
                      NOTE[Line][Word] = NULL;
                   
-                  Line--;
+                  Line--;F_Line--;
                   
                   int strLen = wcslen( NOTE[Line] );
 
@@ -221,6 +222,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
             {
                Word = 0;
                Line++;
+			   F_Line++;
 
                if ( Line >= ROW )
                   Line = ROW;
@@ -254,10 +256,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					break; 
  
 				case VK_LEFT:       // Left arrow
-					if(0==lstrlen(NOTE[Line]))
+					if(Word==0)
 					{
-						Line--;
-						Word = lstrlen(NOTE[Line]);
+						if(Line!=0)
+						{
+							Line--;
+							Word = lstrlen(NOTE[Line]);
+						}
 					}
 					else
 					{
@@ -269,10 +274,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					break; 
  
 				case VK_RIGHT:      // Right arrow
-					if(ROW == lstrlen(NOTE[Line]))
+					if(Word == lstrlen(NOTE[Line]))
 					{
-						Line++;
-						Word = 0;
+						if(Line!=F_Line)
+						{
+							Line++;
+							Word = 0;
+						}
 					}
 					else{
 						Word++;
@@ -294,7 +302,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					break; 
  
 				case VK_DOWN:       // Down arrow 
-					if(Line != ROW)
+					if(Line != F_Line)
 					{
 						Line++;
 					}
