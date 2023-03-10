@@ -8,8 +8,8 @@
 #define ID_FILE_SAVE 1001
 #define ID_ABOUT     1002
 
-#define      ROW         10   //   메모장의 세로 크기
-#define      COL         10   //   메모장의 가로 크기
+#define      ROW         1000   //   메모장의 세로 크기
+#define      COL         100   //   메모장의 가로 크기
 
 HMENU hMenu, hSubMenu;    //메모장 메뉴 생성
 //size_t 는 unsigned int 이며, 문자열이나 메모리의 사이즈를 나타낼 때 사용합니다. "unsigned int"를
@@ -135,14 +135,52 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
             case VK_RETURN:   //   엔터 키가 눌린 경우
             {
                /*   개행이 가능한지 확인   */
-               if( Line< ROW - 1 )                
+				/*
+               if( F_Line< ROW - 1 )                
                {
-                  NOTE[Line][Word] = NULL;      
+                  NOTE[F_Line][Word] = NULL;      
                }
+			   */
+			   if(lstrlen(NOTE[Line])==Word)
+			   {	
+				   if(F_Line==Line)               //맨 마지막 문장인데 그 문장에서 젤 끝에서 엔터쳤을때
+				   {
+					   Line++;
+					   F_Line++;
+				       Word = 0;
+				   }
+				   else if(F_Line!=Line)  // 문장 중간인데 그 문장의 끝에서 엔터 쳤을때
+				   {
+					   for(int i = F_Line ; i > F_Line - Line; i--)
+					   {
+						   for(int j = lstrlen(NOTE[i]) ; j > 0 ; j-- )
+						   {
+							   NOTE[i+1][j] = NOTE[i][j];
+							   NOTE[i][j] = NULL;
+						   }
+					   }
+					   F_Line++;
+					   Line++;
+					   GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+					   SetCaretPos(size.cx, Line*16);
+                       
 
-               Line++;
-			   F_Line++;
-               Word = 0;   
+				   }
+			   }
+			   else  ///문자 중간에서 엔터쳤을때
+			   {
+				   /*
+				   for(int i = F_Line ; i >= F_Line - Line ; i--)
+				   {
+					   for(int j = 0 ; j < lstrlen(NOTE[i]) ; j++ )
+					   {
+						   NOTE[i+1][j] = NOTE[i][j];
+						   NOTE[i][j] = NULL;
+					   }
+				   }
+				   */
+				  
+			   }
                
                if ( Line >= ROW )
                   Line = ROW;
@@ -168,7 +206,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
             
                   return 0;
                }
-               
+
+
                if( Word == 0 )
                {
                   if ( Line < ROW )
@@ -207,33 +246,41 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
          {
             Line = ROW;
             Word= 0;
-
-       //     SetWindowTextForDebug( hwnd );      //   위치를 표시
-
             return 0;
          }
-      
-         if( Line < ROW )
-         {
-            NOTE[Line][Word] = (TCHAR)wParam;         
-            NOTE[Line][Word + 1] = NULL;         
-            Word++;
+		 if(lstrlen(NOTE[Line])==Word)   // 맨 끝에서 입력할 때
+		 {
+			if( Line < ROW )
+			{
+				NOTE[Line][Word] = (TCHAR)wParam;         
+				NOTE[Line][Word + 1] = NULL;         
+				Word++;
 			
             
             /*   다음에 데이터를 저장할 열의 위치가 널 문자의 위치인 경우 개행 */
-            if ( Word == COL - 1 )
-            {
-               Word = 0;
-               Line++;
-			   F_Line++;
+				if ( Word == COL - 1 )
+				{
+			      Word = 0;
+		          Line++;
+			      F_Line++;
 
-               if ( Line >= ROW )
-                  Line = ROW;
-            }
-         }
-         
+				  if ( Line >= ROW )
+					    Line = ROW;
+				}
+			}
+		 }
+		 else if(lstrlen(NOTE[Line])!=Word)       //중간에서 입력할때
+		 {
+			 for(int i = lstrlen(NOTE[Line]) ; i>Word ; i--)
+			 {
+				 NOTE[Line][i] = NOTE[Line][i-1];
+			 }
+			 NOTE[Line][Word] = (TCHAR)wParam;                  
+			 Word++;
+			 InvalidateRect( hwnd, NULL, FALSE );
+		 }
      //    SetWindowTextForDebug( hwnd );         //   위치를 표시
-		 GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+		 GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 		 SetCaretPos(size.cx, Line*16);
          InvalidateRect( hwnd, NULL, FALSE );
          break;
