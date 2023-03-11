@@ -192,40 +192,44 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			
                if ( Line == 0 && Word == 0 )
                {
-				/*
-                  NOTE[Line][Word] = NULL;
-				*/
-               //   SetWindowTextForDebug( hwnd );
 				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 			      SetCaretPos(size.cx, Line*16);
                   InvalidateRect( hwnd, NULL, TRUE );
-            
                   return 0;
                }
 
 
                if( Word == 0 )
                {                                              //중간줄 삭제
-					if(Word == lstrlen(NOTE[Line]))
-					{
-						for(int i = Line ; F_Line > i ; i ++)
+					
+						BF_Word = lstrlen(NOTE[Line-1]);
+
+						for(int i = 0; i < lstrlen(NOTE[Line]) ; i++)
 						{
-							for( int j = 0 ; lstrlen(NOTE[i+1]) ; j++)
+							NOTE[Line-1][i+BF_Word] = NOTE[Line][i];
+							
+						}
+						if(F_Line>Line)
+						{
+							for(int i = Line; F_Line > i ; i++)
 							{
-								NOTE[i][j] = NOTE[i+1][j];
+								for(int j = 0 ; lstrlen(NOTE[i+1]) > j ; j++)
+								{
+									NOTE[i][j] = NOTE[i+1][j];
+								}
 							}
 						}
+						NOTE[F_Line][0] = NULL; // 이게되네...
 						F_Line--;
 						Line--;
-						Word = lstrlen(NOTE[Line]);
+						Word = BF_Word;
 						GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
 						SetCaretPos(size.cx, Line*16);
 						InvalidateRect( hwnd, NULL, TRUE );
-					}
-					else
-					{
-					   return 0 ;
-					}
+
+
+						
+					
                }
 
                else
@@ -248,11 +252,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                   InvalidateRect( hwnd, NULL, TRUE );
                   return 0;
                }
-               
-          //     SetWindowTextForDebug( hwnd );
-			   GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
-			   SetCaretPos(size.cx, Line*16);
-               InvalidateRect( hwnd, NULL, TRUE );
                return 0;
             }
          }
