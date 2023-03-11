@@ -18,14 +18,7 @@ HMENU hMenu, hSubMenu;    //메모장 메뉴 생성
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, 
          WPARAM wParam, LPARAM lParam);
-/*
-void SetWindowTextForDebug( HWND hwnd )
-{
-   TCHAR szStr[128] = { 0, };
-   _stprintf_s( szStr,sizeof(szStr), "행 : %d, 열 : %d", coordinate_ROW,coordinate_COL );
-   SetWindowText( hwnd, szStr );
-}
-*/
+
 LPCTSTR lpszClass = TEXT("메모장");         // LPCSTR = char *
 
 ///////////////////////////시작점///////////////////////////////
@@ -151,6 +144,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				   }
 				   else if(F_Line!=Line)  // 문장 중간인데 그 문장의 끝에서 엔터 쳤을때
 				   {
+					   /*
 					   for(int i = F_Line ; i > F_Line - Line; i--)
 					   {
 						   for(int j = lstrlen(NOTE[i]) ; j > 0 ; j-- )
@@ -164,7 +158,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					   GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
 					   SetCaretPos(size.cx, Line*16);
                        
-
+					   */
 				   }
 			   }
 			   else  ///문자 중간에서 엔터쳤을때
@@ -195,12 +189,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
             case VK_BACK:   //   백스페이스 키가 눌린 경우
             {
+			
                if ( Line == 0 && Word == 0 )
                {
+				/*
                   NOTE[Line][Word] = NULL;
-
+				*/
                //   SetWindowTextForDebug( hwnd );
-				  GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 			      SetCaretPos(size.cx, Line*16);
                   InvalidateRect( hwnd, NULL, TRUE );
             
@@ -209,25 +205,45 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 
                if( Word == 0 )
-               {
-                  if ( Line < ROW )
-                     NOTE[Line][Word] = NULL;
-                  
-                  Line--;F_Line--;
-                  
-                  int strLen = wcslen( NOTE[Line] );
-
-                  if ( strLen == 0 )      Word = 0;
-                  else               Word = strLen;
+               {                                              //중간줄 삭제
+					if(Word == lstrlen(NOTE[Line]))
+					{
+						for(int i = Line ; F_Line > i ; i ++)
+						{
+							for( int j = 0 ; lstrlen(NOTE[i+1]) ; j++)
+							{
+								NOTE[i][j] = NOTE[i+1][j];
+							}
+						}
+						F_Line--;
+						Line--;
+						Word = lstrlen(NOTE[Line]);
+						GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
+						SetCaretPos(size.cx, Line*16);
+						InvalidateRect( hwnd, NULL, TRUE );
+					}
+					else
+					{
+					   return 0 ;
+					}
                }
 
                else
                {
-                  NOTE[Line][--Word] = NULL;
-                  //g_curColIndex--;
-
-              //    SetWindowTextForDebug( hwnd )
-				  GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+				  if(lstrlen(NOTE[Line])==Word)
+				  {
+					NOTE[Line][--Word] = NULL;
+				  }
+				  else
+				  {
+					  for(int i = Word - 1; i < lstrlen(NOTE[Line]) ; i++)
+					  {
+						NOTE[Line][i] = NOTE[Line][i+1];
+					  }
+					  Word--;
+					  InvalidateRect( hwnd, NULL, FALSE );
+				  }
+				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 			      SetCaretPos(size.cx, Line*16);
                   InvalidateRect( hwnd, NULL, TRUE );
                   return 0;
@@ -240,7 +256,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                return 0;
             }
          }
-         
+   
+
+/////////////////////////////////쓰기///////////////////////////////////////////////////////////////////////////
+
+
+
          /*   메모장의 라인을 벗어난 경우로 더 이상 글쓰기 불가   */
          if ( Line >=ROW )
          {
@@ -279,7 +300,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			 Word++;
 			 InvalidateRect( hwnd, NULL, FALSE );
 		 }
-     //    SetWindowTextForDebug( hwnd );         //   위치를 표시
 		 GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 		 SetCaretPos(size.cx, Line*16);
          InvalidateRect( hwnd, NULL, FALSE );
