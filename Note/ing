@@ -125,78 +125,53 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
       {
          switch(wParam)
          {
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
             case VK_RETURN:   //   엔터 키가 눌린 경우
-            {
-               /*   개행이 가능한지 확인   */
-				/*
-               if( F_Line< ROW - 1 )                
-               {
-                  NOTE[F_Line][Word] = NULL;      
-               }
-			   */
-			   if(lstrlen(NOTE[Line])==Word)
-			   {	
-				   if(F_Line==Line)               //맨 마지막 문장인데 그 문장에서 젤 끝에서 엔터쳤을때
-				   {
-					   Line++;
-					   F_Line++;
-				       Word = 0;
-				   }
-				   else if(F_Line!=Line)  // 문장 중간인데 그 문장의 끝에서 엔터 쳤을때
-				   {
-					   /*
-					   for(int i = F_Line ; i > F_Line - Line; i--)
-					   {
-						   for(int j = lstrlen(NOTE[i]) ; j > 0 ; j-- )
-						   {
-							   NOTE[i+1][j] = NOTE[i][j];
-							   NOTE[i][j] = NULL;
-						   }
-					   }
-					   F_Line++;
-					   Line++;
-					   GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
-					   SetCaretPos(size.cx, Line*16);
-                       
-					   */
-				   }
-			   }
-			   else  ///문자 중간에서 엔터쳤을때
-			   {
-				   /*
-				   for(int i = F_Line ; i >= F_Line - Line ; i--)
-				   {
-					   for(int j = 0 ; j < lstrlen(NOTE[i]) ; j++ )
-					   {
-						   NOTE[i+1][j] = NOTE[i][j];
-						   NOTE[i][j] = NULL;
-					   }
-				   }
-				   */
-				  
-			   }
-               
-               if ( Line >= ROW )
-                  Line = ROW;
-
-              // SetWindowTextForDebug( hwnd );   //   위치를 표시
-			   GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
-			   SetCaretPos(size.cx, Line*16);
-               InvalidateRect( hwnd, NULL, FALSE );
-
-               return 0;
-            }
-
+				{
+				  if(Line != F_Line)
+				  {
+						for(int i = F_Line ; i >= F_Line - Line; i--)
+						{
+							for(int j = lstrlen(NOTE[i]) ; j >= 0 ; j-- )
+							 {
+								NOTE[i+1][j] = NOTE[i][j];
+								NOTE[i][j]=NULL;
+							 }
+						}
+						if(lstrlen(NOTE[Line]) != Word)
+						{
+							for(int i = lstrlen(NOTE[Line]) ; Word <= i ; i--)
+							{
+								NOTE[Line+1][i-Word] = NOTE[Line][i];
+								NOTE[Line][i]=NULL;
+							}
+						}
+				  }
+				  else
+				  {
+					  if(lstrlen(NOTE[Line]) != Word)
+						{
+							for(int i = lstrlen(NOTE[Line]) ; Word <= i ; i--)
+							{
+								NOTE[Line+1][i-Word] = NOTE[Line][i];
+								NOTE[Line][i]=NULL;
+							}
+						}
+					  else
+					  {}
+				  }
+				  Line++; F_Line++; Word = 0;
+				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+                  SetCaretPos(size.cx, Line*16);
+                  InvalidateRect( hwnd, NULL, TRUE );
+                  return 0;
+				}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
             case VK_BACK:   //   백스페이스 키가 눌린 경우
             {
 			
                if ( Line == 0 && Word == 0 )
-               {
-				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
-			      SetCaretPos(size.cx, Line*16);
-                  InvalidateRect( hwnd, NULL, TRUE );
-                  return 0;
-               }
+               {return 0;}
 
 
                if( Word == 0 )
@@ -204,32 +179,30 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					
 						BF_Word = lstrlen(NOTE[Line-1]);
 
-						for(int i = 0; i < lstrlen(NOTE[Line]) ; i++)
+						for(int i = lstrlen(NOTE[Line]); i >= 0 ; i--)
 						{
 							NOTE[Line-1][i+BF_Word] = NOTE[Line][i];
+							NOTE[Line][i] = NULL;
 							
 						}
 						if(F_Line>Line)
 						{
 							for(int i = Line; F_Line > i ; i++)
 							{
-								for(int j = 0 ; lstrlen(NOTE[i+1]) > j ; j++)
+								for(int j = lstrlen(NOTE[i+1]) ; 0 <= j ; j--)
 								{
 									NOTE[i][j] = NOTE[i+1][j];
+									NOTE[i+1][j] = NULL;
 								}
 							}
 						}
-						NOTE[F_Line][0] = NULL; // 이게되네...
 						F_Line--;
 						Line--;
 						Word = BF_Word;
 						GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
 						SetCaretPos(size.cx, Line*16);
 						InvalidateRect( hwnd, NULL, TRUE );
-
-
-						
-					
+						return 0;
                }
 
                else
@@ -244,30 +217,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					  {
 						NOTE[Line][i] = NOTE[Line][i+1];
 					  }
+					  NOTE[Line][lstrlen(NOTE[Line])] = NULL;
 					  Word--;
-					  InvalidateRect( hwnd, NULL, FALSE );
 				  }
 				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 			      SetCaretPos(size.cx, Line*16);
                   InvalidateRect( hwnd, NULL, TRUE );
                   return 0;
                }
-               return 0;
             }
          }
    
 
 /////////////////////////////////쓰기///////////////////////////////////////////////////////////////////////////
 
-
-
-         /*   메모장의 라인을 벗어난 경우로 더 이상 글쓰기 불가   */
-         if ( Line >=ROW )
-         {
-            Line = ROW;
-            Word= 0;
-            return 0;
-         }
 		 if(lstrlen(NOTE[Line])==Word)   // 맨 끝에서 입력할 때
 		 {
 			if( Line < ROW )
@@ -277,15 +240,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				Word++;
 			
             
-            /*   다음에 데이터를 저장할 열의 위치가 널 문자의 위치인 경우 개행 */
-				if ( Word == COL - 1 )
+            /*   막바지일때 아무것도 안하기 */
+				if ( Word == COL )
 				{
-			      Word = 0;
-		          Line++;
-			      F_Line++;
-
-				  if ( Line >= ROW )
-					    Line = ROW;
+					return 0;			      
 				}
 			}
 		 }
@@ -297,11 +255,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			 }
 			 NOTE[Line][Word] = (TCHAR)wParam;                  
 			 Word++;
-			 InvalidateRect( hwnd, NULL, FALSE );
+			 InvalidateRect( hwnd, NULL, TRUE );
 		 }
 		 GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 		 SetCaretPos(size.cx, Line*16);
-         InvalidateRect( hwnd, NULL, FALSE );
+         InvalidateRect( hwnd, NULL, TRUE );
          break;
       }
 
