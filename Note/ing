@@ -184,6 +184,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                   return 0;
 				}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
             case VK_BACK:   //   백스페이스 키가 눌린 경우
             {
 			
@@ -243,52 +244,78 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                   return 0;
                }
             }
-         }
-   
 
-/////////////////////////////////쓰기///////////////////////////////////////////////////////////////////////////
+			case VK_TAB:
+				{
+					if(Word == lstrlen(NOTE[Line]))
+					{
+						for(int i = 0 ; i < 8 ; i++)
+						{
+							NOTE[Line][Word + i] = ' ';
+						}
+					}
+					else
+					{
+						for(int i = lstrlen(NOTE[Line]) ; i > Word ; i--)
+						{
+							NOTE[Line][i+7] = NOTE[Line][i-1];
+						}
+						for(int i = 0 ; i < 8 ; i++)
+						{
+							NOTE[Line][Word + i] = ' ';
+						}
+					}
+					Word = Word + 8;
+					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+					SetCaretPos(size.cx, Line*16);
+					InvalidateRect(hwnd, NULL, TRUE);
+					break;
+				}
 
-		 if(lstrlen(NOTE[Line])==Word)   // 맨 끝에서 입력할 때
-		 {
-			if( Line < ROW )
-			{
-				NOTE[Line][Word] = (TCHAR)wParam;         
-				NOTE[Line][Word + 1] = NULL;         
-				Word++;
+
+			default:
+				if(lstrlen(NOTE[Line])==Word)   // 맨 끝에서 입력할 때
+				{
+					if( Line < ROW )
+					{
+						NOTE[Line][Word] = (TCHAR)wParam;         
+						NOTE[Line][Word + 1] = NULL;         
+						Word++;
 			
             
-            /*   막바지일때 아무것도 안하기 */
-				if ( Word == COL )
-				{
-					return 0;			      
-				}
-			}
-		 }
-		 else if(lstrlen(NOTE[Line])!=Word)       //중간에서 입력할때
-		 {
-			 if(insert_ox == 0)
-			 {
-				 for(int i = lstrlen(NOTE[Line]) ; i>Word ; i--)
-				 {
-					 NOTE[Line][i] = NOTE[Line][i-1];
+				   /*   막바지일때 아무것도 안하기 */
+						if ( Word == COL )
+						{
+							return 0;			      
+						}
+					}
 				 }
-				 NOTE[Line][Word] = (TCHAR)wParam;                  
-				 Word++;
-				 InvalidateRect( hwnd, NULL, TRUE );
-			 }
-			 else
-			 {
-				 NOTE[Line][Word] = (TCHAR)wParam;
-				 Word++;
-				 InvalidateRect( hwnd, NULL, TRUE );
-			 }
+				 else if(lstrlen(NOTE[Line])!=Word)       //중간에서 입력할때
+				 {
+					 if(insert_ox == 0)
+					 {
+						 for(int i = lstrlen(NOTE[Line]) ; i>Word ; i--)
+						 {
+							 NOTE[Line][i] = NOTE[Line][i-1];
+						 }
+						 NOTE[Line][Word] = (TCHAR)wParam;                  
+						 Word++;
+						 InvalidateRect( hwnd, NULL, TRUE );
+					 }
+					 else
+					 {
+						 NOTE[Line][Word] = (TCHAR)wParam;
+						 Word++;
+						 InvalidateRect( hwnd, NULL, TRUE );
+					 }
 			 
 			 
-		 }
-		 GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
-		 SetCaretPos(size.cx, Line*16);
-         InvalidateRect( hwnd, NULL, TRUE );
-         break;
+				 }
+				 GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+				 SetCaretPos(size.cx, Line*16);
+			     InvalidateRect( hwnd, NULL, TRUE );
+				 break;
+			}
       }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
