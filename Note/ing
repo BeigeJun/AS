@@ -4,8 +4,11 @@
 #include <stdio.h>
 #include <tchar.h>
 
-#define ID_FILE_SAVE 1001
-#define ID_ABOUT     1002
+#define IDR_MENU1                       101
+#define ID_END                          40005
+#define ID_save                         40006
+#define ID_open                         40008
+#define ID_new                          40009
 
 #define ID_HORZSCROLL 100
 #define ID_VERTSCROLL 101
@@ -81,7 +84,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 HDC hdc;
 HWND hHorzScroll;            // 수평 스크롤 바 컨트롤
 HWND hVertScroll;            // 수직 스크롤 바 컨트롤
-int yPos,xPos;                // 현재 위치
+int X,Y =0;                // 현재 위치
 int yMax,xMax;                // 최대 크기
 int SW;                        // 스크롤 바의 높이
 
@@ -106,6 +109,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 
     case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
+		switch(LOWORD(wParam)){
+		case ID_new:
+			break;
+		case ID_open:
+			break;
+		case ID_save:
+			break;
+		case ID_END:
+			break;
+		}
+		/*
         hMenu = CreateMenu();
 
         hSubMenu = CreatePopupMenu();
@@ -118,7 +132,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 
         SetMenu(hwnd, hMenu);
+		
         break;
+		*/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
     case WM_SETFOCUS:                                   //처음 캐럿을 만들어주는 문자가 시작하는 위치
             CreateCaret(hwnd, (HBITMAP) NULL, 2, 12); 
@@ -131,10 +147,42 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
             break;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-	case WM_HSCROLL:
-		break;
-	case WM_VSCROLL:
-		break;
+	case WM_HSCROLL:		//가로
+		switch(LOWORD(wParam))
+		{
+		case SB_LINELEFT:
+			X = max(0, X-5);
+			break;
+		case SB_PAGELEFT:
+			X = max(0, X-5);
+			break;
+		case SB_LINERIGHT:
+			X = min(ROW, X+5);
+			break;
+		case SB_PAGERIGHT:
+			X = min(ROW, X+5);
+			break;
+		case SB_THUMBTRACK:
+			break;
+		}
+		SetScrollPos(hwnd, SB_HORZ, X, FALSE);
+		
+	case WM_VSCROLL:  //세로
+		switch(LOWORD(wParam))
+		{
+		case SB_LINELEFT:
+			break;
+		case SB_LINERIGHT:
+			break;
+		case SB_PAGERIGHT:
+			break;
+		case SB_PAGELEFT:
+			break;
+		case SB_THUMBTRACK:
+			break;
+		}
+		SetScrollPos(hwnd, SB_HORZ, Y, TRUE);
+
 	case WM_SIZE:
 		break;
 
