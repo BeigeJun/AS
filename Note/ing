@@ -84,8 +84,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 HDC hdc;
 HWND hHorzScroll;            // 수평 스크롤 바 컨트롤
 HWND hVertScroll;            // 수직 스크롤 바 컨트롤
-int X,Y =0;                // 현재 위치
+int xPos = 0;
+int	yPos = 0;                // 현재 위치
 int yMax,xMax;                // 최대 크기
+int xInc, yInc;
 int SW;                        // 스크롤 바의 높이
 
 static TCHAR NOTE[ROW][COL] = { 0, };   //   메모장으로 사용할 이차원 배열
@@ -95,6 +97,7 @@ int F_Line = 0;
 int BF_Word = 0;
 int insert_ox = 0;
 
+SCROLLINFO si;
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
 	SIZE size;
@@ -147,44 +150,83 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
             break;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-	case WM_HSCROLL:		//가로
-		switch(LOWORD(wParam))
-		{
-		case SB_LINELEFT:
-			X = max(0, X-5);
-			break;
-		case SB_PAGELEFT:
-			X = max(0, X-5);
-			break;
-		case SB_LINERIGHT:
-			X = min(ROW, X+5);
-			break;
-		case SB_PAGERIGHT:
-			X = min(ROW, X+5);
-			break;
-		case SB_THUMBTRACK:
-			break;
-		}
-		SetScrollPos(hwnd, SB_HORZ, X, FALSE);
-		
-	case WM_VSCROLL:  //세로
-		switch(LOWORD(wParam))
-		{
-		case SB_LINELEFT:
-			break;
-		case SB_LINERIGHT:
-			break;
-		case SB_PAGERIGHT:
-			break;
-		case SB_PAGELEFT:
-			break;
-		case SB_THUMBTRACK:
-			break;
-		}
-		SetScrollPos(hwnd, SB_HORZ, Y, TRUE);
+	case WM_HSCROLL:
+                xInc = 0;
+                switch (LOWORD(wParam))
+                {
+                case SB_LINELEFT:
+                        xInc = -1;
+                        break;
+                case SB_LINERIGHT:
+                        xInc = 1;
+                        break;
+                case SB_PAGELEFT:
+                        xInc = -20;
+                        break;
+                case SB_PAGERIGHT:
+                        xInc = 20;
+                        break;
+                case SB_THUMBTRACK:
+                        xInc = HIWORD(wParam) - xPos;
+                        break;
+                }
+                // 새로운 위치는 최소한 0 이상
+                if ( xPos + xInc < 0 ) xInc = -xPos;
+
+                // 새로운 위치는 최대한 xMax 이하
+                if ( xPos + xInc > xMax ) xInc = xMax - xPos;
+
+                // 새로운 위치 계산
+                xPos = xPos + xInc;
+
+                // 스크롤시키고 썸 위치를 다시 계산한다.
+                ScrollWindow(hwnd, -xInc, 0, NULL, NULL);
+                SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
+                return 0;
+
+        case WM_VSCROLL:
+                yInc = 0;
+                switch ( LOWORD(wParam) )
+                {
+                case SB_LINEUP:
+                        yInc = -1;
+                        break;
+                case SB_LINEDOWN:
+                        yInc = 1;
+                        break;
+                case SB_PAGEUP:
+                        yInc = -20;
+                        break;
+                case SB_PAGEDOWN:
+                        yInc = 20;
+                        break;
+                case SB_THUMBTRACK:
+                        yInc = HIWORD(wParam) - yPos;
+                        break;
+                }
+                // 새로운 위치는 최소한 0 이상
+                if ( yPos + yInc < 0 ) yInc = -yPos;
+
+                // 새로운 위치는 최대한 yMax 이하
+                if ( yPos + yInc > yMax ) yInc = yMax - yPos;
+                // yInc = max(0yPos, min(yInc, yMax - yPos));
+               
+                // 새로운 위치 계산
+                yPos = yPos + yInc;
+           
+                // 스크롤시키고 썸 위치를 다시 계산한다.
+                ScrollWindow(hwnd, 0, -yInc, NULL, NULL);
+                SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
+                return 0;
 
 	case WM_SIZE:
-		break;
+                xMax = 1024 - LOWORD(lParam);
+                yMax = 768 - HIWORD(lParam);
+                SetScrollRange(hwnd, SB_VERT, 0, yMax, TRUE);
+                SetScrollPos(hwnd, SB_VERT, 0, TRUE);
+                SetScrollRange(hwnd, SB_HORZ, 0, xMax, TRUE);
+                SetScrollPos(hwnd, SB_HORZ, 0, TRUE);
+                return 0;
 
     case WM_CHAR:
       {
