@@ -1,0 +1,170 @@
+#define _WIN32_WINNT 0x500
+#include <windows.h>
+
+LRESULT CALLBACK WndProc(HWND,UINT,WPARAM,LPARAM);
+HINSTANCE g_hInst;
+LPSTR lpszClass="Panning";
+#define      ROW         1000   //   메모장의 세로 크기
+#define      COL         100   //   메모장의 가로 크기
+int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance
+         ,LPSTR lpszCmdParam,int nCmdShow)
+{
+    HWND hwnd;
+    MSG Message;
+    WNDCLASS WndClass;
+    g_hInst=hInstance;
+    
+    if(!hPrevInstance) {
+        WndClass.cbClsExtra=0;
+        WndClass.cbWndExtra=0;
+        WndClass.hbrBackground=(HBRUSH)GetStockObject(WHITE_BRUSH);
+        WndClass.hCursor=LoadCursor(NULL,IDC_ARROW);
+        WndClass.hIcon=LoadIcon(NULL,IDI_APPLICATION);
+        WndClass.hInstance=hInstance;
+        WndClass.lpfnWndProc=(WNDPROC)WndProc;
+        WndClass.lpszClassName=lpszClass;
+        WndClass.lpszMenuName=NULL;
+        WndClass.style=CS_HREDRAW | CS_VREDRAW;
+        RegisterClass(&WndClass);
+    }
+    hwnd=CreateWindow(lpszClass,lpszClass,WS_OVERLAPPEDWINDOW | WS_HSCROLL | WS_VSCROLL,
+         CW_USEDEFAULT,CW_USEDEFAULT,640,480,
+         NULL,(HMENU)NULL,hInstance,NULL);
+    ShowWindow(hwnd,nCmdShow);
+    
+    while(GetMessage(&Message,0,0,0)) {
+        TranslateMessage(&Message);
+        DispatchMessage(&Message);
+    }
+    return Message.wParam;
+}
+HDC hDC;
+HWND hHorzScroll;            // 수평 스크롤 바 컨트롤
+HWND hVertScroll;            // 수직 스크롤 바 컨트롤
+
+int yPos, xPos;
+int yMax, xMax;
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+        int i;
+        TCHAR str[128];
+        HDC hdc;
+        PAINTSTRUCT ps;
+        int xInc, yInc;
+
+        switch ( iMessage )
+        {
+        case WM_CREATE:
+                xPos = 0;
+                yPos = 0;
+
+
+                return 0;
+
+      case WM_HSCROLL:
+                xInc = 0;
+                switch (LOWORD(wParam))
+                {
+                case SB_LINELEFT:
+                        xInc = -1;
+                        break;
+                case SB_LINERIGHT:
+                        xInc = 1;
+                        break;
+                case SB_PAGELEFT:
+                        xInc = -20;
+                        break;
+                case SB_PAGERIGHT:
+                        xInc = 20;
+                        break;
+                case SB_THUMBTRACK:
+                        xInc = HIWORD(wParam) - xPos;
+                        break;
+                }
+                // 새로운 위치는 최소한 0 이상
+                if ( xPos + xInc < 0 ) xInc = -xPos;
+
+                // 새로운 위치는 최대한 xMax 이하
+                if ( xPos + xInc > xMax ) xInc = xMax - xPos;
+
+                // 새로운 위치 계산
+                xPos = xPos + xInc;
+
+                // 스크롤시키고 썸 위치를 다시 계산한다.
+                ScrollWindow(hWnd, -xInc, 0, NULL, NULL);
+                SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
+                return 0;
+
+        case WM_VSCROLL:
+                yInc = 0;
+                switch ( LOWORD(wParam) )
+                {
+                case SB_LINEUP:
+                        yInc = -1;
+                        break;
+                case SB_LINEDOWN:
+                        yInc = 1;
+                        break;
+                case SB_PAGEUP:
+                        yInc = -20;
+                        break;
+                case SB_PAGEDOWN:
+                        yInc = 20;
+                        break;
+                case SB_THUMBTRACK:
+                        yInc = HIWORD(wParam) - yPos;
+                        break;
+                }
+                // 새로운 위치는 최소한 0 이상
+                if ( yPos + yInc < 0 ) yInc = -yPos;
+
+                // 새로운 위치는 최대한 yMax 이하
+                if ( yPos + yInc > yMax ) yInc = yMax - yPos;
+                // yInc = max(0yPos, min(yInc, yMax - yPos));
+               
+                // 새로운 위치 계산
+                yPos = yPos + yInc;
+           
+                // 스크롤시키고 썸 위치를 다시 계산한다.
+                ScrollWindow(hWnd, 0, -yInc, NULL, NULL);
+                SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
+                return 0;
+
+		case WM_SIZE:
+                xMax = 1024 - LOWORD(lParam);
+                yMax = 768 - HIWORD(lParam);
+                SetScrollRange(hWnd, SB_VERT, 0, yMax, TRUE);
+                SetScrollPos(hWnd, SB_VERT, 0, TRUE);
+                SetScrollRange(hWnd, SB_HORZ, 0, xMax, TRUE);
+                SetScrollPos(hWnd, SB_HORZ, 0, TRUE);
+                return 0;
+
+
+        case WM_PAINT:
+                hdc = BeginPaint(hWnd, &ps);
+                for ( i = 0; i < 1024; i+= 50 )
+                {
+                        wsprintf(str, TEXT("%d"), i);
+                        TextOut(hdc, i - xPos, 0 - yPos, str, lstrlen(str));
+                        TextOut(hdc, i - xPos, 750 - yPos, str, lstrlen(str));
+                }
+                for ( i = 0; i < 768; i += 50 )
+                {
+                        wsprintf(str, TEXT("%d"), i);
+                        TextOut(hdc, 0 - xPos, i - yPos, str, lstrlen(str));
+                        TextOut(hdc, 1000 - xPos, i - yPos, str, lstrlen(str));
+                }
+                Ellipse(hdc, 300 - xPos, 280 - yPos, 700 - xPos, 480 - yPos);
+                MoveToEx(hdc, 500 - xPos, 100 - yPos, NULL);
+                LineTo(hdc, 500 - xPos, 668 - yPos);
+                MoveToEx(hdc, 100 - xPos, 380 - yPos, NULL);
+                LineTo(hdc, 924 - xPos, 380 - yPos);
+                EndPaint(hWnd, &ps);
+                return 0;
+
+        case WM_DESTROY:
+                PostQuitMessage(0);
+                return 0;
+        }
+        return(DefWindowProc(hWnd, iMessage, wParam, lParam));
+}
