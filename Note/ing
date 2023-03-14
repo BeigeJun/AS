@@ -223,8 +223,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                 xMax = 1024 - LOWORD(lParam);
                 yMax = 768 - HIWORD(lParam);
                 SetScrollRange(hwnd, SB_VERT, 0, yMax, TRUE);
-                SetScrollPos(hwnd, SB_VERT, 0, TRUE);
                 SetScrollRange(hwnd, SB_HORZ, 0, xMax, TRUE);
+				SetScrollPos(hwnd, SB_VERT, 0, TRUE);
                 SetScrollPos(hwnd, SB_HORZ, 0, TRUE);
                 return 0;
 
