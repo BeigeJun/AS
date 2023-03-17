@@ -9,7 +9,7 @@
 #define ID_NEW                          40001
 #define ID_OPEN                         40002
 #define ID_EXIT                         40003
-#define ID_SAVE							40004
+#define ID_SAVE				40004
 
 
 #define ID_HORZSCROLL 100
