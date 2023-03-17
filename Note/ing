@@ -3,18 +3,20 @@
 #include <windows.h>
 #include <stdio.h>
 #include <tchar.h>
+#include "resource.h"
 
 #define IDR_MENU1                       101
-#define ID_END                          40005
-#define ID_save                         40006
-#define ID_open                         40008
-#define ID_new                          40009
+#define ID_NEW                          40001
+#define ID_OPEN                         40002
+#define ID_EXIT                         40003
+#define ID_SAVE							40004
+
 
 #define ID_HORZSCROLL 100
 #define ID_VERTSCROLL 101
 
 #define      ROW         1000   //   메모장의 세로 크기
-#define      COL         100   //   메모장의 가로 크기
+#define      COL         100000   //   메모장의 가로 크기
 
 HMENU hMenu, hSubMenu;    //메모장 메뉴 생성
 //size_t 는 unsigned int 이며, 문자열이나 메모리의 사이즈를 나타낼 때 사용합니다. "unsigned int"를
@@ -42,7 +44,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
    WndClass.hIcon         = LoadIcon(NULL, IDI_QUESTION);        //아이콘 유형
    WndClass.hCursor      = LoadCursor(NULL, IDC_ARROW);       //커서 유형
    WndClass.hbrBackground   = (HBRUSH)GetStockObject(WHITE_BRUSH);//배경색   
-   WndClass.lpszMenuName   = NULL;                         //메뉴 이름
+   WndClass.lpszMenuName   = MAKEINTRESOURCE(IDR_MENU1);                         //메뉴 이름
    WndClass.lpszClassName   = lpszClass;                   //클래스 이름
    RegisterClass(&WndClass);                            //앞서 정의한 윈도우 클래스의 주소 // os 에다가 지금 이 클래스를 등록시킴 
 
@@ -82,13 +84,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 }
 
 HDC hdc;
-HWND hHorzScroll;            // 수평 스크롤 바 컨트롤
-HWND hVertScroll;            // 수직 스크롤 바 컨트롤
 int xPos = 0;
 int	yPos = 0;                // 현재 위치
 int yMax,xMax;                // 최대 크기
 int xInc, yInc;
-int SW;                        // 스크롤 바의 높이
+RECT RT;
 
 static TCHAR NOTE[ROW][COL] = { 0, };   //   메모장으로 사용할 이차원 배열
 static size_t Line = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 행 위치
@@ -96,14 +96,25 @@ static size_t Word = 0;      //   메모장(이차원 배열)에서의 문자를
 int F_Line = 0;
 int BF_Word = 0;
 int insert_ox = 0;
+HANDLE f;
+int answer;
+
 
 SCROLLINFO si;
+
+HANDLE hFile;
+DWORD dwRead;
+OPENFILENAME OFN, SFN;
+char lpstrFile[MAX_PATH]="";
+char str[ROW];
+
+char filter[] = "모든 파일(*.*)\0*.*\0텍스트 파일\0(*.txt) \0*.txt";
+char name[100], lpstrFile1[100]="", lpstrFile2[100] = "";
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
 	SIZE size;
 	HDC hDC = GetDC(hwnd);
     PAINTSTRUCT ps;
-	static int pos = 0;
 
 
     switch (iMsg) 
@@ -112,32 +123,118 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 
     case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
+		break;
+	
+	case WM_COMMAND:
 		switch(LOWORD(wParam)){
-		case ID_new:
+
+		case ID_NEW:
+			answer = MessageBox(hwnd,"새로 열겠습니까?","취소",MB_OK);
+			if(answer == IDOK){
+				memset(NOTE,0,sizeof(NOTE));
+				Line = 0;
+				Word =0;
+				InvalidateRect(hwnd, NULL, TRUE);
+			}
 			break;
-		case ID_open:
-			break;
-		case ID_save:
-			break;
-		case ID_END:
+
+		case ID_OPEN:
+         /*
+		 {
+         TCHAR strRead[MAX_PATH];
+         memset(&OFN, 0, sizeof(OPENFILENAME));
+         OFN.lStructSize = sizeof(OPENFILENAME);
+         OFN.hwndOwner=hwnd;
+         OFN.lpstrFilter=_T("Every File(*.*)\0*.*\0Text File\0*.txt;*.doc\0");
+         OFN.lpstrFile=lpstrFile;
+         OFN.nMaxFile=ROW;
+         OFN.lpstrInitialDir = ".";
+         int index = 0;
+
+         if (GetOpenFileName(&OFN)!=0) {
+            f = CreateFile(OFN.lpstrFile, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+            ReadFile(f, strRead, MAX_PATH, &dwRead, NULL); //파일 읽기
+            Line = 0;
+            for(int i=0; i<=lstrlen(NOTE[Line]); i++){
+               for(int j=0; NOTE[i][j] != NULL; j++){
+                  strRead[index++] = NOTE[i][j];
+               }
+               if(i != lstrlen(NOTE[Line]))
+                  strRead[index++] = '\n';
+            }
+            CloseHandle(f);
+            InvalidateRect(hwnd, NULL, TRUE);
+            }
+         }
+         break;
+		 */
+
+			
+			{
+			memset(&OFN, 0, sizeof(OPENFILENAME));
+			OFN.lStructSize = sizeof(OPENFILENAME);
+			OFN.hwndOwner=hwnd;
+			OFN.lpstrFilter=_T("Every File(*.*)\0*.*\0Text File\0*.txt;*.doc\0");
+			OFN.lpstrFile=lpstrFile;
+			OFN.nMaxFile=ROW;
+			OFN.lpstrInitialDir = ".";
+
+
+			if (GetOpenFileName(&OFN)!=0) {
+				FILE *f = fopen(OFN.lpstrFile,"r+");
+				Line = 0;
+				while(Line < ROW && fgets(NOTE[Line],sizeof(NOTE[0]),f))
+				{
+					NOTE[Line][lstrlen(NOTE[Line])] = NULL;
+					Word = lstrlen(NOTE[Line]);
+					if(NOTE[Line][lstrlen(NOTE[Line])-1] == 10)
+					{
+						Line++;
+						Word =0;
+					}
+				}
+				fclose(f);
+				InvalidateRect(hwnd, NULL, TRUE);
+				}
+			}
+			break; 
+			
+		case ID_SAVE:{/*
+			memset(&SFN, 0, sizeof(OPENFILENAME));
+			SFN.lStructSize = sizeof(OPENFILENAME);
+			SFN.hwndOwner = hwnd;
+			SFN.lpstrFilter = _T("모든 파일(*.*) \0*.*\0텍스트 파일(*.txt) \0*.txt\0");
+			SFN.lpstrFile =lpstrFile;
+			SFN.nMaxFile = MAXSIZE;
+			DWORD dwRead;
+			TCHAR strRead[MAX_PATH];
+			WORD dw = 0xFEFF;
+			HANDLE f;
+			int index = 0;
+			if(GetSaveFileName(&SFN) != 0){
+				f = CreateFile(SFN.lpstrFile, GENERIC_WRITE, 0, NULL, CREATE_NEW, 0, NULL);
+
+				strRead[index++] = dw;	// 맨 앞에 유니코드 문자추가.
+				// 파일에 넣을 문자들을 strRead에 넣어주기.
+				for(int i=0; i<=y; i++){
+					for(int j=0; str[i][j] != NULL; j++){
+						strRead[index++] = str[i][j];
+					}
+					if(i != y)
+						strRead[index++] = '\n';
+				}
+				WriteFile(f, strRead, index * 2, &dwRead, NULL); 
+				CloseHandle(f);
+			}
+			SAVE = 1;		*/
+		}
+
+
+		case ID_EXIT:
+			PostQuitMessage(0);
+
 			break;
 		}
-		/*
-        hMenu = CreateMenu();
-
-        hSubMenu = CreatePopupMenu();
-        AppendMenu(hSubMenu, MF_STRING, ID_FILE_SAVE, L"&Save");
-        AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, L"&File");
-
-        hSubMenu = CreatePopupMenu();
-        AppendMenu(hSubMenu, MF_STRING, ID_ABOUT, L"&Help");
-        AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, L"&About");
-
-
-        SetMenu(hwnd, hMenu);
-		
-        break;
-		*/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
     case WM_SETFOCUS:                                   //처음 캐럿을 만들어주는 문자가 시작하는 위치
             CreateCaret(hwnd, (HBITMAP) NULL, 2, 12); 
@@ -219,14 +316,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                 SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
                 return 0;
 
-	case WM_SIZE:
-                xMax = 1024 - LOWORD(lParam);
-                yMax = 768 - HIWORD(lParam);
-                SetScrollRange(hwnd, SB_VERT, 0, yMax, TRUE);
-                SetScrollRange(hwnd, SB_HORZ, 0, xMax, TRUE);
-				SetScrollPos(hwnd, SB_VERT, 0, TRUE);
-                SetScrollPos(hwnd, SB_HORZ, 0, TRUE);
-                return 0;
+		case WM_SIZE:
+				si.cbSize = sizeof(SCROLLINFO);
+				si.fMask = SIF_ALL | SIF_DISABLENOSCROLL;
+
+	            si.nMin = 0;
+		        si.nMax = 480;
+			    si.nPage = HIWORD(lParam);
+				si.nPos = yPos;
+				SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
+
+	            si.nMax = 640;
+		        si.nPage = LOWORD(lParam);
+			    si.nPos = xPos;
+				SetScrollInfo(hwnd, SB_HORZ,&si,TRUE);
+				return 0;
 
     case WM_CHAR:
       {
@@ -414,11 +518,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				switch(wParam){
 				case VK_HOME:       // Home 
 					SetCaretPos(0, Line*16);
+					Word = 0;
 					InvalidateRect(hwnd, NULL, TRUE);
 		            break; 
 
 			    case VK_END:        // End 
 					GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
+					Word = lstrlen(NOTE[Line]);
 					SetCaretPos(size.cx, Line*16);
 					InvalidateRect(hwnd, NULL, TRUE);
 					break; 
