@@ -99,6 +99,8 @@ int insert_ox = 0;
 HANDLE f;
 int answer;
 
+int xM = 0;
+int yM = 0;
 
 SCROLLINFO si;
 
@@ -125,6 +127,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
 		break;
 	
+	case WM_LBUTTONDOWN:
+		{
+		xM = LOWORD(lParam);
+		yM = HIWORD(lParam);
+		SetCaretPos(xM, yM);
+		}
+
 	case WM_COMMAND:
 		switch(LOWORD(wParam)){
 
