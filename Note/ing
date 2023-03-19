@@ -130,9 +130,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	
 	case WM_LBUTTONDOWN:
 		{
-		int x, y;
-        x = GET_X_LPARAM(lParam);
-        y = GET_Y_LPARAM(lParam);
 		xM = LOWORD(lParam);
 		yM = HIWORD(lParam);
 
@@ -144,10 +141,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			Word = lstrlen(NOTE[Line]);
 		}
 
+		GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
 
+		if(size.cx >= xM)
+		{
+			SIZE size2;
+			for(int i = 0 ; i <= lstrlen(NOTE[Line]); i ++)
+			{
+				GetTextExtentPoint(hDC, NOTE[Line],i, &size2);
+				if(size2.cx < xM)
+				{
+					Word = i;
+				}
+			}
+			GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
+			SetCaretPos(size.cx, Line*16);
+			InvalidateRect( hwnd, NULL, TRUE );
+		}
+		else
+		{
 		GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
 		SetCaretPos(size.cx, Line*16);
 		InvalidateRect( hwnd, NULL, TRUE );
+		}
         break;
 		}
 
