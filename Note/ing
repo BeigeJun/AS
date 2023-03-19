@@ -139,8 +139,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		Line = yM/15;
 		Word = lstrlen(NOTE[Line]);
 
-
-
+		if(Line > F_Line){
+			Line = F_Line;
+			Word = lstrlen(NOTE[Line]);
+		}
 
 
 		GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
