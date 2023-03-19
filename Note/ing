@@ -1,7 +1,8 @@
 
 //WndClass정의(윈도우의 기반이 되는 클래스를 정의한다) -> CreateWindow(메모리상에 윈도우를 만든다) -> ShowWindow(화면상에 윈도우를 표시한다) -> 메시지루프(사용자로부터 메시
 #include <windows.h>
-#include <stdio.h>
+#include <windowsx.h>
+#include<stdio.h>
 #include <tchar.h>
 #include "resource.h"
 
@@ -129,9 +130,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	
 	case WM_LBUTTONDOWN:
 		{
+		int x, y;
+        x = GET_X_LPARAM(lParam);
+        y = GET_Y_LPARAM(lParam);
 		xM = LOWORD(lParam);
 		yM = HIWORD(lParam);
-		SetCaretPos(xM, yM);
+
+		Line = yM/15;
+		Word = lstrlen(NOTE[Line]);
+
+
+
+
+
+		GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
+		SetCaretPos(size.cx, Line*16);
+		InvalidateRect( hwnd, NULL, TRUE );
+        break;
 		}
 
 	case WM_COMMAND:
