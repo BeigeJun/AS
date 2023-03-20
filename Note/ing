@@ -5,13 +5,10 @@
 #include<stdio.h>
 #include <tchar.h>
 #include "resource.h"
-
-#define IDR_MENU1                       101
-#define ID_NEW                          40001
-#define ID_OPEN                         40002
-#define ID_EXIT                         40003
-#define ID_SAVE				40004
-
+#define ID_MENU_NEW                     40002
+#define ID_MENU_OPEN                    40003
+#define ID_MENU_SAVE                    40004
+#define ID_MENU_EXIT                    40005
 
 #define ID_HORZSCROLL 100
 #define ID_VERTSCROLL 101
@@ -111,8 +108,7 @@ OPENFILENAME OFN, SFN;
 char lpstrFile[MAX_PATH]="";
 char str[ROW];
 
-char filter[] = "모든 파일(*.*)\0*.*\0텍스트 파일\0(*.txt) \0*.txt";
-char name[100], lpstrFile1[100]="", lpstrFile2[100] = "";
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
 	SIZE size;
@@ -134,43 +130,49 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		yM = HIWORD(lParam);
 
 		Line = yM/15;
-		Word = lstrlen(NOTE[Line]);
 
 		if(Line > F_Line){
 			Line = F_Line;
 			Word = lstrlen(NOTE[Line]);
-		}
-
-		GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
-
-		if(size.cx >= xM)
-		{
-			SIZE size2;
-			for(int i = 0 ; i <= lstrlen(NOTE[Line]); i ++)
-			{
-				GetTextExtentPoint(hDC, NOTE[Line],i, &size2);
-				if(size2.cx < xM)
-				{
-					Word = i;
-				}
-			}
 			GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
 			SetCaretPos(size.cx, Line*16);
 			InvalidateRect( hwnd, NULL, TRUE );
+			break;
+		
 		}
 		else
 		{
-		GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
-		SetCaretPos(size.cx, Line*16);
-		InvalidateRect( hwnd, NULL, TRUE );
-		}
-        break;
+			GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
+			if(size.cx >= xM)
+			{
+				SIZE size2;
+				for(int i = 0 ; i <= lstrlen(NOTE[Line]); i ++)
+				{
+					GetTextExtentPoint(hDC, NOTE[Line],i, &size2);
+					if(size2.cx < xM)
+					{
+						Word = i;
+					}
+				}
+				GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
+				SetCaretPos(size.cx, Line*16);
+				InvalidateRect( hwnd, NULL, TRUE );
+				break;
+			}
+			else
+				{
+				GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
+				SetCaretPos(size.cx, Line*16);
+				InvalidateRect( hwnd, NULL, TRUE );
+				}
+				break;
+			}
 		}
 
 	case WM_COMMAND:
 		switch(LOWORD(wParam)){
 
-		case ID_NEW:
+		case ID_MENU_NEW:
 			answer = MessageBox(hwnd,"새로 열겠습니까?","취소",MB_OK);
 			if(answer == IDOK){
 				memset(NOTE,0,sizeof(NOTE));
@@ -180,38 +182,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 
-		case ID_OPEN:
-         /*
-		 {
-         TCHAR strRead[MAX_PATH];
-         memset(&OFN, 0, sizeof(OPENFILENAME));
-         OFN.lStructSize = sizeof(OPENFILENAME);
-         OFN.hwndOwner=hwnd;
-         OFN.lpstrFilter=_T("Every File(*.*)\0*.*\0Text File\0*.txt;*.doc\0");
-         OFN.lpstrFile=lpstrFile;
-         OFN.nMaxFile=ROW;
-         OFN.lpstrInitialDir = ".";
-         int index = 0;
-
-         if (GetOpenFileName(&OFN)!=0) {
-            f = CreateFile(OFN.lpstrFile, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
-            ReadFile(f, strRead, MAX_PATH, &dwRead, NULL); //파일 읽기
-            Line = 0;
-            for(int i=0; i<=lstrlen(NOTE[Line]); i++){
-               for(int j=0; NOTE[i][j] != NULL; j++){
-                  strRead[index++] = NOTE[i][j];
-               }
-               if(i != lstrlen(NOTE[Line]))
-                  strRead[index++] = '\n';
-            }
-            CloseHandle(f);
-            InvalidateRect(hwnd, NULL, TRUE);
-            }
-         }
-         break;
-		 */
-
-			
+		case ID_MENU_OPEN:
 			{
 			memset(&OFN, 0, sizeof(OPENFILENAME));
 			OFN.lStructSize = sizeof(OPENFILENAME);
@@ -225,13 +196,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			if (GetOpenFileName(&OFN)!=0) {
 				FILE *f = fopen(OFN.lpstrFile,"r+");
 				Line = 0;
-				while(Line < ROW && fgets(NOTE[Line],sizeof(NOTE[0]),f))
+				while(fgets(NOTE[Line],sizeof(NOTE[0]),f)!= NULL)
 				{
-					NOTE[Line][lstrlen(NOTE[Line])] = NULL;
 					Word = lstrlen(NOTE[Line]);
 					if(NOTE[Line][lstrlen(NOTE[Line])-1] == 10)
 					{
+						NOTE[Line][lstrlen(NOTE[Line])] = TEXT('\0');
 						Line++;
+						F_Line++;
 						Word =0;
 					}
 				}
@@ -241,40 +213,41 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			}
 			break; 
 			
-		case ID_SAVE:{/*
+		case ID_MENU_SAVE:{
 			memset(&SFN, 0, sizeof(OPENFILENAME));
 			SFN.lStructSize = sizeof(OPENFILENAME);
 			SFN.hwndOwner = hwnd;
 			SFN.lpstrFilter = _T("모든 파일(*.*) \0*.*\0텍스트 파일(*.txt) \0*.txt\0");
 			SFN.lpstrFile =lpstrFile;
-			SFN.nMaxFile = MAXSIZE;
+			SFN.nMaxFile = ROW;
 			DWORD dwRead;
 			TCHAR strRead[MAX_PATH];
 			WORD dw = 0xFEFF;
 			HANDLE f;
+
 			int index = 0;
 			if(GetSaveFileName(&SFN) != 0){
 				f = CreateFile(SFN.lpstrFile, GENERIC_WRITE, 0, NULL, CREATE_NEW, 0, NULL);
 
-				strRead[index++] = dw;	// 맨 앞에 유니코드 문자추가.
-				// 파일에 넣을 문자들을 strRead에 넣어주기.
-				for(int i=0; i<=y; i++){
-					for(int j=0; str[i][j] != NULL; j++){
-						strRead[index++] = str[i][j];
+				for(int i=0; i<=F_Line; i++){
+					for(int j=0; lstrlen(NOTE[i]) > j; j++){
+						strRead[index] = NOTE[i][j];
+						index++;
 					}
-					if(i != y)
-						strRead[index++] = '\n';
+					if(i != F_Line)
+					{
+						strRead[index] = '\n';
+						index ++;
+					}
 				}
-				WriteFile(f, strRead, index * 2, &dwRead, NULL); 
+				WriteFile(f, strRead, index, &dwRead, NULL); 
 				CloseHandle(f);
 			}
-			SAVE = 1;		*/
 		}
 
 
-		case ID_EXIT:
+		case ID_MENU_EXIT:
 			PostQuitMessage(0);
-
 			break;
 		}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -724,7 +697,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
    
    
     case WM_CLOSE:         //프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
-      int num = MessageBox(hwnd, TEXT("종료하시겠습니까?"),TEXT("메시지 박스"),MB_YESNOCANCEL);
+      int num = MessageBox(hwnd, TEXT("저장하시겠습니까?"),TEXT("메시지 박스"),MB_YESNOCANCEL);
       switch(num){
          case IDYES:
             PostQuitMessage(0);
