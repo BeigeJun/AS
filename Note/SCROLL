@@ -42,8 +42,34 @@ HDC hDC;
 HWND hHorzScroll;            // 수평 스크롤 바 컨트롤
 HWND hVertScroll;            // 수직 스크롤 바 컨트롤
 
-int yPos, xPos;
-int yMax, xMax;
+int xPos = 0;
+int	yPos = 0;                // 현재 위치
+int yMax,xMax;                // 최대 크기
+int xInc, yInc;
+RECT RT;
+
+static TCHAR NOTE[ROW][COL] = { 0, };   //   메모장으로 사용할 이차원 배열
+static size_t Line = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 행 위치
+static size_t Word = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 열 위치
+int F_Line = 0;
+int BF_Word = 0;
+int insert_ox = 0;
+HANDLE f;
+int answer;
+
+int xM = 0;
+int yM = 0;
+
+SCROLLINFO xScrol, yScrol;
+
+HANDLE hFile;
+DWORD dwRead;
+OPENFILENAME OFN, SFN;
+char lpstrFile[MAX_PATH]="";
+char str[ROW];
+
+SIZE size;
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
         int i;
@@ -129,7 +155,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
                 ScrollWindow(hWnd, 0, -yInc, NULL, NULL);
                 SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
                 return 0;
-
+/*
 		case WM_SIZE:
                 xMax = 1024 - LOWORD(lParam);
                 yMax = 768 - HIWORD(lParam);
@@ -138,30 +164,219 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
                 SetScrollRange(hWnd, SB_HORZ, 0, xMax, TRUE);
                 SetScrollPos(hWnd, SB_HORZ, 0, TRUE);
                 return 0;
+				*/
+		case WM_SIZE:
+				GetClientRect(hWnd, &RT);
+				xScrol.cbSize = sizeof(SCROLLINFO);
+				xScrol.fMask = SIF_ALL | SIF_DISABLENOSCROLL;
+	            xScrol.nMin = 0;
+				xScrol.nMax = RT.right;
+				xScrol.nPage = RT.right;
+
+				yScrol.cbSize = sizeof(SCROLLINFO);
+				yScrol.fMask = SIF_ALL | SIF_DISABLENOSCROLL;
+	            yScrol.nMin = 0;
+				yScrol.nMax = RT.bottom;
+				yScrol.nPage = RT.bottom;
+
+				SetScrollInfo(hWnd, SB_VERT,&xScrol,TRUE);
+				SetScrollPos(hWnd, SB_VERT, xPos, TRUE);
+
+				SetScrollInfo(hWnd, SB_HORZ,&yScrol,TRUE);
+				SetScrollPos(hWnd, SB_HORZ, yPos, TRUE);
+				return 0;
+
+		 case WM_CHAR:
+      {
+         switch(wParam)
+         {
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+            case VK_RETURN:   //   엔터 키가 눌린 경우
+				{
+				  if(Line != F_Line)
+				  {
+						for(int i = F_Line ; i != Line; i--)
+						{
+							for(int j = lstrlen(NOTE[i]) ; j > 0 ; j-- )
+							 {
+								NOTE[i+1][j-1] = NOTE[i][j-1];
+								NOTE[i][j-1]=NULL;
+							 }
+						}
+						if(lstrlen(NOTE[Line]) != Word)
+						{
+							for(int i = lstrlen(NOTE[Line]) ; i > Word ; i--)
+							{
+								NOTE[Line+1][i-Word-1] = NOTE[Line][i-1];
+								NOTE[Line][i-1]=NULL;
+							}
+						}
+				  }
+				  else
+				  {
+					  if(lstrlen(NOTE[Line]) != Word)
+						{
+							for(int i = lstrlen(NOTE[Line]) ; i > Word ; i--)
+							{
+								NOTE[Line+1][i-Word-1] = NOTE[Line][i-1];
+								NOTE[Line][i-1]=NULL;
+							}
+						}
+					  else
+					  {}
+				  }
+				  Line++; F_Line++; Word = 0;
+				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+                  SetCaretPos(size.cx, Line*16);
+                  InvalidateRect( hWnd, NULL, TRUE );
+                  return 0;
+				}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            case VK_BACK:   //   백스페이스 키가 눌린 경우
+            {
+			
+               if ( Line == 0 && Word == 0 )
+               {return 0;}
 
 
-        case WM_PAINT:
-                hdc = BeginPaint(hWnd, &ps);
-                for ( i = 0; i < 1024; i+= 50 )
-                {
-                        wsprintf(str, TEXT("%d"), i);
-                        TextOut(hdc, i - xPos, 0 - yPos, str, lstrlen(str));
-                        TextOut(hdc, i - xPos, 750 - yPos, str, lstrlen(str));
-                }
-                for ( i = 0; i < 768; i += 50 )
-                {
-                        wsprintf(str, TEXT("%d"), i);
-                        TextOut(hdc, 0 - xPos, i - yPos, str, lstrlen(str));
-                        TextOut(hdc, 1000 - xPos, i - yPos, str, lstrlen(str));
-                }
-                Ellipse(hdc, 300 - xPos, 280 - yPos, 700 - xPos, 480 - yPos);
-                MoveToEx(hdc, 500 - xPos, 100 - yPos, NULL);
-                LineTo(hdc, 500 - xPos, 668 - yPos);
-                MoveToEx(hdc, 100 - xPos, 380 - yPos, NULL);
-                LineTo(hdc, 924 - xPos, 380 - yPos);
-                EndPaint(hWnd, &ps);
-                return 0;
+               if( Word == 0 )
+               {                                              //중간줄 삭제
+					
+						BF_Word = lstrlen(NOTE[Line-1]);
 
+						for(int i = lstrlen(NOTE[Line]); i >= 0 ; i--)
+						{
+							NOTE[Line-1][i+BF_Word] = NOTE[Line][i];
+							NOTE[Line][i] = NULL;
+							
+						}
+						if(F_Line>Line)
+						{
+							for(int i = Line; F_Line > i ; i++)
+							{
+								for(int j = lstrlen(NOTE[i+1]) ; 0 <= j ; j--)
+								{
+									NOTE[i][j] = NOTE[i+1][j];
+									NOTE[i+1][j] = NULL;
+								}
+							}
+						}
+						F_Line--;
+						Line--;
+						Word = BF_Word;
+						GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
+						SetCaretPos(size.cx, Line*16);
+						InvalidateRect( hWnd, NULL, TRUE );
+						return 0;
+               }
+
+               else
+               {
+				  if(lstrlen(NOTE[Line])==Word)
+				  {
+					NOTE[Line][--Word] = NULL;
+				  }
+				  else
+				  {
+					  for(int i = Word - 1; i < lstrlen(NOTE[Line]) ; i++)
+					  {
+						NOTE[Line][i] = NOTE[Line][i+1];
+					  }
+					  NOTE[Line][lstrlen(NOTE[Line])] = NULL;
+					  Word--;
+				  }
+				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+			      SetCaretPos(size.cx, Line*16);
+                  InvalidateRect( hWnd, NULL, TRUE );
+                  return 0;
+               }
+            }
+
+			case VK_TAB:
+				{
+					if(Word == lstrlen(NOTE[Line]))
+					{
+						for(int i = 0 ; i < 8 ; i++)
+						{
+							NOTE[Line][Word + i] = ' ';
+						}
+					}
+					else
+					{
+						for(int i = lstrlen(NOTE[Line]) ; i > Word ; i--)
+						{
+							NOTE[Line][i+7] = NOTE[Line][i-1];
+						}
+						for(int i = 0 ; i < 8 ; i++)
+						{
+							NOTE[Line][Word + i] = ' ';
+						}
+					}
+					Word = Word + 8;
+					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+					SetCaretPos(size.cx, Line*16);
+					InvalidateRect(hWnd, NULL, TRUE);
+					break;
+				}
+
+
+			default:
+				if(lstrlen(NOTE[Line])==Word)   // 맨 끝에서 입력할 때
+				{
+					if( Line < ROW )
+					{
+						NOTE[Line][Word] = (TCHAR)wParam;         
+						NOTE[Line][Word + 1] = NULL;         
+						Word++;
+			
+            
+				   /*   막바지일때 아무것도 안하기 */
+						if ( Word == COL )
+						{
+							return 0;			      
+						}
+					}
+				 }
+				 else if(lstrlen(NOTE[Line])!=Word)       //중간에서 입력할때
+				 {
+					 if(insert_ox == 0)
+					 {
+						 for(int i = lstrlen(NOTE[Line]) ; i>Word ; i--)
+						 {
+							 NOTE[Line][i] = NOTE[Line][i-1];
+						 }
+						 NOTE[Line][Word] = (TCHAR)wParam;                  
+						 Word++;
+						 InvalidateRect( hWnd, NULL, TRUE );
+					 }
+					 else
+					 {
+						 NOTE[Line][Word] = (TCHAR)wParam;
+						 Word++;
+						 InvalidateRect( hWnd, NULL, TRUE );
+					 }
+			 
+			 
+				 }
+				 GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
+				 SetCaretPos(size.cx, Line*16);
+			     InvalidateRect( hWnd, NULL, TRUE );
+				 break;
+			}
+      }
+
+	case WM_PAINT:
+      {
+		 hDC = BeginPaint( hWnd, &ps );
+         //   이차원 배열의 각 행들이 문자열이므로, 행을 탐색해서 문자열 출력
+         for( int i = 0; i < ROW; i++ )
+         {
+            TextOut( hDC, 0,16*i , NOTE[i], lstrlen( NOTE[i] ) );
+         }
+         EndPaint( hWnd, &ps );
+         break;
+      }
         case WM_DESTROY:
                 PostQuitMessage(0);
                 return 0;
