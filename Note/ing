@@ -88,6 +88,9 @@ int yMax,xMax;                // 최대 크기
 int xInc, yInc;
 RECT RT;
 
+int a=0;
+int b=0;
+
 static TCHAR NOTE[ROW][COL] = { 0, };   //   메모장으로 사용할 이차원 배열
 static size_t Line = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 행 위치
 static size_t Word = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 열 위치
@@ -102,11 +105,10 @@ int yM = 0;
 
 SCROLLINFO si;
 
-HANDLE hFile;
-DWORD dwRead;
+
 OPENFILENAME OFN, SFN;
-char lpstrFile[MAX_PATH]="";
-char str[ROW];
+char lpstrFile[MAX_PATH]="\0";
+
 
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
@@ -184,34 +186,52 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 		case ID_MENU_OPEN:
 			{
+			HANDLE hFile;
+			DWORD dwRead;
+			DWORD count = 0;
+			TCHAR strRead[MAX_PATH];
 			memset(&OFN, 0, sizeof(OPENFILENAME));
 			OFN.lStructSize = sizeof(OPENFILENAME);
 			OFN.hwndOwner=hwnd;
-			OFN.lpstrFilter=_T("Every File(*.*)\0*.*\0Text File\0*.txt;*.doc\0");
+			OFN.lpstrFilter=_T("모든 파일(*.*) \0*.*\0텍스트 파일(*.txt) \0*.txt\0");
 			OFN.lpstrFile=lpstrFile;
 			OFN.nMaxFile=ROW;
-			OFN.lpstrInitialDir = ".";
+
 
 
 			if (GetOpenFileName(&OFN)!=0) {
-				FILE *f = fopen(OFN.lpstrFile,"r+");
-				Line = 0;
-				while(fgets(NOTE[Line],sizeof(NOTE[0]),f)!= NULL)
-				{
-					Word = lstrlen(NOTE[Line]);
-					if(NOTE[Line][lstrlen(NOTE[Line])-1] == 10)
+				hFile = CreateFile(OFN.lpstrFile, GENERIC_READ, 0, NULL,
+				OPEN_EXISTING, 0, NULL);
+
+				ReadFile(hFile, strRead, MAX_PATH, &dwRead, NULL); // buf에 파일크기만큼 저장
+
+				for(int i=0; i<lstrlen(strRead); i++)
 					{
-						NOTE[Line][lstrlen(NOTE[Line])] = TEXT('\0');
-						Line++;
-						F_Line++;
-						Word =0;
+						if(strRead[i] ==10)
+						{
+							NOTE[Line][Word] = NULL;
+							Line++;
+							F_Line++;
+							count++;
+							Word = 0;
+						}
+						else if(count == dwRead)
+						{
+							CloseHandle(hFile); // 이제 필요없어진 핸들은 닫는다
+							InvalidateRect(hwnd, NULL, TRUE); // WM_PAINT를 발생시킨다
+							break;
+						}
+						else
+						{	
+							NOTE[Line][Word] = strRead[i];
+							count++;
+							Word++;
+						}
 					}
-				}
-				fclose(f);
-				InvalidateRect(hwnd, NULL, TRUE);
+					break;
 				}
 			}
-			break; 
+
 			
 		case ID_MENU_SAVE:{
 			memset(&SFN, 0, sizeof(OPENFILENAME));
@@ -222,7 +242,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			SFN.nMaxFile = ROW;
 			DWORD dwRead;
 			TCHAR strRead[MAX_PATH];
-			WORD dw = 0xFEFF;
 			HANDLE f;
 
 			int index = 0;
@@ -243,6 +262,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				WriteFile(f, strRead, index, &dwRead, NULL); 
 				CloseHandle(f);
 			}
+			break;
 		}
 
 
