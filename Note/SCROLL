@@ -1,87 +1,47 @@
-
-//WndClass정의(윈도우의 기반이 되는 클래스를 정의한다) -> CreateWindow(메모리상에 윈도우를 만든다) -> ShowWindow(화면상에 윈도우를 표시한다) -> 메시지루프(사용자로부터 메시
+#define _WIN32_WINNT 0x500
 #include <windows.h>
-#include <windowsx.h>
-#include<stdio.h>
-#include <tchar.h>
-#include "resource.h"
 
-#define ID_MENU_NEW                     40011
-#define ID_MENU_EXIT                    40012
-#define ID_MENU_SAVE                    40010
-
-#define ID_HORZSCROLL 100
-#define ID_VERTSCROLL 101
-
+LRESULT CALLBACK WndProc(HWND,UINT,WPARAM,LPARAM);
+HINSTANCE g_hInst;
+LPSTR lpszClass="Panning";
 #define      ROW         1000   //   메모장의 세로 크기
-#define      COL         100000   //   메모장의 가로 크기
-
-HMENU hMenu, hSubMenu;    //메모장 메뉴 생성
-//size_t 는 unsigned int 이며, 문자열이나 메모리의 사이즈를 나타낼 때 사용합니다. "unsigned int"를
-//typedef unsigned int size_t;
-//이렇게 size_t 라는 이름으로 정의해 놓은 것입니다.
-
-LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, 
-         WPARAM wParam, LPARAM lParam);
-
-LPCTSTR lpszClass = TEXT("메모장");         // LPCSTR = char *
-
-///////////////////////////시작점///////////////////////////////
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈도우 프로그램이라는 의미
-         LPSTR lpszCmdLine, int nCmdShow)                   //hInstance : 운영체제의 커널이 응용 프로그램에 부여한 ID ex) 메모장1 메모장2
-{                                                 //szCmdLine : 커멘트라인 상에서 프로그램 구동 시 전달된 문자열
-   HWND   hwnd;                                     //iCmdShow : 윈도우가 화면에 출력될 형태 
-   WNDCLASS WndClass;                                  //WndClass 라는 구조체 정의                            
-
-
-   WndClass.style         = CS_HREDRAW | CS_VREDRAW;          //출력스타일 : 수직/수평의 변화시 다시 그림      //Horizontal, Vertical 
-   WndClass.lpfnWndProc   = WndProc;                      //프로시저 함수명   
-   WndClass.cbClsExtra      = 0;                         //O/S 사용 여분 메모리 (Class)
-   WndClass.cbWndExtra      = 0;                         //O/s 사용 여분 메모리 (Window)
-   WndClass.hInstance      = hInstance;                   //응용 프로그램 ID
-   WndClass.hIcon         = LoadIcon(NULL, IDI_QUESTION);        //아이콘 유형
-   WndClass.hCursor      = LoadCursor(NULL, IDC_ARROW);       //커서 유형
-   WndClass.hbrBackground   = (HBRUSH)GetStockObject(WHITE_BRUSH);//배경색   
-   WndClass.lpszMenuName   = MAKEINTRESOURCE(IDR_MENU1);                         //메뉴 이름
-   WndClass.lpszClassName   = lpszClass;                   //클래스 이름
-   RegisterClass(&WndClass);                            //앞서 정의한 윈도우 클래스의 주소 // os 에다가 지금 이 클래스를 등록시킴 
-
-   hwnd = CreateWindow(lpszClass,                         //윈도우가 생성되면 핸들(hwnd)이 반환      //실제 윈도우를 만들기 시작 
-      lpszClass,                        
-        WS_OVERLAPPEDWINDOW| WS_VSCROLL | WS_HSCROLL,                        
-        100,              //x좌표                   
-        100,              //y좌표             
-        640,              //너비
-        480,              //높이     
-        NULL,                         
-        NULL,                                    
-        hInstance,                            
-        NULL                                          //생성된 윈도우 정보
-   );
-   ShowWindow(hwnd, nCmdShow);                            //윈도우의 화면 출력
-   UpdateWindow(hwnd);                                  //O/S 에 WM_PAINT 메시지 전송
-
-
-   MSG msg;
-   memset( &msg, 0, sizeof(msg) );
-   while(GetMessage(&msg, NULL, 0, 0))                      //WinProc()에서 PostQuitMessage() 호출 때까지 처리 이 함수가 읽어들인 메시지가 프로그램을 종료하라는 WM_Quit일경우 Fail 리턴.
-   {                                              // 
-      TranslateMessage(&msg);                                  //키보드 입력 메시지를 가공하여 프로그램에서 쉽게 쓸 수 있도록 해 준다. 
-                                                 //윈도우즈는 키보드의 어떤 키가 눌러졌다거나 떨어졌을 때 키보드 메시지를 발생시키는데 이 함수는 키보드의 눌림(WM_KEYDOWN)과 떨어짐(WM_KEYUP)이 
-                                                 //연속적으로 발생할 때 문자가 입력되었다는 메시지(WM_CHAR)를 만드는 역할을 한다. 예를 들어 A키를 누른 후 다시 A키를 떼면 A문자가 입력되었다는 메시지를 만들어 낸다.
-      
-      
-      DispatchMessage(&msg);                            //WinMain -> WinProc  
-                                                 //시스템 메시지 큐에서 꺼낸 메시지를 프로그램의 메시지 처리 함수(WndProc)로 전달한다. 
-                                                 //이 함수에 의해 메시지가 프로그램으로 전달되며 프로그램에서는 전달된 메시지를 점검하여 다음 동작을 결정하게 된다.
-                                                 //메시지 루프에서 하는 일은 메시지를 꺼내고, 필요한 경우 약간 형태를 바꾼 후 응용 프로그램으로 전달하는 것 뿐이다. 이 과정은 WM_QUIT 메시지가 전달될 때까지, 
-                                                               //즉 프로그램이 종료될때까지 반복된다. 결국 메시지 루프가 하는 일이란 메시지 큐에서 메시지를 꺼내 메시지 처리 함수로 보내주는 것 뿐이다.
-                                                 //실제 메시지 처리는 별도의 메시지 처리 함수(WndProc)에서 수행한다. 메시지는 시스템의 변화에 대한 정보이며 MSG라는 구조체에 보관된다. MSG 구조체는 다음과 같이 정의되어 있다.
-   }
-   return (int)msg.wParam;
+#define      COL         100   //   메모장의 가로 크기
+int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance
+         ,LPSTR lpszCmdParam,int nCmdShow)
+{
+    HWND hwnd;
+    MSG Message;
+    WNDCLASS WndClass;
+    g_hInst=hInstance;
+    
+    if(!hPrevInstance) {
+        WndClass.cbClsExtra=0;
+        WndClass.cbWndExtra=0;
+        WndClass.hbrBackground=(HBRUSH)GetStockObject(WHITE_BRUSH);
+        WndClass.hCursor=LoadCursor(NULL,IDC_ARROW);
+        WndClass.hIcon=LoadIcon(NULL,IDI_APPLICATION);
+        WndClass.hInstance=hInstance;
+        WndClass.lpfnWndProc=(WNDPROC)WndProc;
+        WndClass.lpszClassName=lpszClass;
+        WndClass.lpszMenuName=NULL;
+        WndClass.style=CS_HREDRAW | CS_VREDRAW;
+        RegisterClass(&WndClass);
+    }
+    hwnd=CreateWindow(lpszClass,lpszClass,WS_OVERLAPPEDWINDOW | WS_HSCROLL | WS_VSCROLL,
+         CW_USEDEFAULT,CW_USEDEFAULT,640,480,
+         NULL,(HMENU)NULL,hInstance,NULL);
+    ShowWindow(hwnd,nCmdShow);
+    
+    while(GetMessage(&Message,0,0,0)) {
+        TranslateMessage(&Message);
+        DispatchMessage(&Message);
+    }
+    return Message.wParam;
 }
+HDC hDC;
+HWND hHorzScroll;            // 수평 스크롤 바 컨트롤
+HWND hVertScroll;            // 수직 스크롤 바 컨트롤
 
-HDC hdc;
 int xPos = 0;
 int	yPos = 0;                // 현재 위치
 int yMax,xMax;                // 최대 크기
@@ -100,7 +60,7 @@ int answer;
 int xM = 0;
 int yM = 0;
 
-SCROLLINFO si;
+SCROLLINFO xScrol, yScrol;
 
 HANDLE hFile;
 DWORD dwRead;
@@ -108,164 +68,26 @@ OPENFILENAME OFN, SFN;
 char lpstrFile[MAX_PATH]="";
 char str[ROW];
 
+SIZE size;
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
-	SIZE size;
-	HDC hDC = GetDC(hwnd);
-    PAINTSTRUCT ps;
+        int i;
+        TCHAR str[128];
+        HDC hdc;
+        PAINTSTRUCT ps;
+        int xInc, yInc;
+
+        switch ( iMessage )
+        {
+        case WM_CREATE:
+                xPos = 0;
+                yPos = 0;
 
 
-    switch (iMsg) 
-   {
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                return 0;
 
-
-    case WM_CREATE:                           //메모장을 만드는 순간 메뉴버튼 생성
-		break;
-	
-	case WM_LBUTTONDOWN:
-		{
-		xM = LOWORD(lParam);
-		yM = HIWORD(lParam);
-
-		Line = yM/15;
-
-		if(Line > F_Line){
-			Line = F_Line;
-			Word = lstrlen(NOTE[Line]);
-			GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
-			SetCaretPos(size.cx, Line*16);
-			InvalidateRect( hwnd, NULL, TRUE );
-			break;
-		
-		}
-		else
-		{
-			GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
-			if(size.cx >= xM)
-			{
-				SIZE size2;
-				for(int i = 0 ; i <= lstrlen(NOTE[Line]); i ++)
-				{
-					GetTextExtentPoint(hDC, NOTE[Line],i, &size2);
-					if(size2.cx < xM)
-					{
-						Word = i;
-					}
-				}
-				GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
-				SetCaretPos(size.cx, Line*16);
-				InvalidateRect( hwnd, NULL, TRUE );
-				break;
-			}
-			else
-				{
-				GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
-				SetCaretPos(size.cx, Line*16);
-				InvalidateRect( hwnd, NULL, TRUE );
-				}
-				break;
-			}
-		}
-
-	case WM_COMMAND:
-		switch(LOWORD(wParam)){
-
-		case ID_NEW:
-			answer = MessageBox(hwnd,"새로 열겠습니까?","취소",MB_OK);
-			if(answer == IDOK){
-				memset(NOTE,0,sizeof(NOTE));
-				Line = 0;
-				Word =0;
-				InvalidateRect(hwnd, NULL, TRUE);
-			}
-			break;
-
-		case ID_OPEN:
-			answer = MessageBox(hwnd,"새로 열겠습니까?","취소",MB_OK);
-
-			
-			{
-			memset(&OFN, 0, sizeof(OPENFILENAME));
-			OFN.lStructSize = sizeof(OPENFILENAME);
-			OFN.hwndOwner=hwnd;
-			OFN.lpstrFilter=_T("Every File(*.*)\0*.*\0Text File\0*.txt;*.doc\0");
-			OFN.lpstrFile=lpstrFile;
-			OFN.nMaxFile=ROW;
-			OFN.lpstrInitialDir = ".";
-
-
-			if (GetOpenFileName(&OFN)!=0) {
-				FILE *f = fopen(OFN.lpstrFile,"r+");
-				Line = 0;
-				while(Line < ROW && fgets(NOTE[Line],sizeof(NOTE[0]),f))
-				{
-					NOTE[Line][lstrlen(NOTE[Line])] = NULL;
-					Word = lstrlen(NOTE[Line]);
-					if(NOTE[Line][lstrlen(NOTE[Line])-1] == 10)
-					{
-						Line++;
-						Word =0;
-					}
-				}
-				fclose(f);
-				InvalidateRect(hwnd, NULL, TRUE);
-				}
-			}
-			break; 
-			
-		case ID_SAVE:{
-			memset(&SFN, 0, sizeof(OPENFILENAME));
-			SFN.lStructSize = sizeof(OPENFILENAME);
-			SFN.hwndOwner = hwnd;
-			SFN.lpstrFilter = _T("모든 파일(*.*) \0*.*\0텍스트 파일(*.txt) \0*.txt\0");
-			SFN.lpstrFile =lpstrFile;
-			SFN.nMaxFile = ROW;
-			DWORD dwRead;
-			TCHAR strRead[MAX_PATH];
-			WORD dw = 0xFEFF;
-			HANDLE f;
-
-			int index = 0;
-			if(GetSaveFileName(&SFN) != 0){
-				f = CreateFile(SFN.lpstrFile, GENERIC_WRITE, 0, NULL, CREATE_NEW, 0, NULL);
-
-				for(int i=0; i<=F_Line; i++){
-					for(int j=0; lstrlen(NOTE[i]) > j; j++){
-						strRead[index] = NOTE[i][j];
-						index++;
-					}
-					if(i != F_Line)
-					{
-						strRead[index] = '\n';
-						index ++;
-					}
-				}
-				WriteFile(f, strRead, index, &dwRead, NULL); 
-				CloseHandle(f);
-			}
-		}
-
-
-		case ID_EXIT:
-			PostQuitMessage(0);
-
-			break;
-		}
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-    case WM_SETFOCUS:                                   //처음 캐럿을 만들어주는 문자가 시작하는 위치
-            CreateCaret(hwnd, (HBITMAP) NULL, 2, 12); 
-            SetCaretPos(0, 0); 
-            ShowCaret(hwnd); 
-            break; 
-    case WM_KILLFOCUS:
-            HideCaret(hwnd); // 캐럿 숨기기
-            DestroyCaret(); // 캐럿 파괴
-            break;
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-	case WM_HSCROLL:
+      case WM_HSCROLL:
                 xInc = 0;
                 switch (LOWORD(wParam))
                 {
@@ -295,8 +117,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                 xPos = xPos + xInc;
 
                 // 스크롤시키고 썸 위치를 다시 계산한다.
-                ScrollWindow(hwnd, -xInc, 0, NULL, NULL);
-                SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
+                ScrollWindow(hWnd, -xInc, 0, NULL, NULL);
+                SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
                 return 0;
 
         case WM_VSCROLL:
@@ -330,27 +152,41 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
                 yPos = yPos + yInc;
            
                 // 스크롤시키고 썸 위치를 다시 계산한다.
-                ScrollWindow(hwnd, 0, -yInc, NULL, NULL);
-                SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
+                ScrollWindow(hWnd, 0, -yInc, NULL, NULL);
+                SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
                 return 0;
-
+/*
 		case WM_SIZE:
-				si.cbSize = sizeof(SCROLLINFO);
-				si.fMask = SIF_ALL | SIF_DISABLENOSCROLL;
+                xMax = 1024 - LOWORD(lParam);
+                yMax = 768 - HIWORD(lParam);
+                SetScrollRange(hWnd, SB_VERT, 0, yMax, TRUE);
+                SetScrollPos(hWnd, SB_VERT, 0, TRUE);
+                SetScrollRange(hWnd, SB_HORZ, 0, xMax, TRUE);
+                SetScrollPos(hWnd, SB_HORZ, 0, TRUE);
+                return 0;
+				*/
+		case WM_SIZE:
+				GetClientRect(hWnd, &RT);
+				xScrol.cbSize = sizeof(SCROLLINFO);
+				xScrol.fMask = SIF_ALL | SIF_DISABLENOSCROLL;
+	            xScrol.nMin = 0;
+				xScrol.nMax = RT.right;
+				xScrol.nPage = RT.right;
 
-	            si.nMin = 0;
-		        si.nMax = 480;
-			    si.nPage = HIWORD(lParam);
-				si.nPos = yPos;
-				SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
+				yScrol.cbSize = sizeof(SCROLLINFO);
+				yScrol.fMask = SIF_ALL | SIF_DISABLENOSCROLL;
+	            yScrol.nMin = 0;
+				yScrol.nMax = RT.bottom;
+				yScrol.nPage = RT.bottom;
 
-	            si.nMax = 640;
-		        si.nPage = LOWORD(lParam);
-			    si.nPos = xPos;
-				SetScrollInfo(hwnd, SB_HORZ,&si,TRUE);
+				SetScrollInfo(hWnd, SB_VERT,&xScrol,TRUE);
+				SetScrollPos(hWnd, SB_VERT, xPos, TRUE);
+
+				SetScrollInfo(hWnd, SB_HORZ,&yScrol,TRUE);
+				SetScrollPos(hWnd, SB_HORZ, yPos, TRUE);
 				return 0;
 
-    case WM_CHAR:
+		 case WM_CHAR:
       {
          switch(wParam)
          {
@@ -392,7 +228,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				  Line++; F_Line++; Word = 0;
 				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
                   SetCaretPos(size.cx, Line*16);
-                  InvalidateRect( hwnd, NULL, TRUE );
+                  InvalidateRect( hWnd, NULL, TRUE );
                   return 0;
 				}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -431,7 +267,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 						Word = BF_Word;
 						GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
 						SetCaretPos(size.cx, Line*16);
-						InvalidateRect( hwnd, NULL, TRUE );
+						InvalidateRect( hWnd, NULL, TRUE );
 						return 0;
                }
 
@@ -452,7 +288,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				  }
 				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 			      SetCaretPos(size.cx, Line*16);
-                  InvalidateRect( hwnd, NULL, TRUE );
+                  InvalidateRect( hWnd, NULL, TRUE );
                   return 0;
                }
             }
@@ -480,7 +316,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					Word = Word + 8;
 					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 					SetCaretPos(size.cx, Line*16);
-					InvalidateRect(hwnd, NULL, TRUE);
+					InvalidateRect(hWnd, NULL, TRUE);
 					break;
 				}
 
@@ -512,207 +348,38 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 						 }
 						 NOTE[Line][Word] = (TCHAR)wParam;                  
 						 Word++;
-						 InvalidateRect( hwnd, NULL, TRUE );
+						 InvalidateRect( hWnd, NULL, TRUE );
 					 }
 					 else
 					 {
 						 NOTE[Line][Word] = (TCHAR)wParam;
 						 Word++;
-						 InvalidateRect( hwnd, NULL, TRUE );
+						 InvalidateRect( hWnd, NULL, TRUE );
 					 }
 			 
 			 
 				 }
 				 GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 				 SetCaretPos(size.cx, Line*16);
-			     InvalidateRect( hwnd, NULL, TRUE );
+			     InvalidateRect( hWnd, NULL, TRUE );
 				 break;
 			}
       }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	case WM_KEYDOWN:
-				switch(wParam){
-				case VK_HOME:       // Home 
-					SetCaretPos(0, Line*16);
-					Word = 0;
-					InvalidateRect(hwnd, NULL, TRUE);
-		            break; 
-
-			    case VK_END:        // End 
-					GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
-					Word = lstrlen(NOTE[Line]);
-					SetCaretPos(size.cx, Line*16);
-					InvalidateRect(hwnd, NULL, TRUE);
-					break; 
-
-				case VK_INSERT:
-					if(insert_ox == 0)
-					{insert_ox = 1;}
-					else
-					{insert_ox = 0;}
-					break;
-				
-				case VK_DELETE:
-					{
-						if(Line != F_Line)
-						{
-							if(Word == lstrlen(NOTE[Line]))
-							{
-								int j = lstrlen(NOTE[Line+1])-1;
-								for(int i = lstrlen(NOTE[Line+1])-1 ; i >= 0 ; i--)
-								{
-
-									NOTE[Line][lstrlen(NOTE[Line])+j] = NOTE[Line+1][i];
-									NOTE[Line+1][i] = NULL;
-									j--;
-								}
-								for(int i = Line+1; F_Line > i; i++)
-								{
-									for(int j = lstrlen(NOTE[i+1]) ; 0 <= j ; j--)
-									{
-										NOTE[i][j] = NOTE[i+1][j];
-										NOTE[i+1][j] = NULL;
-									}
-								}
-								F_Line--;
-								GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
-								SetCaretPos(size.cx, Line*16);
-								InvalidateRect( hwnd, NULL, TRUE );
-								return 0;
-							}
-							else
-							{
-								for(int i = Word +1 ; i < lstrlen(NOTE[Line]) ; i++)
-								{
-									NOTE[Line][i-1] = NOTE[Line][i];
-								}
-								NOTE[Line][lstrlen(NOTE[Line])-1] = NULL;
-								InvalidateRect(hwnd, NULL, TRUE);
-							}
-						}
-						else
-						{
-							if(Word == lstrlen(NOTE[Line]))
-							{
-							}
-							else
-							{
-								for(int i = Word +1 ; i < lstrlen(NOTE[Line]) ; i++)
-									{
-										NOTE[Line][i-1] = NOTE[Line][i];
-									}
-									NOTE[Line][lstrlen(NOTE[Line])-1] = NULL;
-									InvalidateRect(hwnd, NULL, TRUE);
-							}
-						}
-					}
-
-				case VK_PRIOR:      // Page Up 
-					break; 
- 
-				case VK_NEXT:       // Page Down 
-					break; 
- 
-				case VK_LEFT:       // Left arrow
-					if(Word==0)
-					{
-						if(Line!=0)
-						{
-							Line--;
-							Word = lstrlen(NOTE[Line]);
-						}
-					}
-					else
-					{
-						Word--;
-					}
-					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
-					SetCaretPos(size.cx, Line*16);
-					InvalidateRect(hwnd, NULL, TRUE);
-					break; 
- 
-				case VK_RIGHT:      // Right arrow
-					if(Word == lstrlen(NOTE[Line]))
-					{
-						if(Line!=F_Line)
-						{
-							Line++;
-							Word = 0;
-						}
-						else if(Line == F_Line)
-						{}
-					}
-					else{
-						Word++;
-					}
-					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
-					SetCaretPos(size.cx, Line*16);
-					InvalidateRect(hwnd, NULL, TRUE);
-					break; 
- 
-				case VK_UP:         // Up arrow 
-					if(Line != 0)
-					{
-						if(lstrlen(NOTE[Line-1])<Word)
-						{
-							Word = lstrlen(NOTE[Line-1]);
-						}
-						Line--;
-					}
-					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
-					SetCaretPos(size.cx, Line*16);
-					InvalidateRect(hwnd, NULL, TRUE);
-
-					break; 
- 
-				case VK_DOWN:       // Down arrow 
-					if(Line != F_Line)
-					{
-						if(lstrlen(NOTE[Line+1])<Word)
-						{
-							Word = lstrlen(NOTE[Line+1]);
-						}
-						Line++;
-					}
-					else if(Line==F_Line)
-					{}
-					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
-					SetCaretPos(size.cx, Line*16);
-					InvalidateRect(hwnd, NULL, TRUE);
-					break; 
-			}
-
 	case WM_PAINT:
       {
-		 hDC = BeginPaint( hwnd, &ps );
+		 hDC = BeginPaint( hWnd, &ps );
          //   이차원 배열의 각 행들이 문자열이므로, 행을 탐색해서 문자열 출력
          for( int i = 0; i < ROW; i++ )
          {
             TextOut( hDC, 0,16*i , NOTE[i], lstrlen( NOTE[i] ) );
          }
-         EndPaint( hwnd, &ps );
+         EndPaint( hWnd, &ps );
          break;
       }
-   
-   
-   
-   
-    case WM_CLOSE:         //프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
-      int num = MessageBox(hwnd, TEXT("종료하시겠습니까?"),TEXT("메시지 박스"),MB_YESNOCANCEL);
-      switch(num){
-         case IDYES:
-            PostQuitMessage(0);
-            break;
-         case IDNO:
-            PostQuitMessage(0);
-            break;
-         case IDCANCEL:
-            PostQuitMessage(0);
-            break;
-         }
-      }
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-   return DefWindowProc(hwnd, iMsg, wParam, lParam);          //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
+        case WM_DESTROY:
+                PostQuitMessage(0);
+                return 0;
+        }
+        return(DefWindowProc(hWnd, iMessage, wParam, lParam));
 }
