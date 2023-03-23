@@ -4,8 +4,8 @@
 LRESULT CALLBACK WndProc(HWND,UINT,WPARAM,LPARAM);
 HINSTANCE g_hInst;
 LPSTR lpszClass="Panning";
-#define      ROW         1000   //   메모장의 세로 크기
-#define      COL         100   //   메모장의 가로 크기
+#define      ROW         10000   //   메모장의 세로 크기
+#define      COL         10000   //   메모장의 가로 크기
 int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance
          ,LPSTR lpszCmdParam,int nCmdShow)
 {
@@ -47,7 +47,7 @@ int	yPos = 0;                // 현재 위치
 int yMax,xMax;                // 최대 크기
 int xInc, yInc;
 RECT RT;
-
+int MaxWord = 0;
 static TCHAR NOTE[ROW][COL] = { 0, };   //   메모장으로 사용할 이차원 배열
 static size_t Line = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 행 위치
 static size_t Word = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 열 위치
@@ -56,6 +56,13 @@ int BF_Word = 0;
 int insert_ox = 0;
 HANDLE f;
 int answer;
+
+int en_flag = 0;
+int sc_flag = 0;
+int mo_flag = 0;
+
+
+int start = 0;
 
 int xM = 0;
 int yM = 0;
@@ -68,13 +75,12 @@ OPENFILENAME OFN, SFN;
 char lpstrFile[MAX_PATH]="";
 char str[ROW];
 
-SIZE size;
+SIZE size,tSize,scrSize,MAX;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
         int i;
         TCHAR str[128];
-        HDC hdc;
         PAINTSTRUCT ps;
         int xInc, yInc;
 
@@ -92,33 +98,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
                 switch (LOWORD(wParam))
                 {
                 case SB_LINELEFT:
-                        xInc = -1;
+                        xPos = max(0,xPos-5);
                         break;
                 case SB_LINERIGHT:
-                        xInc = 1;
+                        xPos = min(COL,xPos+5);
                         break;
                 case SB_PAGELEFT:
-                        xInc = -20;
+                        xPos = max(0,xPos-5);
                         break;
                 case SB_PAGERIGHT:
-                        xInc = 20;
+                        xPos = min(COL,xPos+5);
                         break;
                 case SB_THUMBTRACK:
-                        xInc = HIWORD(wParam) - xPos;
+                        xPos = HIWORD(wParam);
+						while(RT.right + xPos > xScrol.nMax)
+							xPos--;
                         break;
                 }
-                // 새로운 위치는 최소한 0 이상
-                if ( xPos + xInc < 0 ) xInc = -xPos;
-
-                // 새로운 위치는 최대한 xMax 이하
-                if ( xPos + xInc > xMax ) xInc = xMax - xPos;
-
-                // 새로운 위치 계산
-                xPos = xPos + xInc;
-
-                // 스크롤시키고 썸 위치를 다시 계산한다.
-                ScrollWindow(hWnd, -xInc, 0, NULL, NULL);
-                SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
+				SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
                 return 0;
 
         case WM_VSCROLL:
@@ -126,33 +123,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
                 switch ( LOWORD(wParam) )
                 {
                 case SB_LINEUP:
-                        yInc = -1;
+                        yPos = max(0,yPos - 5);
                         break;
                 case SB_LINEDOWN:
-                        yInc = 1;
+                        yPos = min(ROW,yPos+5);
                         break;
                 case SB_PAGEUP:
-                        yInc = -20;
+                        yPos = max(0,yPos - 5);
                         break;
                 case SB_PAGEDOWN:
-                        yInc = 20;
+                        yPos = min(ROW,yPos+5);
                         break;
                 case SB_THUMBTRACK:
-                        yInc = HIWORD(wParam) - yPos;
+                        yPos = HIWORD(wParam);
+						while(RT.bottom+yPos+12 > yScrol.nMax)
+							yPos--;
                         break;
                 }
-                // 새로운 위치는 최소한 0 이상
-                if ( yPos + yInc < 0 ) yInc = -yPos;
-
-                // 새로운 위치는 최대한 yMax 이하
-                if ( yPos + yInc > yMax ) yInc = yMax - yPos;
-                // yInc = max(0yPos, min(yInc, yMax - yPos));
-               
-                // 새로운 위치 계산
-                yPos = yPos + yInc;
-           
-                // 스크롤시키고 썸 위치를 다시 계산한다.
-                ScrollWindow(hWnd, 0, -yInc, NULL, NULL);
                 SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
                 return 0;
 /*
@@ -193,6 +180,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
             case VK_RETURN:   //   엔터 키가 눌린 경우
 				{
+					start =1;
 				  if(Line != F_Line)
 				  {
 						for(int i = F_Line ; i != Line; i--)
@@ -231,104 +219,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
                   InvalidateRect( hWnd, NULL, TRUE );
                   return 0;
 				}
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            case VK_BACK:   //   백스페이스 키가 눌린 경우
-            {
-			
-               if ( Line == 0 && Word == 0 )
-               {return 0;}
-
-
-               if( Word == 0 )
-               {                                              //중간줄 삭제
-					
-						BF_Word = lstrlen(NOTE[Line-1]);
-
-						for(int i = lstrlen(NOTE[Line]); i >= 0 ; i--)
-						{
-							NOTE[Line-1][i+BF_Word] = NOTE[Line][i];
-							NOTE[Line][i] = NULL;
-							
-						}
-						if(F_Line>Line)
-						{
-							for(int i = Line; F_Line > i ; i++)
-							{
-								for(int j = lstrlen(NOTE[i+1]) ; 0 <= j ; j--)
-								{
-									NOTE[i][j] = NOTE[i+1][j];
-									NOTE[i+1][j] = NULL;
-								}
-							}
-						}
-						F_Line--;
-						Line--;
-						Word = BF_Word;
-						GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
-						SetCaretPos(size.cx, Line*16);
-						InvalidateRect( hWnd, NULL, TRUE );
-						return 0;
-               }
-
-               else
-               {
-				  if(lstrlen(NOTE[Line])==Word)
-				  {
-					NOTE[Line][--Word] = NULL;
-				  }
-				  else
-				  {
-					  for(int i = Word - 1; i < lstrlen(NOTE[Line]) ; i++)
-					  {
-						NOTE[Line][i] = NOTE[Line][i+1];
-					  }
-					  NOTE[Line][lstrlen(NOTE[Line])] = NULL;
-					  Word--;
-				  }
-				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
-			      SetCaretPos(size.cx, Line*16);
-                  InvalidateRect( hWnd, NULL, TRUE );
-                  return 0;
-               }
-            }
-
-			case VK_TAB:
-				{
-					if(Word == lstrlen(NOTE[Line]))
-					{
-						for(int i = 0 ; i < 8 ; i++)
-						{
-							NOTE[Line][Word + i] = ' ';
-						}
-					}
-					else
-					{
-						for(int i = lstrlen(NOTE[Line]) ; i > Word ; i--)
-						{
-							NOTE[Line][i+7] = NOTE[Line][i-1];
-						}
-						for(int i = 0 ; i < 8 ; i++)
-						{
-							NOTE[Line][Word + i] = ' ';
-						}
-					}
-					Word = Word + 8;
-					GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
-					SetCaretPos(size.cx, Line*16);
-					InvalidateRect(hWnd, NULL, TRUE);
-					break;
-				}
-
 
 			default:
+				start =1;
 				if(lstrlen(NOTE[Line])==Word)   // 맨 끝에서 입력할 때
 				{
 					if( Line < ROW )
 					{
 						NOTE[Line][Word] = (TCHAR)wParam;         
-						NOTE[Line][Word + 1] = NULL;         
+						NOTE[Line][Word + 1] = NULL;    
+						xScrol.nMax++;
 						Word++;
+						SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
+						InvalidateRect( hWnd, NULL, TRUE );
 			
             
 				   /*   막바지일때 아무것도 안하기 */
@@ -372,8 +275,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
          //   이차원 배열의 각 행들이 문자열이므로, 행을 탐색해서 문자열 출력
          for( int i = 0; i < ROW; i++ )
          {
+			if(MaxWord < lstrlen(NOTE[i]))
+			{
+				MaxWord = lstrlen(NOTE[i]);
+				GetTextExtentPoint(hDC,NOTE[Line],MaxWord,&MAX);
+			}
             TextOut( hDC, 0,16*i , NOTE[i], lstrlen( NOTE[i] ) );
          }
+
+		GetTextExtentPoint(hDC,NOTE[Line],lstrlen(NOTE[Line]),&tSize);
+		GetTextExtentPoint(hDC,NOTE[Line],Word,&size);
+		GetTextExtentPoint(hDC,NOTE[Line],xPos,&scrSize);
+
+
+		if(RT.right <= tSize.cx - scrSize.cx){
+			if(lstrlen(NOTE[Line]) == MaxWord)
+				xScrol.nMax++;
+			SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
+		}
+		else if(0 > size.cx - scrSize.cx){
+				if(lstrlen(NOTE[Line]) == MaxWord)
+					xScrol.nMax--;
+				SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
+		}
+
+		if(RT.bottom < 15*(F_Line - yPos)){
+			yScrol.nMax++;
+			SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
+		}
+		else if(0 > 15*(F_Line - yPos)){
+				yScrol.nMax--;
+				SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
+		}
+
          EndPaint( hWnd, &ps );
          break;
       }
