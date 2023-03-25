@@ -400,3 +400,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         }
         return(DefWindowProc(hWnd, iMessage, wParam, lParam));
 }
+//추가할 내용: 케럿이 넘어간 부분을 MaxWord로 기억하고있어서 최대 부분이 업데이트가 되지 않는다
