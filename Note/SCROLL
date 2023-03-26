@@ -50,6 +50,7 @@ RECT RT;
 int MaxWord = 0;
 int BF_MaxWord = 0;
 int MaxLine = 0;
+int BF_MaxLine = 0;
 static TCHAR NOTE[ROW][COL] = { 0, };   //   메모장으로 사용할 이차원 배열
 static size_t Line = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 행 위치
 static size_t Word = 0;      //   메모장(이차원 배열)에서의 문자를 저장할 열 위치
@@ -84,19 +85,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         int i;
         TCHAR str[128];
         PAINTSTRUCT ps;
-        int xInc, yInc;
 
         switch ( iMessage )
         {
         case WM_CREATE:
                 xPos = 0;
                 yPos = 0;
-
-
                 return 0;
 
       case WM_HSCROLL:
-                xInc = 0;
                 switch (LOWORD(wParam))
                 {
                 case SB_LINELEFT:
@@ -118,10 +115,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
                         break;
                 }
 				SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
+				InvalidateRect( hWnd, NULL, TRUE );
                 return 0;
 
         case WM_VSCROLL:
-                yInc = 0;
                 switch ( LOWORD(wParam) )
                 {
                 case SB_LINEUP:
@@ -143,17 +140,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
                         break;
                 }
                 SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
+				InvalidateRect( hWnd, NULL, TRUE );
                 return 0;
-/*
-		case WM_SIZE:
-                xMax = 1024 - LOWORD(lParam);
-                yMax = 768 - HIWORD(lParam);
-                SetScrollRange(hWnd, SB_VERT, 0, yMax, TRUE);
-                SetScrollPos(hWnd, SB_VERT, 0, TRUE);
-                SetScrollRange(hWnd, SB_HORZ, 0, xMax, TRUE);
-                SetScrollPos(hWnd, SB_HORZ, 0, TRUE);
-                return 0;
-				*/
+
 		case WM_SIZE:
 				GetClientRect(hWnd, &RT);
 				xScrol.cbSize = sizeof(SCROLLINFO);
@@ -335,22 +324,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		 GetClientRect(hWnd, &RT);
          //   이차원 배열의 각 행들이 문자열이므로, 행을 탐색해서 문자열 출력
 		 BF_MaxWord = MaxWord;
+		 BF_MaxLine = MaxLine;
          for( int i = 0; i < ROW; i++ )
          {
 
 			if(MaxWord < lstrlen(NOTE[i]))
 			{
 				MaxWord = lstrlen(NOTE[i]);
-				MaxLine = Line;
+				MaxLine = i;
 				GetTextExtentPoint(hDC,NOTE[Line],MaxWord,&MAX);
 			}
-            TextOut( hDC, 0,16*i , NOTE[i], lstrlen( NOTE[i] ) );
+            TextOut( hDC, -xPos,16*(i-yPos) , NOTE[i], lstrlen( NOTE[i] ) );
          }
 
 		GetTextExtentPoint(hDC,NOTE[Line],lstrlen(NOTE[Line]),&tSize);
 		GetTextExtentPoint(hDC,NOTE[Line],Word,&size);
 		GetTextExtentPoint(hDC,NOTE[Line],xPos,&scrSize);
 
+		if(RT.bottom < 16 * F_Line)
+		{
+		if(MaxLine > BF_MaxLine){
+				yScrol.nPage--;
+				SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
+		}
+			else if (MaxLine <= BF_MaxLine){
+				SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
+				yScrol.nPage++;
+			}
+
+		}
+		else if(0 > MaxLine){
+			yScrol.nPage = 1;
+			SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
+		}
 
 		if(RT.right <= MAX.cx){
 			if(Line == MaxLine)
@@ -364,11 +370,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				{
 					if(xScrol.nPage < RT.right)
 					{
+						MaxWord = BF_MaxWord;
 						xScrol.nPage++;
 						SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
 					}
 					else
 					{
+						MaxWord = BF_MaxWord;
 						xScrol.nPage = RT.right;
 						SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
 					}
@@ -379,17 +387,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			xScrol.nPage = 1;
 			SetScrollPos(hWnd, SB_HORZ, xPos, TRUE);
 		}
-/*
-		if(RT.bottom < 15*F_Line){
-			yScrol.nPage--;
-			SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
-		}
-		else if(0 > 15*F_Line){
-			yScrol.nPage = ;
-			SetScrollPos(hWnd, SB_VERT, yPos, TRUE);
-		}
-		*/
+		
+
+
+		 for( int i = 0; i < ROW; i++ )
+         {
+            TextOut( hDC, -xPos, -yPos , NOTE[i], lstrlen( NOTE[i] ) );
+         }
+
+
 		 SetScrollInfo(hWnd,SB_HORZ,&xScrol,TRUE);
+		 SetScrollInfo(hWnd,SB_VERT,&yScrol,TRUE);
          EndPaint( hWnd, &ps );
          break;
       }
@@ -400,5 +408,3 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         }
         return(DefWindowProc(hWnd, iMessage, wParam, lParam));
 }
-//추가할 내용: 케럿이 넘어간 부분을 MaxWord로 기억하고있어서 최대 부분이 업데이트가 되지 않는다
-//동기화 할때 화면 움직이는거 
