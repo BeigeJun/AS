@@ -436,6 +436,52 @@ void DOWN(HWND hwnd)
 					SetCaretPos(size.cx, Line*16);
 					InvalidateRect(hwnd, NULL, TRUE);
 }
+void SCRX(HWND hwnd,WPARAM wParam)
+{
+	switch (LOWORD(wParam))
+                {
+                case SB_LINELEFT:
+                        xPos = max(0,xPos-5);
+                        break;
+                case SB_LINERIGHT:
+                        xPos = min(COL,xPos+5);
+                        break;
+                case SB_PAGELEFT:
+                        xPos = max(0,xPos-5);
+                        break;
+                case SB_PAGERIGHT:
+                        xPos = min(COL,xPos+5);
+                        break;
+                case SB_THUMBTRACK:
+                        xPos = HIWORD(wParam);
+						while(RT.right + xPos > xScrol.nMax)
+							xPos--;
+                        break;
+                }
+}
+void SCRY(HWND hwnd,WPARAM wParam)
+{
+	switch ( LOWORD(wParam) )
+                {
+                case SB_LINEUP:
+                        yPos = max(0,yPos - 5);
+                        break;
+                case SB_LINEDOWN:
+                        yPos = min(ROW,yPos+5);
+                        break;
+                case SB_PAGEUP:
+                        yPos = max(0,yPos - 5);
+                        break;
+                case SB_PAGEDOWN:
+                        yPos = min(ROW,yPos+5);
+                        break;
+                case SB_THUMBTRACK:
+                        yPos = HIWORD(wParam);
+						while(RT.bottom+yPos-12 > yScrol.nMax)
+							yPos--;
+                        break;
+                }
+}
 void PAINT(HWND hwnd) 
 {
 PAINTSTRUCT ps;
