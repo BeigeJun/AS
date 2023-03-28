@@ -3,41 +3,38 @@
 
 void BUT_DOW(HWND hwnd, LPARAM lParam)
 {
-		xM = LOWORD(lParam);
-		yM = HIWORD(lParam);
+		GetTextExtentPoint(hDC, NOTE[Line], xPos, &scrSize);
+		xM = LOWORD(lParam) + scrSize.cx;
+		yM = HIWORD(lParam)+(16*yPos);
 
-		Line = yM/15;
+		Line = yM/16;
 
 		if(Line > F_Line){
 			Line = F_Line;
 			Word = lstrlen(NOTE[Line]);
-			GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
-			SetCaretPos(size.cx, Line*16);
 			InvalidateRect( hwnd, NULL, TRUE );
 		}
 		else
 		{
-			GetTextExtentPoint(hDC, NOTE[Line],lstrlen(NOTE[Line]), &size);
-			if(size.cx >= xM)
+			GetTextExtentPoint(hDC, NOTE[Line],lstrlen(NOTE[Line]), &tSize);
+			if(tSize.cx >= xM)
 			{
 				SIZE size2;
-				for(int i = 0 ; i <= lstrlen(NOTE[Line]); i ++)
-				{
-					GetTextExtentPoint(hDC, NOTE[Line],i, &size2);
-					if(size2.cx < xM)
+					for(int i = 0 ; i <= lstrlen(NOTE[Line]); i ++)
 					{
-						Word = i;
+						GetTextExtentPoint(hDC, NOTE[Line],i, &size2);
+						if(size2.cx < xM)
+						{
+							Word = i;
+						}
 					}
-				}
-				GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
-				SetCaretPos(size.cx, Line*16);
+				
 				InvalidateRect( hwnd, NULL, TRUE );
 			}
 			else
 				{
-				GetTextExtentPoint(hDC, NOTE[Line],lstrlen(NOTE[Line]), &size);
-				SetCaretPos(size.cx, Line*16);
-				InvalidateRect( hwnd, NULL, TRUE );
+					Word = lstrlen(NOTE[Line]);
+					InvalidateRect( hwnd, NULL, TRUE );
 				}
 			}
 }
@@ -57,7 +54,7 @@ void SAVE(HWND hwnd)
 			SFN.hwndOwner = hwnd;
 			SFN.lpstrFilter = _T("모든 파일(*.*) \0*.*\0텍스트 파일(*.txt) \0*.txt\0");
 			SFN.lpstrFile =lpstrFile;
-			SFN.nMaxFile = ROW;
+			SFN.nMaxFile = MAX_PATH;
 			DWORD dwRead;
 			TCHAR strRead[MAX_PATH];
 			WORD dw = 0xFEFF;
@@ -131,7 +128,8 @@ int OPEN(HWND hwnd)
 			}
 }
 void ENTER(HWND hwnd)
-	{
+		{
+		passenter = 1;
 				  if(Line != F_Line)
 				  {
 						for(int i = F_Line ; i != Line; i--)
@@ -171,11 +169,13 @@ void ENTER(HWND hwnd)
 				}
 void BACK(HWND hwnd)
 	{
-			
+		
+			   while(1)
+			   {
                if ( Line == 0 && Word == 0 )
-               {}
+               {break;}
 
-
+				passchar = 0;
                if( Word == 0 )
                {                                              //중간줄 삭제
 					
@@ -205,6 +205,7 @@ void BACK(HWND hwnd)
 						GetTextExtentPoint(hDC, NOTE[Line],Word, &size);
 						SetCaretPos(size.cx, Line*16);
 						InvalidateRect( hwnd, NULL, TRUE );
+						break;
                }
 
                else
@@ -222,13 +223,17 @@ void BACK(HWND hwnd)
 					  NOTE[Line][lstrlen(NOTE[Line])] = NULL;
 					  Word--;
 				  }
+				  de1_flag = 1;
 				  GetTextExtentPoint(hDC, NOTE[Line], Word, &size);
 			      SetCaretPos(size.cx, Line*16);
                   InvalidateRect( hwnd, NULL, TRUE );
+				  break;
                }
             }
+}
 void TAB(HWND hwnd)
 	{
+		wr_flag = 1;
 					if(Word == lstrlen(NOTE[Line]))
 					{
 						for(int i = 0 ; i < 8 ; i++)
@@ -261,6 +266,7 @@ int WRITE(HWND hwnd,WPARAM wParam)
 						NOTE[Line][Word] = (TCHAR)wParam;         
 						NOTE[Line][Word + 1] = NULL;         
 						Word++;
+						wr_flag = 1;
 			
             
 				   /*   막바지일때 아무것도 안하기 */
@@ -280,12 +286,14 @@ int WRITE(HWND hwnd,WPARAM wParam)
 						 }
 						 NOTE[Line][Word] = (TCHAR)wParam;                  
 						 Word++;
+						 wr_flag = 1;
 						 InvalidateRect( hwnd, NULL, TRUE );
 					 }
 					 else
 					 {
 						 NOTE[Line][Word] = (TCHAR)wParam;
 						 Word++;
+						 wr_flag = 1;
 						 InvalidateRect( hwnd, NULL, TRUE );
 					 }
 			 
@@ -299,13 +307,12 @@ void HOME(HWND hwnd)
 {
 	SetCaretPos(0, Line*16);
 	Word = 0;
+	xPos = 0;
 	InvalidateRect(hwnd, NULL, TRUE);
 }
 void END( HWND hwnd)
 {
-	GetTextExtentPoint(hDC, NOTE[Line], lstrlen(NOTE[Line]), &size);
 	Word = lstrlen(NOTE[Line]);
-	SetCaretPos(size.cx, Line*16);
 	InvalidateRect(hwnd, NULL, TRUE);
 }
 void INSERT(HWND hwnd)
@@ -350,6 +357,7 @@ void DEL(HWND hwnd)
 									NOTE[Line][i-1] = NOTE[Line][i];
 								}
 								NOTE[Line][lstrlen(NOTE[Line])-1] = NULL;
+								de1_flag = 1;
 								InvalidateRect(hwnd, NULL, TRUE);
 							}
 						}
@@ -365,6 +373,7 @@ void DEL(HWND hwnd)
 										NOTE[Line][i-1] = NOTE[Line][i];
 									}
 									NOTE[Line][lstrlen(NOTE[Line])-1] = NULL;
+									de1_flag = 1;
 									InvalidateRect(hwnd, NULL, TRUE);
 							}
 						}
@@ -464,16 +473,16 @@ void SCRY(HWND hwnd,WPARAM wParam)
 	switch ( LOWORD(wParam) )
                 {
                 case SB_LINEUP:
-                        yPos = max(0,yPos - 5);
+                        yPos = max(0,yPos - 1);
                         break;
                 case SB_LINEDOWN:
-                        yPos = min(ROW,yPos+5);
+                        yPos = min(ROW,yPos+1);
                         break;
                 case SB_PAGEUP:
-                        yPos = max(0,yPos - 5);
+                        yPos = max(0,yPos - 1);
                         break;
                 case SB_PAGEDOWN:
-                        yPos = min(ROW,yPos+5);
+                        yPos = min(ROW,yPos+1);
                         break;
                 case SB_THUMBTRACK:
                         yPos = HIWORD(wParam);
@@ -504,7 +513,6 @@ hDC = BeginPaint(hwnd, &ps);
             TextOut( hDC, -xPos,16*(i-yPos) , NOTE[i], lstrlen( NOTE[i] ) );
          }
 
-		GetTextExtentPoint(hDC,NOTE[Line],lstrlen(NOTE[Line]),&tSize);
 		GetTextExtentPoint(hDC,NOTE[Line],Word,&size);
 
 		if(RT.bottom < 16 * F_Line)
