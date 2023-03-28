@@ -122,58 +122,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_HSCROLL:
-                switch (LOWORD(wParam))
-                {
-                case SB_LINELEFT:
-                        xPos = max(0,xPos-5);
-                        break;
-                case SB_LINERIGHT:
-                        xPos = min(COL,xPos+5);
-                        break;
-                case SB_PAGELEFT:
-                        xPos = max(0,xPos-5);
-                        break;
-                case SB_PAGERIGHT:
-                        xPos = min(COL,xPos+5);
-                        break;
-                case SB_THUMBTRACK:
-                        xPos = HIWORD(wParam);
-						while(RT.right + xPos > xScrol.nMax)
-							xPos--;
-                        break;
-                }
 				sc_flag = 1;
-				SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
-				InvalidateRect( hwnd, NULL, TRUE );
+                SCRX(hwnd,wParam);
+				InvalidateRect(hwnd, NULL, TRUE);
                 break;
 
-        case WM_VSCROLL:
-                switch ( LOWORD(wParam) )
-                {
-                case SB_LINEUP:
-                        yPos = max(0,yPos - 5);
-                        break;
-                case SB_LINEDOWN:
-                        yPos = min(ROW,yPos+5);
-                        break;
-                case SB_PAGEUP:
-                        yPos = max(0,yPos - 5);
-                        break;
-                case SB_PAGEDOWN:
-                        yPos = min(ROW,yPos+5);
-                        break;
-                case SB_THUMBTRACK:
-                        yPos = HIWORD(wParam);
-						while(RT.bottom+yPos+12 > yScrol.nMax)
-							yPos--;
-                        break;
-                }
-				sc1_flag = 1;
-                SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
-				InvalidateRect( hwnd, NULL, TRUE );
-                return 0;
+    case WM_VSCROLL:
+			    sc1_flag = 1;
+                SCRY(hwnd,wParam);
+				InvalidateRect(hwnd, NULL, TRUE);
+                break;
 
-		case WM_SIZE:
+	case WM_SIZE:
+				if(HIWORD(lParam) >= 12)				// rt.bottom이 - 값이 되는 것을 방지.
+					RT.bottom = HIWORD(lParam) - 12;
 				GetClientRect(hwnd, &RT);
 				xScrol.cbSize = sizeof(SCROLLINFO);
 				xScrol.fMask = SIF_ALL | SIF_DISABLENOSCROLL;
@@ -192,7 +154,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 				SetScrollInfo(hwnd, SB_HORZ,&yScrol,TRUE);
 				SetScrollPos(hwnd, SB_HORZ, yPos, TRUE);
-				return 0;
+
 	case WM_LBUTTONDOWN:
 		{
 			BUT_DOW(hwnd,lParam);
@@ -291,7 +253,109 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_PAINT:
       {
-		 PAINT(hwnd);
+		 PAINTSTRUCT ps;
+	     hDC = BeginPaint(hwnd, &ps);
+		 GetClientRect(hwnd, &RT);
+		 SetScrollInfo(hwnd,SB_HORZ,&xScrol,TRUE);
+		 SetScrollInfo(hwnd,SB_VERT,&yScrol,TRUE);
+         //   이차원 배열의 각 행들이 문자열이므로, 행을 탐색해서 문자열 출력
+		 BF_MaxWord = MaxWord;
+		 BF_MaxLine = MaxLine;
+         for( int i = 0; i < F_Line+1; i++ )
+         {
+
+			if(MaxWord < lstrlen(NOTE[i]))
+			{
+				MaxWord = lstrlen(NOTE[i]);
+				MaxLine = i;
+				GetTextExtentPoint(hDC,NOTE[Line],MaxWord,&MAX);
+			}
+            TextOut( hDC, -xPos,16*(i-yPos) , NOTE[i], lstrlen( NOTE[i] ) );
+         }
+
+
+		GetTextExtentPoint(hDC,NOTE[Line],lstrlen(NOTE[Line]),&tSize);
+		GetTextExtentPoint(hDC,NOTE[Line],Word,&size);
+		GetTextExtentPoint(hDC,NOTE[Line],xPos,&scrSize);
+
+
+		if(RT.bottom < 16 * F_Line)
+		{
+			if(en_flag == 1)
+			{
+				yScrol.nPage--;
+				en_flag = 0;
+				SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
+
+			}	
+			else if (de_flag == 1)
+			{
+				yScrol.nPage++;
+				de_flag = 0;
+				SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
+
+			}
+		}
+		/*
+		else if(0 > MaxLine){
+			yScrol.nPage = 1;
+			SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
+			break;
+		}
+		*/
+		if(sc1_flag == 1)
+		{
+			SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
+		}
+
+		if(RT.right <= MAX.cx){
+			if(Line == MaxLine)
+			{
+				if(MaxWord > BF_MaxWord)
+				{
+				xScrol.nPage--;
+				SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
+				break;
+				}
+				else if(MaxWord >! BF_MaxWord)
+				{
+					if(xScrol.nPage != RT.right)
+					{
+						MaxWord = BF_MaxWord;
+						if(de1_flag == 1)
+						{
+						xScrol.nPage++;
+						de1_flag = 0;
+						SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
+						break;
+						}
+					}
+					else
+					{
+						MaxWord = BF_MaxWord;
+						xScrol.nPage = RT.right;
+						SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
+						break;
+					}
+				}
+				if(sc_flag == 1)
+				{
+					SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
+					break;
+				}
+			}
+		}
+		else if(1 > xScrol.nPage){
+			xScrol.nPage = 1;
+			SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
+		if(sc_flag == 1)
+				{
+					SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
+					break;
+				}
+			break;
+		}
+         EndPaint( hwnd, &ps );
          break;
       }
    
