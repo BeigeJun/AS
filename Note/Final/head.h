@@ -53,3 +53,5 @@ void RIGHT(HWND);
 void UP(HWND);
 void DOWN(HWND);
 void PAINT(HWND);
+void SCRX(HWND hwnd,WPARAM wParam);
+void SCRY(HWND hwnd,WPARAM wParam);
