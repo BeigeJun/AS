@@ -95,10 +95,12 @@ int BF_MaxLine = 0;
 int en_flag = 0;
 int de_flag = 0;
 int de1_flag = 0;
+int wr_flag = 0;
 int sc_flag = 0;
 int sc1_flag = 0;
 SIZE size,tSize,scrSize,MAX;
 HANDLE f;
+int passchar = 0, passenter = 0, pass = 0, passend =0, passscroll=0;
 int answer;
 int xM = 0;
 int yM = 0;
@@ -255,108 +257,72 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
       {
 		 PAINTSTRUCT ps;
 	     hDC = BeginPaint(hwnd, &ps);
-		 GetClientRect(hwnd, &RT);
-		 SetScrollInfo(hwnd,SB_HORZ,&xScrol,TRUE);
-		 SetScrollInfo(hwnd,SB_VERT,&yScrol,TRUE);
-         //   이차원 배열의 각 행들이 문자열이므로, 행을 탐색해서 문자열 출력
 		 BF_MaxWord = MaxWord;
-		 BF_MaxLine = MaxLine;
-         for( int i = 0; i < F_Line+1; i++ )
-         {
-
-			if(MaxWord < lstrlen(NOTE[i]))
-			{
-				MaxWord = lstrlen(NOTE[i]);
-				MaxLine = i;
-				GetTextExtentPoint(hDC,NOTE[Line],MaxWord,&MAX);
-			}
-            TextOut( hDC, -xPos,16*(i-yPos) , NOTE[i], lstrlen( NOTE[i] ) );
-         }
+	for(int i = 0; i<=F_Line; i++){
+		if(lstrlen(NOTE[i])>MaxWord){
+			MaxWord = lstrlen(NOTE[i]);
+			MaxLine = Line;
+			GetTextExtentPoint(hDC, NOTE[i], MaxWord, &MAX);
+		}
+	}
 
 
-		GetTextExtentPoint(hDC,NOTE[Line],lstrlen(NOTE[Line]),&tSize);
-		GetTextExtentPoint(hDC,NOTE[Line],Word,&size);
-		GetTextExtentPoint(hDC,NOTE[Line],xPos,&scrSize);
+      GetTextExtentPoint(hDC,NOTE[Line],Word,&size);
+	  GetTextExtentPoint(hDC, NOTE[Line], xPos, &scrSize); //그 줄의 스크롤 길이만큼의 크기
+			 // x 스크롤 크기
+      if(RT.right < MAX.cx){
+          if(Line == MaxLine)
+          {
+             if(de1_flag == 1)
+             {
+               xScrol.nMax--;
+             }
+             else if(wr_flag == 1)
+             {
+                xScrol.nMax++;
+             }
+             SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
+          }
+      }
+      else if (RT.right >= MAX.cx)
+      {
+         SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
+      }
 
 
-		if(RT.bottom < 16 * F_Line)
-		{
+
+			 // y 스크롤 크기
+		if((RT.bottom < 16*F_Line)){
 			if(en_flag == 1)
 			{
-				yScrol.nPage--;
-				en_flag = 0;
-				SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
-
-			}	
-			else if (de_flag == 1)
-			{
-				yScrol.nPage++;
-				de_flag = 0;
-				SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
-
+				yScrol.nMax++;
 			}
-		}
-		/*
-		else if(0 > MaxLine){
-			yScrol.nPage = 1;
+			else if(de_flag==1)
+			{
+				yScrol.nMax--;
+			}
 			SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
-			break;
 		}
-		*/
-		if(sc1_flag == 1)
-		{
+		else if( 0 > 16*F_Line && de_flag){
+			
 			SetScrollPos(hwnd, SB_VERT, yPos, TRUE);
 		}
 
-		if(RT.right <= MAX.cx){
-			if(Line == MaxLine)
-			{
-				if(MaxWord > BF_MaxWord)
-				{
-				xScrol.nPage--;
-				SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
-				break;
-				}
-				else if(MaxWord >! BF_MaxWord)
-				{
-					if(xScrol.nPage != RT.right)
-					{
-						MaxWord = BF_MaxWord;
-						if(de1_flag == 1)
-						{
-						xScrol.nPage++;
-						de1_flag = 0;
-						SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
-						break;
-						}
-					}
-					else
-					{
-						MaxWord = BF_MaxWord;
-						xScrol.nPage = RT.right;
-						SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
-						break;
-					}
-				}
-				if(sc_flag == 1)
-				{
-					SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
-					break;
-				}
-			}
+        de_flag =0, en_flag =0, de1_flag =0, wr_flag =0;
+
+		SetCaretPos(size.cx - scrSize.cx, 16*(Line - yPos));
+
+		yScrol.nPos = yPos;
+		SetScrollInfo(hwnd, SB_VERT, &yScrol, TRUE);
+
+		xScrol.nPos = xPos;
+		SetScrollInfo(hwnd, SB_HORZ, &xScrol, TRUE);
+
+		for(int i = yPos; i <= F_Line; i ++){
+			TextOut(hDC, -scrSize.cx,  16*(i-yPos), NOTE[i], lstrlen(NOTE[i]));			//도화지, x 좌표 ,y좌표, 출력내용, 출력할 사이즈
 		}
-		else if(1 > xScrol.nPage){
-			xScrol.nPage = 1;
-			SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
-		if(sc_flag == 1)
-				{
-					SetScrollPos(hwnd, SB_HORZ, xPos, TRUE);
-					break;
-				}
-			break;
-		}
-         EndPaint( hwnd, &ps );
-         break;
+		EndPaint(hwnd, &ps);
+		break;
       }
    
    
