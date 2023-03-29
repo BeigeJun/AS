@@ -267,6 +267,7 @@ int WRITE(HWND hwnd,WPARAM wParam)
 						NOTE[Line][Word + 1] = NULL;         
 						Word++;
 						wr_flag = 1;
+
 			
             
 				   /*   막바지일때 아무것도 안하기 */
@@ -293,7 +294,6 @@ int WRITE(HWND hwnd,WPARAM wParam)
 					 {
 						 NOTE[Line][Word] = (TCHAR)wParam;
 						 Word++;
-						 wr_flag = 1;
 						 InvalidateRect( hwnd, NULL, TRUE );
 					 }
 			 
@@ -463,8 +463,10 @@ void SCRX(HWND hwnd,WPARAM wParam)
                         break;
                 case SB_THUMBTRACK:
                         xPos = HIWORD(wParam);
+						/*
 						while(RT.right + xPos > xScrol.nMax)
 							xPos--;
+							*/
                         break;
                 }
 }
@@ -486,8 +488,10 @@ void SCRY(HWND hwnd,WPARAM wParam)
                         break;
                 case SB_THUMBTRACK:
                         yPos = HIWORD(wParam);
+						/*
 						while(RT.bottom+yPos-12 > yScrol.nMax)
 							yPos--;
+							*/
                         break;
                 }
 }
