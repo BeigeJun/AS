@@ -257,17 +257,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
       {
 		 PAINTSTRUCT ps;
 	     hDC = BeginPaint(hwnd, &ps);
-		 BF_MaxWord = MaxWord;
+		 MaxWord=0;
 	for(int i = 0; i<=F_Line; i++){
 		if(lstrlen(NOTE[i])>MaxWord){
 			MaxWord = lstrlen(NOTE[i]);
-			MaxLine = Line;
+			MaxLine = i;
 			GetTextExtentPoint(hDC, NOTE[i], MaxWord, &MAX);
 		}
 	}
 
 
-      GetTextExtentPoint(hDC,NOTE[Line],Word,&size);
+      GetTextExtentPoint(hDC,NOTE[Line],Word,&size); //커서까지의 크기
 	  GetTextExtentPoint(hDC, NOTE[Line], xPos, &scrSize); //그 줄의 스크롤 길이만큼의 크기
 			 // x 스크롤 크기
       if(RT.right < MAX.cx){
