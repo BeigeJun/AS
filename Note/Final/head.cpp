@@ -463,10 +463,8 @@ void SCRX(HWND hwnd,WPARAM wParam)
                         break;
                 case SB_THUMBTRACK:
                         xPos = HIWORD(wParam);
-						/*
 						while(RT.right + xPos > xScrol.nMax)
 							xPos--;
-							*/
                         break;
                 }
 }
@@ -488,10 +486,8 @@ void SCRY(HWND hwnd,WPARAM wParam)
                         break;
                 case SB_THUMBTRACK:
                         yPos = HIWORD(wParam);
-						/*
 						while(RT.bottom+yPos-12 > yScrol.nMax)
 							yPos--;
-							*/
                         break;
                 }
 }
