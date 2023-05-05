@@ -52,12 +52,17 @@ static int x,y;				//	마우스 좌표를 얻기 위한 변수
 static int Old_x,Old_y;				//	마우스 좌표를 얻기 위한 변수
 static bool Draw = false;	//	마우스의 눌림 혹은 떼짐을 판단하는 변수
 static int Font_Width = 2;				//	폰트의 두께에 대한 리스트 박스에서 선택된 폰트의 두께
-static HBRUSH hMyBrush = NULL;
+static HBRUSH Brush = NULL;
+static HBRUSH Old_Brush = NULL;
+static HPEN Old_Pen = NULL;
+static HPEN Pen = NULL;
 static int B_Color = RGB(0,0,0);		//	RGB(0,0,0)은 색상이 black이다. 
+static int In_Color = RGB(255,255,255);
 static RECT rt;
 static int mode = 0;
 static int paint_mode = 0;
 static int pen_mode = 3;
+static POINT apnt[3];
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
 	switch (iMsg) 
@@ -87,41 +92,39 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			break;
 
+			//원
 		case 40005:
-			MessageBox(hwnd, TEXT("원"),TEXT("메시지 박스"),MB_YESNO);
+			paint_mode = 2;
 			break;
 
+			//삼각형
 		case 40006:
-			MessageBox(hwnd, TEXT("삼각형"),TEXT("메시지 박스"),MB_YESNO);
+			paint_mode = 3;
 			break;
 
+			//사각형
 		case 40007:
-			MessageBox(hwnd, TEXT("사각형"),TEXT("메시지 박스"),MB_YESNO);
+			paint_mode= 4;
 			break;
 
 		case 40008:
-			paint_mode = 0;
-			pen_mode = 0;
+			paint_mode = 1;
 			break;
 
 		case 40009:
 			paint_mode = 0;
-			pen_mode = 1;
 			break;
 
 		case 40010:
-			paint_mode = 0;
 			pen_mode = 2;
 			break;
 
 		case 40011:
-			paint_mode = 0;
-			pen_mode = 3;
+			pen_mode = 1;
 			break;
 
 		case 40012:
-			paint_mode = 0;
-			pen_mode =4;
+			pen_mode = 0;
 			break;
 
 		case 40013:
@@ -164,6 +167,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			MessageBox(hwnd, TEXT("채우기"),TEXT("메시지 박스"),MB_YESNO);
 			break;
 
+		case 40023:
+			In_Color = RGB(255,0,0);
+			break;
+
+		case 40024:
+			In_Color = RGB(0,255,0);
+			break;
+
+		case 40025:
+			In_Color = RGB(0,0,255);
+			break;
+
+		case 40026:
+			In_Color = RGB(0,0,0);
+			break;
+
+		case 40027:
+			In_Color = RGB(255,255,255);;
+			break;
+
 		}
 
 	case WM_LBUTTONDOWN:	//	마우스 누름
@@ -201,19 +224,59 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			PAINTSTRUCT ps;
 			hdc = GetDC(hwnd);
 			hdc = BeginPaint(hwnd, &ps);
-			if(Draw == true)
-			{
-				HPEN hMyPen = CreatePen(pen_mode, Font_Width, B_Color );
-				HPEN hPrevPen = NULL;
-				hPrevPen = (HPEN)SelectObject(hdc, hMyPen);
-				MoveToEx( hdc, Old_x, Old_y, NULL );
-				LineTo( hdc, x, y);
-				Old_x = x;
-				Old_y = y;
+
+			Pen = CreatePen(pen_mode, Font_Width, B_Color );
+			Old_Pen = (HPEN)SelectObject(hdc, Pen);
+
+			Brush = CreateSolidBrush(In_Color);
+			Old_Brush = (HBRUSH)SelectObject(hdc, Brush);
+
+			switch(paint_mode){
+			if(Draw == true){
+			
+			case 0 :
+					{
+						MoveToEx( hdc, Old_x, Old_y, NULL );
+						LineTo( hdc, x, y);
+						Old_x = x;
+						Old_y = y;
+						break;
+					}
+
+			case 1 : 
+					{
+						MoveToEx( hdc, Old_x, Old_y, NULL );
+						LineTo( hdc, x, y);
+						break;
+					}
+
+
+			case 2:
+					{
+						Ellipse(hdc,  x, y, Old_x, Old_y);
+						break;
+					}
+			case 3:
+					{
+						apnt[0].x = (x + Old_x)/2;
+						apnt[0].y = Old_y;
+						apnt[1].x = x;
+						apnt[1].y = y;
+						apnt[2].x = Old_x;
+						apnt[2].y = y;
+						Polygon(hdc, apnt, 3);
+						break;
+					}
+			case 4:
+					{
+						Rectangle(hdc, x, y, Old_x, Old_y);
+						break;
+					}
+				}
 			}
-		ReleaseDC(hwnd,hdc);
-		EndPaint(hwnd, &ps);
-		break;
+			ReleaseDC(hwnd,hdc);
+			EndPaint(hwnd, &ps);
+			break;
 
 	case WM_CHAR:
 		InvalidateRect(hwnd, NULL, TRUE);
@@ -225,4 +288,3 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	} 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
 }
-//비트맵 추가하기
