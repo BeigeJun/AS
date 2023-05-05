@@ -57,7 +57,7 @@ static int B_Color = RGB(0,0,0);		//	RGB(0,0,0)은 색상이 black이다.
 static RECT rt;
 static int mode = 0;
 static int paint_mode = 0;
-static int pen_mode = 0;
+static int pen_mode = 3;
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
 	switch (iMsg) 
@@ -201,25 +201,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			PAINTSTRUCT ps;
 			hdc = GetDC(hwnd);
 			hdc = BeginPaint(hwnd, &ps);
-			switch(paint_mode)
+			if(Draw == true)
 			{
-			case 0:
-				{
-					if(Draw == true)
-					{
-						HPEN hMyPen = CreatePen(PS_SOLID, Font_Width, B_Color );
-						HPEN hPrevPen = NULL;
-						hPrevPen = (HPEN)SelectObject(hdc, hMyPen);
-						MoveToEx( hdc, Old_x, Old_y, NULL );
-						LineTo( hdc, x, y);
-						Old_x = x;
-						Old_y = y;
-					}
-				}
+				HPEN hMyPen = CreatePen(pen_mode, Font_Width, B_Color );
+				HPEN hPrevPen = NULL;
+				hPrevPen = (HPEN)SelectObject(hdc, hMyPen);
+				MoveToEx( hdc, Old_x, Old_y, NULL );
+				LineTo( hdc, x, y);
+				Old_x = x;
+				Old_y = y;
+			}
 		ReleaseDC(hwnd,hdc);
 		EndPaint(hwnd, &ps);
 		break;
-			}
+
 	case WM_CHAR:
 		InvalidateRect(hwnd, NULL, TRUE);
 		break; 
