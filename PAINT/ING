@@ -290,3 +290,4 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 }
 //그림그릴때 곂쳐보이는거 해결하기
 //더블버퍼링 공부하기
+//ㅈㅓㅈㅏㅇㄱㅗㅇㅂㅜ
