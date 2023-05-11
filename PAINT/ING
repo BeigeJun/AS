@@ -50,7 +50,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 HDC hdc;
 static int x,y;				//	마우스 좌표를 얻기 위한 변수
 static int Old_x,Old_y;				//	마우스 좌표를 얻기 위한 변수
-static bool Draw = false;	//	마우스의 눌림 혹은 떼짐을 판단하는 변수
+static bool Draw = FALSE;	//	마우스의 눌림 혹은 떼짐을 판단하는 변수
 static int Font_Width = 2;				//	폰트의 두께에 대한 리스트 박스에서 선택된 폰트의 두께
 static HBRUSH Brush = NULL;
 static HBRUSH Old_Brush = NULL;
@@ -196,7 +196,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			Old_y = HIWORD(lParam);
 			
 			//	마우스가 눌려 있다.
-			Draw = true;
+			Draw = TRUE;
 
 			break;
 		}
@@ -204,7 +204,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		//	그림 그리는 중( 마우스가 눌린 상태에서만 )
 		case WM_MOUSEMOVE:		//	마우스 이동
 		{
-			if(Draw == true)
+			if(Draw)
 			{
 				x = LOWORD(lParam);
 				y = HIWORD(lParam);
@@ -216,7 +216,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		//	그림 그리기 끝
 		case WM_LBUTTONUP:
 		{
-			Draw = false;
+			Draw = FALSE;
 			break;
 		}
 
@@ -232,7 +232,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			Old_Brush = (HBRUSH)SelectObject(hdc, Brush);
 
 			switch(paint_mode){
-			if(Draw == true){
+			if(Draw == TRUE){
 			
 			case 0 :
 					{
@@ -273,6 +273,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 				}
+
 			}
 			ReleaseDC(hwnd,hdc);
 			EndPaint(hwnd, &ps);
@@ -288,6 +289,3 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	} 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
 }
-//그림그릴때 곂쳐보이는거 해결하기
-//더블버퍼링 공부하기
-//ㅈㅓㅈㅏㅇㄱㅗㅇㅂㅜ
