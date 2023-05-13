@@ -1,0 +1,305 @@
+#include <windows.h>
+#include "resource.h"
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, 
+			WPARAM wParam, LPARAM lParam);
+
+LPCTSTR lpszClass = TEXT("메모짱");			// LPCSTR = char *
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈도우 프로그램이라는 의미
+		   LPSTR lpszCmdLine, int nCmdShow)						 //hInstance : 운영체제의 커널이 응용 프로그램에 부여한 ID
+{																 //szCmdLine : 커멘트라인 상에서 프로그램 구동 시 전달된 문자열
+	HWND	hwnd;												 //iCmdShow : 윈도우가 화면에 출력될 형태
+	MSG		msg;
+	WNDCLASS WndClass;											 //WndClass 라는 구조체 정의									 
+	WndClass.style			= CS_HREDRAW | CS_VREDRAW;			 //출력스타일 : 수직/수평의 변화시 다시 그림		//Horizontal, Vertical 
+	WndClass.lpfnWndProc	= WndProc;							 //프로시저 함수명	
+	WndClass.cbClsExtra		= 0;								 //O/S 사용 여분 메모리 (Class)
+	WndClass.cbWndExtra		= 0;								 //O/s 사용 여분 메모리 (Window)
+	WndClass.hInstance		= hInstance;						 //응용 프로그램 ID
+	WndClass.hIcon			= LoadIcon(NULL, IDI_QUESTION);	 //아이콘 유형
+	WndClass.hCursor		= LoadCursor(NULL, IDC_ARROW);		 //커서 유형
+	WndClass.hbrBackground	= (HBRUSH)GetStockObject(WHITE_BRUSH);//배경색   
+	WndClass.lpszMenuName	= MAKEINTRESOURCE(IDR_MENU1); 							 //메뉴 이름
+	WndClass.lpszClassName	= lpszClass;						 //클래스 이름
+	RegisterClass(&WndClass);									 //앞서 정의한 윈도우 클래스의 주소 // os 에다가 지금 이 클래스를 등록시킴 
+
+	hwnd = CreateWindow(lpszClass,								 //윈도우가 생성되면 핸들(hwnd)이 반환		//실제 윈도우를 만들기 시작 
+		lpszClass,                        
+        WS_OVERLAPPEDWINDOW,                        
+        100,              //x좌표                   
+        100,              //y좌표             
+        640,              //너비
+        480,              //높이     
+        NULL,                         
+        NULL,                                    
+        hInstance,                            
+        NULL     												 //생성된 윈도우 정보
+	);
+	ShowWindow(hwnd, nCmdShow);									 //윈도우의 화면 출력
+	UpdateWindow(hwnd);											 //O/S 에 WM_PAINT 메시지 전송
+
+	while(GetMessage(&msg, NULL, 0, 0))							 //WinProc()에서 PostQuitMessage() 호출 때까지 처리
+	{															 // 
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);									 //WinMain -> WinProc  
+	}
+	return (int)msg.wParam;
+}
+
+HDC hdc, backMemDC, MemDC; // DC 3개 생성->두 개만 쓰면 색 겹쳤을 때 반전 해결 어려움
+HBITMAP OldhBit, hBit;
+static int x,y;				//	마우스 좌표를 얻기 위한 변수
+static int Old_x,Old_y;				//	마우스 좌표를 얻기 위한 변수
+static bool Draw = FALSE;	//	마우스의 눌림 혹은 떼짐을 판단하는 변수
+static int Font_Width = 2;				//	폰트의 두께에 대한 리스트 박스에서 선택된 폰트의 두께
+static HBRUSH Brush = NULL;
+static HBRUSH Old_Brush = NULL;
+static HPEN Old_Pen = NULL;
+static HPEN Pen = NULL;
+static int B_Color = RGB(0,0,0);		//	RGB(0,0,0)은 색상이 black이다. 
+static int In_Color = RGB(255,255,255);
+static RECT rt;
+static int mode = 0;
+static int paint_mode = 0;
+static int pen_mode = 3;
+static POINT apnt[3];
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
+{
+	switch (iMsg) 
+	{
+	case WM_CREATE:			// 윈도우가 생성 (처음생성 될경우) // 단 한번 실행됨 
+		hdc = GetDC(hwnd);
+		GetClientRect(hwnd, &rt);
+
+		backMemDC = CreateCompatibleDC(hdc);
+		MemDC = CreateCompatibleDC(hdc);
+
+		OldhBit = CreateCompatibleBitmap(hdc, rt.right, rt.bottom);
+		hBit = CreateCompatibleBitmap(hdc, rt.right, rt.bottom);
+
+		(HBITMAP)SelectObject(backMemDC, OldhBit);
+		(HBITMAP)SelectObject(MemDC, hBit);
+
+		FillRect(backMemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
+		FillRect(MemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
+
+		break;
+
+	case WM_COMMAND:
+		switch(LOWORD(wParam)){
+
+		case 40001:
+			MessageBox(hwnd, TEXT("새로 만들기"),TEXT("메시지 박스"),MB_YESNO);
+			break;
+
+		case 40002:
+			MessageBox(hwnd, TEXT("열기"),TEXT("메시지 박스"),MB_YESNO);
+			break;
+	
+		case 40003:
+			MessageBox(hwnd, TEXT("저장"),TEXT("메시지 박스"),MB_YESNO);
+			break;
+		
+		case 40004:
+			MessageBox(hwnd, TEXT("끝내기"),TEXT("메시지 박스"),MB_YESNO);
+			PostQuitMessage(0);
+			break;
+
+			//원
+		case 40005:
+			paint_mode = 2;
+			break;
+
+			//삼각형
+		case 40006:
+			paint_mode = 3;
+			break;
+
+			//사각형
+		case 40007:
+			paint_mode= 4;
+			break;
+
+		case 40008:
+			paint_mode = 1;
+			break;
+
+		case 40009:
+			paint_mode = 0;
+			break;
+
+		case 40010:
+			pen_mode = 2;
+			break;
+
+		case 40011:
+			pen_mode = 1;
+			break;
+
+		case 40012:
+			pen_mode = 0;
+			break;
+
+		case 40013:
+			Font_Width = 1;
+			break;
+
+		case 40014:
+			Font_Width = 3;
+			break;
+
+		case 40015:
+			Font_Width = 5;
+			break;
+
+		case 40016:
+			B_Color = RGB(255,0,0);
+			break;
+
+		case 40017:
+			B_Color = RGB(0,255,0);
+			break;
+
+		case 40018:
+			B_Color = RGB(0,0,255);
+			break;
+
+		case 40019:
+			B_Color = RGB(255,255,255);
+			break;
+
+		case 40020:
+			B_Color = RGB(0,0,0);
+			break;
+
+		case 40021:
+			B_Color = RGB(255,255,255);
+			break;
+
+		case 40022:
+			MessageBox(hwnd, TEXT("채우기"),TEXT("메시지 박스"),MB_YESNO);
+			break;
+
+		case 40023:
+			In_Color = RGB(255,0,0);
+			break;
+
+		case 40024:
+			In_Color = RGB(0,255,0);
+			break;
+
+		case 40025:
+			In_Color = RGB(0,0,255);
+			break;
+
+		case 40026:
+			In_Color = RGB(0,0,0);
+			break;
+
+		case 40027:
+			In_Color = RGB(255,255,255);;
+			break;
+
+		}
+
+	case WM_LBUTTONDOWN:	//	마우스 누름
+		{
+			//	좌표를 얻어와야 한다.
+			Old_x = LOWORD(lParam);
+			Old_y = HIWORD(lParam);
+			
+			//	마우스가 눌려 있다.
+			Draw = TRUE;
+
+			break;
+		}
+		
+		//	그림 그리는 중( 마우스가 눌린 상태에서만 )
+		case WM_MOUSEMOVE:		//	마우스 이동
+		{
+			if(Draw)
+			{
+				x = LOWORD(lParam);
+				y = HIWORD(lParam);
+				InvalidateRect(hwnd, NULL, false);
+			}
+			break;
+		}
+		
+		//	그림 그리기 끝
+		case WM_LBUTTONUP:
+		{
+			Draw = FALSE;
+			break;
+		}
+
+		case WM_PAINT:
+			PAINTSTRUCT ps;
+
+
+			Pen = CreatePen(pen_mode, Font_Width, B_Color );
+			Old_Pen = (HPEN)SelectObject(hdc, Pen);
+
+			Brush = CreateSolidBrush(In_Color);
+			Old_Brush = (HBRUSH)SelectObject(hdc, Brush);
+
+			switch(paint_mode){
+			if(Draw == TRUE){
+			
+			case 0 :
+					{
+						MoveToEx( MemDC, Old_x, Old_y, NULL );
+						LineTo( MemDC, x, y);
+						Old_x = x;
+						Old_y = y;
+						break;
+					}
+
+			case 1 : 
+					{
+						MoveToEx( MemDC, Old_x, Old_y, NULL );
+						LineTo( MemDC, x, y);
+						break;
+					}
+
+
+			case 2:
+					{
+						Ellipse(MemDC,  x, y, Old_x, Old_y);
+						break;
+					}
+			case 3:
+					{
+						apnt[0].x = (x + Old_x)/2;
+						apnt[0].y = Old_y;
+						apnt[1].x = x;
+						apnt[1].y = y;
+						apnt[2].x = Old_x;
+						apnt[2].y = y;
+						Polygon(MemDC, apnt, 3);
+						break;
+					}
+			case 4:
+					{
+						Rectangle(MemDC, x, y, Old_x, Old_y);
+						break;
+					}
+				}
+
+			}
+			EndPaint(hwnd, &ps);
+        
+
+			break;
+
+
+	case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
+
+		PostQuitMessage(0);
+		break;
+	} 
+	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
+}
+//비트맵 추가하기
