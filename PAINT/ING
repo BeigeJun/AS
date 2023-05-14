@@ -47,7 +47,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	return (int)msg.wParam;
 }
 
-HDC hdc;
+HDC hdc, backMemDC, MemDC; // DC 3개 생성->두 개만 쓰면 색 겹쳤을 때 반전 해결 어려움
+HBITMAP OldhBit, hBit;
 static int x,y;				//	마우스 좌표를 얻기 위한 변수
 static int Old_x,Old_y;				//	마우스 좌표를 얻기 위한 변수
 static bool Draw = FALSE;	//	마우스의 눌림 혹은 떼짐을 판단하는 변수
@@ -68,8 +69,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	switch (iMsg) 
 	{
 	case WM_CREATE:			// 윈도우가 생성 (처음생성 될경우) // 단 한번 실행됨 
-		//hdc = GetDC(hwnd);
+		hdc = GetDC(hwnd);
 		GetClientRect(hwnd, &rt);
+
+		backMemDC = CreateCompatibleDC(hdc);
+		MemDC = CreateCompatibleDC(hdc);
+
+		OldhBit = CreateCompatibleBitmap(hdc, rt.right, rt.bottom);
+		hBit = CreateCompatibleBitmap(hdc, rt.right, rt.bottom);
+
+		(HBITMAP)SelectObject(backMemDC, OldhBit);
+		(HBITMAP)SelectObject(MemDC, hBit);
+
+		FillRect(backMemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
+		FillRect(MemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
+
 		break;
 
 	case WM_COMMAND:
@@ -222,16 +237,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 		case WM_PAINT:
 			PAINTSTRUCT ps;
-			static HDC hdc, MemDC;
-		    static HBITMAP BackBit, oldBackBit;
-	        static RECT bufferRT;
-			MemDC = BeginPaint(hwnd, &ps);
-       
-			GetClientRect(hwnd, &bufferRT);
-			hdc = CreateCompatibleDC(MemDC);
-			BackBit = CreateCompatibleBitmap(MemDC, bufferRT.right, bufferRT.bottom);
-			oldBackBit = (HBITMAP)SelectObject(hdc, BackBit);
-			PatBlt(hdc,0,0,bufferRT.right, bufferRT.bottom, WHITENESS);
 
 
 			Pen = CreatePen(pen_mode, Font_Width, B_Color );
@@ -245,8 +250,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			
 			case 0 :
 					{
-						MoveToEx( hdc, Old_x, Old_y, NULL );
-						LineTo( hdc, x, y);
+						MoveToEx( MemDC, Old_x, Old_y, NULL );
+						LineTo( MemDC, x, y);
 						Old_x = x;
 						Old_y = y;
 						break;
@@ -254,15 +259,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 			case 1 : 
 					{
-						MoveToEx( hdc, Old_x, Old_y, NULL );
-						LineTo( hdc, x, y);
+						MoveToEx( MemDC, Old_x, Old_y, NULL );
+						LineTo( MemDC, x, y);
 						break;
 					}
 
 
 			case 2:
 					{
-						Ellipse(hdc,  x, y, Old_x, Old_y);
+						Ellipse(MemDC,  x, y, Old_x, Old_y);
 						break;
 					}
 			case 3:
@@ -273,32 +278,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 						apnt[1].y = y;
 						apnt[2].x = Old_x;
 						apnt[2].y = y;
-						Polygon(hdc, apnt, 3);
+						Polygon(MemDC, apnt, 3);
 						break;
 					}
 			case 4:
 					{
-						Rectangle(hdc, x, y, Old_x, Old_y);
+						Rectangle(MemDC, x, y, Old_x, Old_y);
 						break;
 					}
 				}
 
 			}
-			GetClientRect(hwnd, &bufferRT);
-			BitBlt(MemDC, 0, 0, bufferRT.right, bufferRT.bottom, hdc, 0, 0, SRCCOPY);
-			SelectObject(hdc, oldBackBit);
-			DeleteObject(BackBit);
-			DeleteDC(hdc);
 			EndPaint(hwnd, &ps);
         
 
 			break;
 
-	case WM_CHAR:
-		InvalidateRect(hwnd, NULL, TRUE);
-		break; 
 
 	case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
+
 		PostQuitMessage(0);
 		break;
 	} 
