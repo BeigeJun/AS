@@ -101,6 +101,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 		case 40001:
 			MessageBox(hwnd, TEXT("새로 만들기"),TEXT("메시지 박스"),MB_YESNO);
+			FillRect(MemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
+			FillRect(saveMemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
 			break;
 
 		case 40002:
@@ -296,6 +298,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 			}
+			BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
 			break;
 
 		case WM_PAINT:
