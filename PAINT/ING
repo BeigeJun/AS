@@ -49,7 +49,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 
 HDC hdc, saveMemDC, MemDC; // DC 3개 생성->두 개만 쓰면 색 겹쳤을 때 반전 해결 어려움
 HBITMAP saveBit, Bit;
-int im[100][9];//도형
+int im[100][13];//도형
 static int x,y,r_x,r_y;				//	마우스 좌표를 얻기 위한 변수
 static int Old_x,Old_y;				//	마우스 좌표를 얻기 위한 변수
 static bool Draw = FALSE;	//	마우스의 눌림 혹은 떼짐을 판단하는 변수
@@ -58,14 +58,24 @@ static HBRUSH Brush = NULL;
 static HBRUSH Old_Brush = NULL;
 static HPEN Old_Pen = NULL;
 static HPEN Pen = NULL;
-static int B_Color = RGB(0,0,0);		//	RGB(0,0,0)은 색상이 black이다. 
-static int In_Color = RGB(255,255,255);
+static int B_Color_r = 0;
+static int B_Color_g = 0;
+static int B_Color_b = 0; 
+static int In_Color_r = 255;
+static int In_Color_g = 255;
+static int In_Color_b = 255;
 static RECT rt;
 static int count =0;
 static int mode = 0;
 static int paint_mode = 0;
 static int pen_mode = 3;
 static POINT apnt[3];
+
+static int index;
+static OPENFILENAME OFN;
+static TCHAR lpstrFile[260];
+static BITMAPFILEHEADER HF;
+static BITMAPINFOHEADER HF_info;
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
 	switch (iMsg) 
@@ -108,9 +118,143 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case 40002:
 			MessageBox(hwnd, TEXT("열기"),TEXT("메시지 박스"),MB_YESNO);
 			break;
-	
+			//저장
 		case 40003:
-			MessageBox(hwnd, TEXT("저장"),TEXT("메시지 박스"),MB_YESNO);
+			memset(&OFN, 0, sizeof(OPENFILENAME));
+			OFN.lStructSize = sizeof(OPENFILENAME);
+			OFN.hwndOwner = hwnd;
+			OFN.lpstrFilter = TEXT(" 8비트 비트맵 파일(*.bmp)\0*.bmp\0 24비트비트맵(*.bmp)\0*.bmp\0 vi 파일(*.vi)\0*.vi\0 raw 파일 (*.raw)\0*.raw");
+			OFN.lpstrFile = lpstrFile;
+			OFN.nMaxFile = MAX_PATH;
+			HANDLE fp; 
+	
+			DWORD dwRead;
+		//vi
+			HANDLE vi_fp;
+			TCHAR *strRead;
+			INT resize;
+			resize = 0;
+			index = 0;
+			//vi end
+
+			if(GetSaveFileName(&OFN) != 0) //다이얼로그 열기
+			{
+				if(OFN.nFilterIndex == 1) //8비트 비트맵
+				{
+					BITMAP bitmap;
+					COLORREF color;
+					RGBQUAD pal[256];
+					int temp_pal[64]={0, 0, 0, 0, 
+										0,0,128,0,
+										0,128,0,0,
+										0,128,128,0,
+										128,0,0,0,
+										128,0,128,0,
+										128,128,0,0,
+										128,128,128,0,
+										192,192,192,0,
+										0,0,255,0,
+										0,255,0,0,
+										0,255,255,0,
+										255,0,0,0,
+										255,0,255,0,
+										255,255,0,0,
+										255,255,255,0};
+					
+					GetObject(saveBit, sizeof(BITMAP), &bitmap);//비트맵 핸들이 가진 비트맵 정보를 BITMAP구조체에 저장한다
+
+					HF_info.biSize = sizeof(BITMAPINFOHEADER);
+					HF_info.biWidth = bitmap.bmWidth;//비트맵 가로
+					HF_info.biHeight = bitmap.bmHeight;//비트맵 세로
+					HF_info.biPlanes = 1; //1로 고정
+					HF_info.biBitCount = 8;
+					HF_info.biCompression = BI_RGB;//압축되지 않은 비트맵 (BI_RGB)
+					/*hinfo.biSizeImage = 0;*///비트맵이면 0
+					HF_info.biXPelsPerMeter = 0;//미터당 가로픽셀수 -> 시스템은 사용안함
+					HF_info.biYPelsPerMeter = 0;//미터당 세로픽셀수 -> 시스템은 사용안함
+					HF_info.biClrUsed = 0;//0일 경우 비트맵은 사용 가능한 모든 색상을 다 사용한다. 
+					HF_info.biClrImportant = 0;//0일 경우 비트맵은 사용 가능한 모든 색상을 다 사용되어야한다.
+			
+					int widthstep = 4 - (HF_info.biWidth % 4);
+			
+					HF.bfSize = (widthstep * HF_info.biHeight) + (HF_info.biWidth * HF_info.biHeight) + 1078;				// 비트맵 파일 전체의 크기
+					HF.bfOffBits = 1078;																			// 픽셀 데이터의 시작 주소																		
+					HF_info.biSizeImage = HF.bfSize - 1078;
+
+					//Size = hinfo.biSize + hinfo.biSizeImage;
+					//pih = (BITMAPINFO *)malloc(Size);
+					//pih->bmiHeader = hinfo;
+					////스캔 한행씩
+					//GetDIBits(hdc, BackBitmap, 0, bit.bmHeight, (PBYTE)pih, pih, DIB_RGB_COLORS);
+
+
+					HF.bfType = 0x4d42;//파일의 형태를 지정하는 매직 넘버이며 반드기 BM(bmp 파일의 전체 크기)이어야 한다(0x42, 0x4d)
+	
+					HF.bfReserved1 = 0;
+					HF.bfReserved2 = 0;
+		
+
+					fp = CreateFile(lpstrFile, GENERIC_WRITE, 0, NULL,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); // write = 쓰기전용, always는 파일이 존재할 경우 덮어쓰기, normal 속성지정x
+		
+					WriteFile(fp, &HF, sizeof(HF), &dwRead, NULL);//헤더
+					WriteFile(fp, &HF_info, sizeof(HF_info), &dwRead, NULL);//헤더랑 내용	
+
+					int z =0;
+					for(int i = 0; i < 16 ; i++)
+					{
+						pal[i].rgbBlue = temp_pal[z];
+						z++;
+						pal[i].rgbGreen = temp_pal[z];
+						z++;
+						pal[i].rgbRed = temp_pal[z];
+						z++;
+						pal[i].rgbReserved = temp_pal[z];
+						z++;
+					}
+					WriteFile(fp,(char*)&pal,sizeof(RGBQUAD)*16,&dwRead,NULL); // 팔레트 작성
+
+					int b,g,r;
+					int zero = 0;
+					int x=0, y=0;
+					for (y = rt.bottom-1; y >= 0; y--)
+					{
+						for (x = 0; x < rt.right; x++)
+						{
+							count++;
+							color = GetPixel(saveMemDC, x, y);
+							b = color &  255;
+							color = color >> 8;
+							g = color & 255;
+							color = color >> 8;
+							r = color & 255;
+							// 각 rgb값 찾았음
+							for(int num = 0; num < 16; num++){ // 팔레트에 있는 색이면 삽입
+								if(pal[num].rgbBlue == r && pal[num].rgbGreen == g && pal[num].rgbRed == b){
+									WriteFile(fp,(char*)&num,1,&dwRead,NULL);
+									break;
+								}
+							}
+							if(count==rt.right){
+								for(int temp = 0; temp < widthstep/2; temp++){
+									WriteFile(fp, (char*)zero, 1, &dwRead, NULL);
+								}
+								count=0;
+							}
+						}// 한줄 다 작성
+						x = 0;
+					}	
+					/*ReleaseDC(hwnd, hdc);*/
+					
+
+					CloseHandle(fp);
+				}
+				break;
+			}
+
+			
+
+
+
 			break;
 		
 		case 40004:
@@ -166,27 +310,39 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case 40016:
-			B_Color = RGB(255,0,0);
+			B_Color_r = 255;
+			B_Color_g = 0;
+			B_Color_b = 0;
 			break;
 
 		case 40017:
-			B_Color = RGB(0,255,0);
+			B_Color_r = 0;
+			B_Color_g = 255;
+			B_Color_b = 0;
 			break;
 
 		case 40018:
-			B_Color = RGB(0,0,255);
+			B_Color_r = 0;
+			B_Color_g = 0;
+			B_Color_b = 255;
 			break;
 
 		case 40019:
-			B_Color = RGB(255,255,255);
+			B_Color_r = 255;
+			B_Color_g = 255;
+			B_Color_b = 255;
 			break;
 
 		case 40020:
-			B_Color = RGB(0,0,0);
+			B_Color_r = 0;
+			B_Color_g = 0;
+			B_Color_b = 0;
 			break;
 
 		case 40021:
-			B_Color = RGB(255,255,255);
+			B_Color_r = 255;
+			B_Color_g = 255;
+			B_Color_b = 255;
 			break;
 
 		case 40022:
@@ -194,23 +350,33 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case 40023:
-			In_Color = RGB(255,0,0);
+			In_Color_r = 255;
+			In_Color_g = 0;
+			In_Color_b = 0;
 			break;
 
 		case 40024:
-			In_Color = RGB(0,255,0);
+			In_Color_r = 0;
+			In_Color_g = 255;
+			In_Color_b = 0;
 			break;
 
 		case 40025:
-			In_Color = RGB(0,0,255);
+			In_Color_r = 0;
+			In_Color_g = 0;
+			In_Color_b = 255;
 			break;
 
 		case 40026:
-			In_Color = RGB(0,0,0);
+			In_Color_r = 0;
+			In_Color_g = 0;
+			In_Color_b = 0;
 			break;
 
 		case 40027:
-			In_Color = RGB(255,255,255);;
+			In_Color_r = 255;
+			In_Color_g = 255;
+			In_Color_b = 255;
 			break;
 
 		}
@@ -252,8 +418,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				im[count][4] = Old_y;
 				im[count][5] = pen_mode;
 				im[count][6] = Font_Width;
-				im[count][7] = B_Color;
-				im[count][8] = In_Color;
+				im[count][7] = B_Color_r;
+				im[count][8] = B_Color_g;
+				im[count][9] = B_Color_b;
+				im[count][10] = In_Color_r;
+				im[count][11] = In_Color_g;
+				im[count][12] = In_Color_b;
+
+
 				count++;
 			}
 			break;
@@ -269,10 +441,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			BitBlt(MemDC, 0, 0, rt.right, rt.bottom, saveMemDC, 0, 0, SRCCOPY);
 			for(int i = count_ -1;i>=0; i--){
 				if(r_x < im[i][1] && r_x > im[i][3] && r_y < im[i][2] && r_y > im[i][4]){//좌표에 걸리면
-					Pen = CreatePen(im[i][5], im[i][6],im[i][7] );
+					Pen = CreatePen(im[i][5], im[i][6],RGB(im[i][7],im[i][8],im[i][9]) );
 					Old_Pen = (HPEN)SelectObject(MemDC, Pen);
 
-					Brush = CreateSolidBrush(im[i][8]);
+					Brush = CreateSolidBrush(RGB(im[i][10],im[i][11],im[i][12]));
 					Old_Brush = (HBRUSH)SelectObject(MemDC, Brush);
 					switch(im[i][0]){
 					case 2:
@@ -304,10 +476,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			PAINTSTRUCT ps;
 
 
-			Pen = CreatePen(pen_mode, Font_Width, B_Color );
+			Pen = CreatePen(pen_mode, Font_Width, RGB(B_Color_r,B_Color_g,B_Color_b));
 			Old_Pen = (HPEN)SelectObject(MemDC, Pen);
 
-			Brush = CreateSolidBrush(In_Color);
+			Brush = CreateSolidBrush(RGB(In_Color_r,In_Color_g,In_Color_b));
 			Old_Brush = (HBRUSH)SelectObject(MemDC, Brush);
 
 			if(paint_mode != 0)
@@ -370,4 +542,4 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	} 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
 }
-//더블버퍼링 완료, 도형 튀어나오기 
+//비트맵 추가하기
