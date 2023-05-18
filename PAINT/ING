@@ -259,7 +259,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 
-		case WM_RBUTTONDOWN:
+		case WM_RBUTTONUP:
 			hdc = GetDC(hwnd);
 			r_x = LOWORD(lParam);
 			r_y = HIWORD(lParam);
@@ -267,8 +267,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			int count_;
 			count_ = count;
 			BitBlt(MemDC, 0, 0, rt.right, rt.bottom, saveMemDC, 0, 0, SRCCOPY);
-			for(int i = count;i>0; i--){
-				if(r_x < im[i][1] && r_x > im[i][3] && r_y < im[i][2] && r_y > im[i][4]){
+			for(int i = count_ -1;i>=0; i--){
+				if(r_x < im[i][1] && r_x > im[i][3] && r_y < im[i][2] && r_y > im[i][4]){//좌표에 걸리면
 					Pen = CreatePen(im[i][5], im[i][6],im[i][7] );
 					Old_Pen = (HPEN)SelectObject(MemDC, Pen);
 
@@ -287,18 +287,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 						apnt[2].x = im[i][1];
 						apnt[2].y = im[i][2];
 						Polygon(MemDC, apnt, 3);
-					break;
+						break;
 
 					case 4:
 						Rectangle(MemDC,im[i][1],im[i][2], im[i][3], im[i][4]);
 						break;
 
 					}
-					BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
-					break;
 				}
 			}
 			BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
+			BitBlt(saveMemDC, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY);
 			break;
 
 		case WM_PAINT:
@@ -371,4 +370,4 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	} 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
 }
-//비트맵 추가하기
+//더블버퍼링 완료, 도형 튀어나오기 
