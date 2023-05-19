@@ -228,7 +228,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							color = color >> 8;
 							r = color & 255;
 							// 각 rgb값 찾았음
-							for(int num = 0; num < 16; num++){ // 팔레트에 있는 색이면 삽입
+							for(int num = 0; num < 64; num++){ // 팔레트에 있는 색이면 삽입
 								if(pal[num].rgbBlue == r && pal[num].rgbGreen == g && pal[num].rgbRed == b){
 									WriteFile(fp,(char*)&num,1,&dwRead,NULL);
 									break;
@@ -257,8 +257,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 			break;
 		
+			//끝내기
 		case 40004:
-			MessageBox(hwnd, TEXT("끝내기"),TEXT("메시지 박스"),MB_YESNO);
 			PostQuitMessage(0);
 			break;
 
