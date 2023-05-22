@@ -27,10 +27,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	hwnd = CreateWindow(lpszClass,								 //윈도우가 생성되면 핸들(hwnd)이 반환		//실제 윈도우를 만들기 시작 
 		lpszClass,                        
         WS_OVERLAPPEDWINDOW,                        
-        CW_USEDEFAULT,              //x좌표                   
-        CW_USEDEFAULT,              //y좌표             
-        CW_USEDEFAULT,              //너비
-        CW_USEDEFAULT,              //높이     
+        100,              //x좌표                   
+        100,              //y좌표             
+        1400,              //너비
+        700,              //높이     
         NULL,                         
         NULL,                                    
         hInstance,                            
@@ -238,7 +238,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							R_data = Data[i];
 							SetPixel(MemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
 							SetPixel(saveMemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
-							Old_x++;
+							Old_x++; 
 
 							if(Old_x == HF_info.biWidth){
 								Old_x = 0;
@@ -458,11 +458,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				    WriteFile(fp, &HF, sizeof(HF), &dwRead, NULL);//헤더
 					WriteFile(fp, &HF_info, sizeof(HF_info), &dwRead, NULL);//헤더랑 내용	
 					COLORREF color;
-					for (int y = rt.bottom-1; y >= 0; y--)
+					for (int y1 = rt.bottom-1; y1 >= 0; y1--)
 					{
 						for (int k = 0; k < rt.right; k++)
 						{
-							color = GetPixel(hdc, k, y);
+							color = GetPixel(saveMemDC, k, y1);
 							b = color &  255;
 							color = color >> 8;
 							g = color & 255;
@@ -472,11 +472,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							WriteFile(fp,(char*)&g,1,&color,NULL);
 							WriteFile(fp,(char*)&b,1,&color,NULL);
 						}
-						for (int temp = widthstep; temp > 0; x--)
-							{
-								int step = 0;
-								WriteFile(fp,(char*)&step, 1, &color, NULL);
-							}
+						for (int temp = widthstep; temp > 0; Old_x--)
+						{
+							int step = 0;
+							WriteFile(fp,(char*)&step, 1, &color, NULL);
+						}						
 					}
 					
 					
@@ -484,7 +484,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					CloseHandle(fp);
 					break;
 				}
-			}
+			 }
 
 			
 
