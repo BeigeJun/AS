@@ -27,10 +27,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	hwnd = CreateWindow(lpszClass,								 //윈도우가 생성되면 핸들(hwnd)이 반환		//실제 윈도우를 만들기 시작 
 		lpszClass,                        
         WS_OVERLAPPEDWINDOW,                        
-        100,              //x좌표                   
-        100,              //y좌표             
-        640,              //너비
-        480,              //높이     
+        CW_USEDEFAULT,              //x좌표                   
+        CW_USEDEFAULT,              //y좌표             
+        CW_USEDEFAULT,              //너비
+        CW_USEDEFAULT,              //높이     
         NULL,                         
         NULL,                                    
         hInstance,                            
@@ -115,9 +115,174 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			FillRect(saveMemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
 			break;
 
-		case 40002:
-			MessageBox(hwnd, TEXT("열기"),TEXT("메시지 박스"),MB_YESNO);
+		case 40002:{
+			memset(&OFN, 0, sizeof(OPENFILENAME));
+			OFN.lStructSize = sizeof(OPENFILENAME);
+			OFN.hwndOwner = hwnd;
+			OFN.lpstrFilter = TEXT(" 비트맵 파일(.bmp)\0*.bmp\0 raw 파일(.raw)\0*.raw\0 vi 파일(.vi)\0*.vi\0");
+			OFN.lpstrFile = lpstrFile;
+			OFN.nMaxFile = MAX_PATH;
+			HANDLE f;
+			DWORD dwRead;
+			BYTE* Data;
+			//vi
+			HANDLE vi_f;
+			TCHAR *str;
+			INT strsize;
+			strsize =0;
+			//vi end
+			HANDLE raw_f;
+			int answer;
+			/*
+			if(saveflag == 1){ //저장 후에 변경내용 있을 시
+				answer = MessageBox(hwnd, TEXT("변경한 내용을 저장하시겠습니까?"),TEXT("그림판"), MB_YESNOCANCEL);
+				if(answer == IDYES){
+				FileSave(hwnd, rt);
+				}
+			}
+			*/
+			if(GetOpenFileName(&OFN) != 0){
+				if(OFN.nFilterIndex == 1){ //선택한 파일이 비트맵일 때
+					answer = MessageBox(hwnd, TEXT("선택한 파일을 불러오겠습니까?"), TEXT("파일 열기"),MB_YESNO);
+					if(answer == IDYES){
+						f = CreateFile(OFN.lpstrFile, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+						ReadFile(f, &HF, sizeof(BITMAPFILEHEADER), &dwRead, NULL); //14바이트
+						ReadFile(f, &HF_info, sizeof(BITMAPINFOHEADER), &dwRead, NULL); //40바이트
+						Old_x = 0;
+						Old_y = HF_info.biHeight - 1; //왼쪽아래부터 그려지기때문이고 배열이니까 1뺴줌
+					}
+
+					if(HF_info.biBitCount == 1){
+						RGBQUAD       pRGB[2];//팔레트
+						ReadFile(f, pRGB, sizeof(RGBQUAD) * 2, &dwRead, NULL);
+
+						Data = new BYTE[HF_info.biSizeImage];
+						ReadFile(f, Data, HF_info.biSizeImage, &dwRead, NULL);
+						BYTE R_data;
+						int step_c = 0;
+
+						int widthstep = (32 - (HF_info.biWidth % 32));
+						if(widthstep==32)
+							widthstep=0;
+
+						for (int i = 0; i < HF_info.biSizeImage; i++){
+							for(int j = 0; j < 8; j++){
+								R_data = Data[i] >> 7;
+								SetPixel(MemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
+								SetPixel(saveMemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
+								Old_x++;
+								if(Old_x == HF_info.biWidth){
+									Old_x = 0;
+									Old_y--;
+									i += widthstep / 8;
+									break;
+								}
+								Data[i] = Data[i] << 1;
+							}
+						}
+					}
+
+					else if(HF_info.biBitCount == 4){
+						RGBQUAD pRGB[16];
+						ReadFile(f, pRGB, sizeof(RGBQUAD) * 16, &dwRead, NULL);
+
+						Data = new BYTE[HF_info.biSizeImage];
+						ReadFile(f, Data, HF_info.biSizeImage, &dwRead, NULL);
+						BYTE R_data, G_data;
+						int sw=1;
+
+						int widthstep = 8 - (HF_info.biWidth % 8);
+
+						for (int i=0; i< HF_info.biSizeImage; i++){
+							R_data = Data[i] >> 4;
+							SetPixel(MemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
+							SetPixel(saveMemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
+							Old_x++;
+
+							if(Old_x == HF_info.biWidth){
+								sw = 0;
+								Old_x = 0;
+								Old_y--;
+								i += widthstep / 2;
+							}
+
+							if(sw){
+								G_data = Data[i] << 4;
+								G_data = G_data >> 4;
+								SetPixel(MemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
+								SetPixel(saveMemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
+								Old_x++;
+
+								if(Old_x == HF_info.biWidth){
+									Old_x = 0;
+									Old_x--;
+									i += widthstep / 2;	
+								}
+							}
+							sw = 1;
+						}
+					}
+
+					else if(HF_info.biBitCount == 8){
+						RGBQUAD pRGB[256];
+						ReadFile(f, pRGB, sizeof(RGBQUAD) * 256, &dwRead, NULL);
+
+						Data = new BYTE[HF_info.biSizeImage];
+						ReadFile(f, Data, HF_info.biSizeImage, &dwRead, NULL);
+						BYTE R_data;
+
+						int widthstep = 4 - (HF_info.biWidth % 4);
+						if(widthstep == 4)
+							widthstep = 0;
+						for (int i=0; i< HF_info.biSizeImage; i++){
+							R_data = Data[i];
+							SetPixel(MemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
+							SetPixel(saveMemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
+							Old_x++;
+
+							if(Old_x == HF_info.biWidth){
+								Old_x = 0;
+								Old_y--;
+								i += widthstep;
+							}
+						}
+					}
+
+					else if(HF_info.biBitCount == 24){
+						int widthstep = 4 - (HF_info.biWidth % 4);
+						if(widthstep == 4)
+							widthstep = 0;
+
+						int widthstep_count = 0;
+						
+
+						HF_info.biSizeImage = HF.bfSize - HF.bfOffBits;
+						Data = new BYTE[HF_info.biSizeImage + 3];
+
+						ReadFile(f, Data, HF_info.biSizeImage, &dwRead, NULL);
+
+						for (int i = 0; i < HF_info.biWidth*HF_info.biHeight; i++)//전체 돌기
+						{
+							if (i != 0 && i % HF_info.biWidth == 0 )
+							{
+								Old_x = 0;
+								Old_y--;
+								widthstep_count++;
+							}
+							SetPixel(MemDC, Old_x, Old_y, RGB(Data[(i*3)+(widthstep_count*widthstep)+2], Data[(i*3)+(widthstep_count*widthstep)+1], Data[(i*3)+(widthstep_count*widthstep)]));//그리기
+							SetPixel(saveMemDC, Old_x, Old_y, RGB(Data[(i*3)+(widthstep_count*widthstep)+2], Data[(i*3)+(widthstep_count*widthstep)+1], Data[(i*3)+(widthstep_count*widthstep)]));
+							//점을 찍어주는 함수 SetPixel(hdc, nXPos(좌표), nYPos(좌표), clrref(칼라)) 
+							//색은 RGB순이 아니라 BGR순이다. 줄이 뛰어 넘을 떄 마다 00이 껴있어서 뛰어줘야한다.
+							Old_x++;
+						}
+					}
+					InvalidateRect(hwnd, NULL, FALSE);
+					CloseHandle(f);
+				}
+				}
+				}
 			break;
+
 			//저장
 		case 40003:
 			memset(&OFN, 0, sizeof(OPENFILENAME));
@@ -307,7 +472,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							WriteFile(fp,(char*)&g,1,&color,NULL);
 							WriteFile(fp,(char*)&b,1,&color,NULL);
 						}
-						for (int temp = widthstep; temp > 0; temp--)
+						for (int temp = widthstep; temp > 0; x--)
 							{
 								int step = 0;
 								WriteFile(fp,(char*)&step, 1, &color, NULL);
