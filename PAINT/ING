@@ -27,10 +27,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	hwnd = CreateWindow(lpszClass,								 //윈도우가 생성되면 핸들(hwnd)이 반환		//실제 윈도우를 만들기 시작 
 		lpszClass,                        
         WS_OVERLAPPEDWINDOW,                        
-        100,              //x좌표                   
-        100,              //y좌표             
-        1400,              //너비
-        700,              //높이     
+        CW_USEDEFAULT,              //x좌표                   
+        CW_USEDEFAULT,              //y좌표             
+        361,              //너비
+        100,              //높이     
         NULL,                         
         NULL,                                    
         hInstance,                            
@@ -238,7 +238,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							R_data = Data[i];
 							SetPixel(MemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
 							SetPixel(saveMemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
-							Old_x++; 
+							Old_x++;
 
 							if(Old_x == HF_info.biWidth){
 								Old_x = 0;
@@ -343,7 +343,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					HF_info.biClrImportant = 0;//0일 경우 비트맵은 사용 가능한 모든 색상을 다 사용되어야한다.
 			
 					int widthstep = 4 - (HF_info.biWidth % 4);
-			
+					if(widthstep == 4)
+						widthstep = 0;
 					HF.bfSize = (widthstep * HF_info.biHeight) + (HF_info.biWidth * HF_info.biHeight) + 1078;				// 비트맵 파일 전체의 크기
 					HF.bfOffBits = 1078;																			// 픽셀 데이터의 시작 주소																		
 					HF_info.biSizeImage = HF.bfSize - 1078;
@@ -401,11 +402,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 									break;
 								}
 							}
-							if(count==rt.right){
-								for(int temp = 0; temp < widthstep/2; temp++){
+							for(int temp = 0; temp < widthstep; temp++){
 									WriteFile(fp, (char*)zero, 1, &dwRead, NULL);
-								}
-								count=0;
 							}
 						}// 한줄 다 작성
 						x = 0;
@@ -458,11 +456,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				    WriteFile(fp, &HF, sizeof(HF), &dwRead, NULL);//헤더
 					WriteFile(fp, &HF_info, sizeof(HF_info), &dwRead, NULL);//헤더랑 내용	
 					COLORREF color;
-					for (int y1 = rt.bottom-1; y1 >= 0; y1--)
+					for (int y = rt.bottom-1; y >= 0; y--)
 					{
 						for (int k = 0; k < rt.right; k++)
 						{
-							color = GetPixel(saveMemDC, k, y1);
+							color = GetPixel(hdc, k, y);
 							b = color &  255;
 							color = color >> 8;
 							g = color & 255;
@@ -472,11 +470,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							WriteFile(fp,(char*)&g,1,&color,NULL);
 							WriteFile(fp,(char*)&b,1,&color,NULL);
 						}
-						for (int temp = widthstep; temp > 0; Old_x--)
-						{
-							int step = 0;
-							WriteFile(fp,(char*)&step, 1, &color, NULL);
-						}						
+						for (int temp = widthstep; temp > 0; x--)
+							{
+								int step = 0;
+								WriteFile(fp,(char*)&step, 1, &color, NULL);
+							}
 					}
 					
 					
@@ -484,7 +482,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					CloseHandle(fp);
 					break;
 				}
-			 }
+			}
 
 			
 
