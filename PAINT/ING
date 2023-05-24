@@ -27,10 +27,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 	hwnd = CreateWindow(lpszClass,								 //윈도우가 생성되면 핸들(hwnd)이 반환		//실제 윈도우를 만들기 시작 
 		lpszClass,                        
         WS_OVERLAPPEDWINDOW,                        
-        CW_USEDEFAULT,              //x좌표                   
-        CW_USEDEFAULT,              //y좌표             
-        361,              //너비
-        100,              //높이     
+        100,              //x좌표                   
+        100,
+		1400,              //너비
+        700,              //높이     
         NULL,                         
         NULL,                                    
         hInstance,                            
@@ -70,6 +70,8 @@ static int mode = 0;
 static int paint_mode = 0;
 static int pen_mode = 3;
 static POINT apnt[3];
+
+int box_check = 0;
 
 static int index;
 static OPENFILENAME OFN;
@@ -113,9 +115,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			MessageBox(hwnd, TEXT("새로 만들기"),TEXT("메시지 박스"),MB_YESNO);
 			FillRect(MemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
 			FillRect(saveMemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
+			box_check = 1;
 			break;
 
 		case 40002:{
+			box_check = 1;
 			memset(&OFN, 0, sizeof(OPENFILENAME));
 			OFN.lStructSize = sizeof(OPENFILENAME);
 			OFN.hwndOwner = hwnd;
@@ -152,78 +156,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 						Old_y = HF_info.biHeight - 1; //왼쪽아래부터 그려지기때문이고 배열이니까 1뺴줌
 					}
 
-					if(HF_info.biBitCount == 1){
-						RGBQUAD       pRGB[2];//팔레트
-						ReadFile(f, pRGB, sizeof(RGBQUAD) * 2, &dwRead, NULL);
 
-						Data = new BYTE[HF_info.biSizeImage];
-						ReadFile(f, Data, HF_info.biSizeImage, &dwRead, NULL);
-						BYTE R_data;
-						int step_c = 0;
-
-						int widthstep = (32 - (HF_info.biWidth % 32));
-						if(widthstep==32)
-							widthstep=0;
-
-						for (int i = 0; i < HF_info.biSizeImage; i++){
-							for(int j = 0; j < 8; j++){
-								R_data = Data[i] >> 7;
-								SetPixel(MemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
-								SetPixel(saveMemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
-								Old_x++;
-								if(Old_x == HF_info.biWidth){
-									Old_x = 0;
-									Old_y--;
-									i += widthstep / 8;
-									break;
-								}
-								Data[i] = Data[i] << 1;
-							}
-						}
-					}
-
-					else if(HF_info.biBitCount == 4){
-						RGBQUAD pRGB[16];
-						ReadFile(f, pRGB, sizeof(RGBQUAD) * 16, &dwRead, NULL);
-
-						Data = new BYTE[HF_info.biSizeImage];
-						ReadFile(f, Data, HF_info.biSizeImage, &dwRead, NULL);
-						BYTE R_data, G_data;
-						int sw=1;
-
-						int widthstep = 8 - (HF_info.biWidth % 8);
-
-						for (int i=0; i< HF_info.biSizeImage; i++){
-							R_data = Data[i] >> 4;
-							SetPixel(MemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
-							SetPixel(saveMemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
-							Old_x++;
-
-							if(Old_x == HF_info.biWidth){
-								sw = 0;
-								Old_x = 0;
-								Old_y--;
-								i += widthstep / 2;
-							}
-
-							if(sw){
-								G_data = Data[i] << 4;
-								G_data = G_data >> 4;
-								SetPixel(MemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
-								SetPixel(saveMemDC, Old_x, Old_y, RGB(pRGB[R_data].rgbRed, pRGB[R_data].rgbGreen, pRGB[R_data].rgbBlue));
-								Old_x++;
-
-								if(Old_x == HF_info.biWidth){
-									Old_x = 0;
-									Old_x--;
-									i += widthstep / 2;	
-								}
-							}
-							sw = 1;
-						}
-					}
-
-					else if(HF_info.biBitCount == 8){
+					if(HF_info.biBitCount == 8){
 						RGBQUAD pRGB[256];
 						ReadFile(f, pRGB, sizeof(RGBQUAD) * 256, &dwRead, NULL);
 
@@ -271,6 +205,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							}
 							SetPixel(MemDC, Old_x, Old_y, RGB(Data[(i*3)+(widthstep_count*widthstep)+2], Data[(i*3)+(widthstep_count*widthstep)+1], Data[(i*3)+(widthstep_count*widthstep)]));//그리기
 							SetPixel(saveMemDC, Old_x, Old_y, RGB(Data[(i*3)+(widthstep_count*widthstep)+2], Data[(i*3)+(widthstep_count*widthstep)+1], Data[(i*3)+(widthstep_count*widthstep)]));
+							// i*3 은 1픽셀이 3바이트라서, count*widthstep 허수의 개수를 계산하기 위함, +2 +1은 bgr 순서라서
 							//점을 찍어주는 함수 SetPixel(hdc, nXPos(좌표), nYPos(좌표), clrref(칼라)) 
 							//색은 RGB순이 아니라 BGR순이다. 줄이 뛰어 넘을 떄 마다 00이 껴있어서 뛰어줘야한다.
 							Old_x++;
@@ -279,12 +214,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					InvalidateRect(hwnd, NULL, FALSE);
 					CloseHandle(f);
 				}
-				}
-				}
-			break;
+			}
+		}
+		break;
 
 			//저장
 		case 40003:
+			box_check = 1;
 			memset(&OFN, 0, sizeof(OPENFILENAME));
 			OFN.lStructSize = sizeof(OPENFILENAME);
 			OFN.hwndOwner = hwnd;
@@ -424,7 +360,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					hdc = GetDC(NULL);
 					int  r, g, b;
 
-					GetObject(hdc, sizeof(BITMAP), &bit);//비트맵 핸들이 가진 비트맵 정보를 BITMAP구조체에 저장한다
+					GetObject(saveBit, sizeof(BITMAP), &bit);//비트맵 핸들이 가진 비트맵 정보를 BITMAP구조체에 저장한다
 
 					HF_info.biSize = sizeof(BITMAPINFOHEADER);//구조체의 크기
 					HF_info.biWidth = bit.bmWidth;//비트맵 가로
@@ -460,8 +396,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					{
 						for (int k = 0; k < rt.right; k++)
 						{
-							color = GetPixel(hdc, k, y);
-							b = color &  255;
+							color = GetPixel(saveMemDC, k, y);
+							b = color & 255;
 							color = color >> 8;
 							g = color & 255;
 							color = color >> 8;
@@ -470,7 +406,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							WriteFile(fp,(char*)&g,1,&color,NULL);
 							WriteFile(fp,(char*)&b,1,&color,NULL);
 						}
-						for (int temp = widthstep; temp > 0; x--)
+						for (int temp = widthstep; temp > 0; temp--)
 							{
 								int step = 0;
 								WriteFile(fp,(char*)&step, 1, &color, NULL);
@@ -497,82 +433,99 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 			//원
 		case 40005:
+			box_check = 1;
 			paint_mode = 2;
 			break;
 
 			//삼각형
 		case 40006:
+			box_check = 1;
 			paint_mode = 3;
 			break;
 
 			//사각형
 		case 40007:
+			box_check = 1;
 			paint_mode= 4;
 			break;
 
 		case 40008:
+			box_check = 1;
 			paint_mode = 1;
 			break;
 
 		case 40009:
+			box_check = 1;
 			paint_mode = 0;
 			break;
 
 		case 40010:
+			box_check = 1;
 			pen_mode = 2;
 			break;
 
 		case 40011:
+			box_check = 1;
 			pen_mode = 1;
 			break;
 
 		case 40012:
+			box_check = 1;
 			pen_mode = 0;
 			break;
 
 		case 40013:
+			box_check = 1;
 			Font_Width = 1;
 			break;
 
 		case 40014:
+			box_check = 1;
 			Font_Width = 3;
 			break;
 
 		case 40015:
+			box_check = 1;
 			Font_Width = 5;
 			break;
 
 		case 40016:
+			box_check = 1;
 			B_Color_r = 255;
 			B_Color_g = 0;
 			B_Color_b = 0;
 			break;
 
 		case 40017:
+			box_check = 1;
 			B_Color_r = 0;
 			B_Color_g = 255;
 			B_Color_b = 0;
 			break;
 
 		case 40018:
+			box_check = 1;
 			B_Color_r = 0;
 			B_Color_g = 0;
 			B_Color_b = 255;
 			break;
 
 		case 40019:
+			box_check = 1;
 			B_Color_r = 255;
 			B_Color_g = 255;
 			B_Color_b = 255;
 			break;
 
 		case 40020:
+			box_check = 1;
 			B_Color_r = 0;
 			B_Color_g = 0;
 			B_Color_b = 0;
 			break;
 
 		case 40021:
+			box_check = 1;
 			B_Color_r = 255;
 			B_Color_g = 255;
 			B_Color_b = 255;
@@ -583,30 +536,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case 40023:
+			box_check = 1;
 			In_Color_r = 255;
 			In_Color_g = 0;
 			In_Color_b = 0;
 			break;
 
 		case 40024:
+			box_check = 1;
 			In_Color_r = 0;
 			In_Color_g = 255;
 			In_Color_b = 0;
 			break;
 
 		case 40025:
+			box_check = 1;
 			In_Color_r = 0;
 			In_Color_g = 0;
 			In_Color_b = 255;
 			break;
 
 		case 40026:
+			box_check = 1;
 			In_Color_r = 0;
 			In_Color_g = 0;
 			In_Color_b = 0;
 			break;
 
 		case 40027:
+			box_check = 1;
 			In_Color_r = 255;
 			In_Color_g = 255;
 			In_Color_b = 255;
@@ -616,6 +574,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_LBUTTONDOWN:	//	마우스 누름
 		{
+
+			if(box_check == 1){
+				box_check = 0;
+				break;
+			}
+			else{
 			//	좌표를 얻어와야 한다.
 			Old_x = LOWORD(lParam);
 			Old_y = HIWORD(lParam);
@@ -624,6 +588,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			Draw = TRUE;
 
 			break;
+			}
 		}
 		
 		//	그림 그리는 중( 마우스가 눌린 상태에서만 )
