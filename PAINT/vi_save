@@ -229,9 +229,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							im[i][j] = NULL;
 							
 						}
-					/*	for(int k = 0; k<7; k++){
-							vi_free_set[i][k] = NULL;
-						} */
+						for(int k = 0; k<7; k++){
+							free_l[i][k] = NULL;
+						} 
 
 					}
 					count = 0;
@@ -267,14 +267,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							In_Color_r = 0;
 							In_Color_g = 0;
 							In_Color_b = 0;
-							if(str[index+3] != 49){		// 연필이 아니라면
+							if(str[index+3] != 48){		// 연필이 아니라면
 								for(int j=0; j<13; j++){
 									int count_1 = 1000;
-									while(count_1 != 0){
-										if(str[index]==0){
-											index++;
-											continue;
-										}
+									while(count_1!=0){
+										
 										switch(j){
 										case 0:
 											paint_mode += (str[index++] - 48) * count_1;
@@ -421,13 +418,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 								}
 							}
 							
-							if(paint_mode != 1){
+							if(paint_mode != 0){
 								BitBlt(MemDC,0,0,rt.right, rt.bottom, saveMemDC,0,0,SRCCOPY);
+
+								
 
 								Pen = CreatePen(pen_mode, Font_Width, RGB(B_Color_r,B_Color_g,B_Color_b));
 								Old_Pen = (HPEN)SelectObject(MemDC, Pen);
 
-
+								
 
 								if(B_Color_r == 255 && B_Color_b == 255 && B_Color_g == 255)
 									Brush = (HBRUSH)GetStockObject(NULL_BRUSH);
@@ -458,7 +457,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 							}// if(select != 1)
 
 							BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
-							BitBlt(saveMemDC,0,0,rt.right, rt.bottom, MemDC,0,0,SRCCOPY);
+							BitBlt(saveMemDC,0,0,rt.right, rt.bottom, hdc,0,0,SRCCOPY);
 							index++; // \n을 넘기기 위함
 						}
 					}
@@ -675,9 +674,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 						if(free_l[i][0] != 0)
 							size += 13*5+1;
 						else
-							size += (7*5) + (free_l[i][3] * 10) +2;
+							size += (7*5) + (free_l[i][1] * 10) +2;
 					}
-					strRead = (TCHAR*)malloc(size);
+					strRead = (TCHAR*)malloc(size+10);
 
 					strRead[index++] = 0xFEFF; //유니코드(빅 에디안)
 					strRead[index++] = (count/10)+48; //int->tchar
@@ -692,7 +691,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					strRead[index++] = '\n';
 					for(int a = 0; a < count ; a++)
 					{
-						if(free_l[a][0] != 0){
+						if(im[a][0] != 0 && free_l[a][0] == 0){  //im[a][0] != 0 && free_l[a][0] == 0 
 							for(int b = 0; b < 13 ; b++)
 							{
 								strRead[index++] = (im[a][b]/1000) +48; //페인트 모드, 좌표 4번,팬 모드, 폰트 크기, 선 색 3번, 안 색 3번
@@ -729,6 +728,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 						strRead[index++] = '\n';
 					}					
 					WriteFile(vi_fp, strRead, index*2, &dwRead, NULL);
+					strRead[resize+10] = NULL;
 					CloseHandle(vi_fp);
 				}
 
