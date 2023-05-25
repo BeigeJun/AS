@@ -707,7 +707,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 						}
 						strRead[index++] = '\n';
 					}					
-					WriteFile(vi_fp, strRead, size*2, &dwRead, NULL);
+					WriteFile(vi_fp, strRead, index*2, &dwRead, NULL);
 					CloseHandle(vi_fp);
 				}
 
