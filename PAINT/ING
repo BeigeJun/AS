@@ -123,7 +123,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			memset(&OFN, 0, sizeof(OPENFILENAME));
 			OFN.lStructSize = sizeof(OPENFILENAME);
 			OFN.hwndOwner = hwnd;
-			OFN.lpstrFilter = TEXT(" 비트맵 파일(.bmp)\0*.bmp\0 raw 파일(.raw)\0*.raw\0 vi 파일(.vi)\0*.vi\0");
+			OFN.lpstrFilter = TEXT(" 비트맵 파일(.bmp)\0*.bmp\0 vi 파일(.vi)\0*.vi\0");
 			OFN.lpstrFile = lpstrFile;
 			OFN.nMaxFile = MAX_PATH;
 			HANDLE f;
@@ -481,7 +481,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			memset(&OFN, 0, sizeof(OPENFILENAME));
 			OFN.lStructSize = sizeof(OPENFILENAME);
 			OFN.hwndOwner = hwnd;
-			OFN.lpstrFilter = TEXT(" 8비트 비트맵 파일(*.bmp)\0*.bmp\0 24비트비트맵(*.bmp)\0*.bmp\0 vi 파일(*.vi)\0*.vi\0 raw 파일 (*.raw)\0*.raw");
+			OFN.lpstrFilter = TEXT(" 8비트 비트맵 파일(*.bmp)\0*.bmp\0 24비트비트맵(*.bmp)\0*.bmp\0 vi 파일(*.vi)\0*.vi\0");
 			OFN.lpstrFile = lpstrFile;
 			OFN.nMaxFile = MAX_PATH;
 			HANDLE fp; 
@@ -542,11 +542,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					HF.bfOffBits = 1078;																			// 픽셀 데이터의 시작 주소																		
 					HF_info.biSizeImage = HF.bfSize - 1078;
 
-					//Size = hinfo.biSize + hinfo.biSizeImage;
-					//pih = (BITMAPINFO *)malloc(Size);
-					//pih->bmiHeader = hinfo;
-					////스캔 한행씩
-					//GetDIBits(hdc, BackBitmap, 0, bit.bmHeight, (PBYTE)pih, pih, DIB_RGB_COLORS);
 
 
 					HF.bfType = 0x4d42;//파일의 형태를 지정하는 매직 넘버이며 반드기 BM(bmp 파일의 전체 크기)이어야 한다(0x42, 0x4d)
