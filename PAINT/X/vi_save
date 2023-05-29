@@ -731,22 +731,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 					strRead[resize+10] = NULL;
 					CloseHandle(vi_fp);
 				}
-
-
-
-
-
 			}
-
-			
-
-
-
 			break;
 		
 			//끝내기
 		case 40004:
 			PostQuitMessage(0);
+			free(strRead);
 			break;
 
 			//원
