@@ -95,7 +95,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		//hdc에 그림을 저장해 둔다.
 		saveBit = CreateCompatibleBitmap(hdc, rt.right, rt.bottom);
 		Bit = CreateCompatibleBitmap(hdc, rt.right, rt.bottom);
-
+		 
 
 		//DC는 메모리 DC일때만 교체가 가능하다.
 		(HBITMAP)SelectObject(saveMemDC, saveBit);
@@ -180,6 +180,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 								i += widthstep;
 							}
 						}
+						InvalidateRect(hwnd, NULL, FALSE);
 					}
 
 					else if(HF_info.biBitCount == 24){
@@ -461,7 +462,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			memset(&OFN, 0, sizeof(OPENFILENAME));
 			OFN.lStructSize = sizeof(OPENFILENAME);
 			OFN.hwndOwner = hwnd;
-			OFN.lpstrFilter = TEXT(" 8비트 비트맵 파일(*.bmp)\0*.bmp\0 24비트비트맵(*.bmp)\0*.bmp\0 vi 파일(*.vi)\0*.vi\0 raw 파일 (*.raw)\0*.raw");
+			OFN.lpstrFilter = TEXT(" 8비트 비트맵 파일(*.bmp)\0*.bmp\0 24비트비트맵(*.bmp)\0*.bmp\0 vi 파일(*.vi)\0*.vi");
 			OFN.lpstrFile = lpstrFile;
 			OFN.nMaxFile = MAX_PATH;
 			HANDLE fp; 
