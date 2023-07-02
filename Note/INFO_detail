@@ -1,0 +1,79 @@
+
+//WndClass정의(윈도우의 기반이 되는 클래스를 정의한다) -> CreateWindow(메모리상에 윈도우를 만든다) -> ShowWindow(화면상에 윈도우를 표시한다) -> 메시지루프(사용자로부터 메시
+#include <windows.h>
+#include <windowsx.h>
+#include<stdio.h>
+#include <tchar.h>
+#include "resource.h"
+
+#define IDR_MENU1                       101
+#define ID_NEW                          40001
+#define ID_OPEN                         40002
+#define ID_EXIT                         40003
+#define ID_SAVE            40004
+
+
+#define ID_HORZSCROLL 100
+#define ID_VERTSCROLL 101
+
+#define      ROW         1000   //   메모장의 세로 크기
+#define      COL         100000   //   메모장의 가로 크기
+
+HMENU hMenu, hSubMenu;    //메모장 메뉴 생성
+//size_t 는 unsigned int 이며, 문자열이나 메모리의 사이즈를 나타낼 때 사용합니다. "unsigned int"를
+//typedef unsigned int size_t;
+//이렇게 size_t 라는 이름으로 정의해 놓은 것입니다.
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, 
+         WPARAM wParam, LPARAM lParam);
+
+LPCTSTR lpszClass = TEXT("메모장");         // LPCSTR = char *
+
+///////////////////////////시작점///////////////////////////////
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈도우 프로그램이라는 의미
+         LPSTR lpszCmdLine, int nCmdShow)                   //hInstance : 운영체제의 커널이 응용 프로그램에 부여한 ID ex) 메모장1 메모장2
+{                                                 //szCmdLine : 커멘트라인 상에서 프로그램 구동 시 전달된 문자열
+   HWND   hwnd;                                     //iCmdShow : 윈도우가 화면에 출력될 형태 
+   WNDCLASS WndClass;                                  //WndClass 라는 구조체 정의                            
+
+
+   WndClass.style         = CS_HREDRAW | CS_VREDRAW;          //출력스타일 : 수직/수평의 변화시 다시 그림      //Horizontal, Vertical 
+   WndClass.lpfnWndProc   = WndProc;                      //프로시저 함수명   
+   WndClass.cbClsExtra      = 0;                         //O/S 사용 여분 메모리 (Class)
+   WndClass.cbWndExtra      = 0;                         //O/s 사용 여분 메모리 (Window)
+   WndClass.hInstance      = hInstance;                   //응용 프로그램 ID
+   WndClass.hIcon         = LoadIcon(NULL, IDI_QUESTION);        //아이콘 유형
+   WndClass.hCursor      = LoadCursor(NULL, IDC_ARROW);       //커서 유형
+   WndClass.hbrBackground   = (HBRUSH)GetStockObject(WHITE_BRUSH);//배경색   
+   WndClass.lpszMenuName   = MAKEINTRESOURCE(IDR_MENU1);                         //메뉴 이름
+   WndClass.lpszClassName   = lpszClass;                   //클래스 이름
+   RegisterClass(&WndClass);                            //앞서 정의한 윈도우 클래스의 주소 // os 에다가 지금 이 클래스를 등록시킴 
+
+   hwnd = CreateWindow(lpszClass,                         //윈도우가 생성되면 핸들(hwnd)이 반환      //실제 윈도우를 만들기 시작 
+      lpszClass,                        
+        WS_OVERLAPPEDWINDOW| WS_VSCROLL | WS_HSCROLL,                        
+        100,              //x좌표                   
+        100,              //y좌표             
+        640,              //너비
+        480,              //높이     
+        NULL,                         
+        NULL,                                    
+        hInstance,                            
+        NULL                                          //생성된 윈도우 정보
+   );
+   ShowWindow(hwnd, nCmdShow);                            //윈도우의 화면 출력
+   UpdateWindow(hwnd);                                  //O/S 에 WM_PAINT 메시지 전송
+
+
+   MSG msg;
+   memset( &msg, 0, sizeof(msg) );
+   while(GetMessage(&msg, NULL, 0, 0))                      //WinProc()에서 PostQuitMessage() 호출 때까지 처리 이 함수가 읽어들인 메시지가 프로그램을 종료하라는 WM_Quit일경우 Fail 리턴.
+   {                                              // 
+      TranslateMessage(&msg);                                  //키보드 입력 메시지를 가공하여 프로그램에서 쉽게 쓸 수 있도록 해 준다. 
+                                                 //윈도우즈는 키보드의 어떤 키가 눌러졌다거나 떨어졌을 때 키보드 메시지를 발생시키는데 이 함수는 키보드의 눌림(WM_KEYDOWN)과 떨어짐(WM_KEYUP)이 
+                                                 //연속적으로 발생할 때 문자가 입력되었다는 메시지(WM_CHAR)를 만드는 역할을 한다. 예를 들어 A키를 누른 후 다시 A키를 떼면 A문자가 입력되었다는 메시지를 만들어 낸다.
+      
+      
+      DispatchMessage(&msg);                            //WinMain -> WinProc  
+                                                 //시스템 메시지 큐에서 꺼낸 메시지를 프로그램의 메시지 처리 함수(WndProc)로 전달한다. 
+                                   
