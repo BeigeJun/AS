@@ -507,7 +507,6 @@ void SAVE(HWND hwnd)
 					{
 						for (x = 0; x < rt.right; x++)
 						{
-							count++;
 							color = GetPixel(saveMemDC, x, y);
 							b = color &  255;
 							color = color >> 8;
