@@ -347,14 +347,15 @@ void OPEN(HWND hwnd)
 
 void SAVE(HWND hwnd)
 {
-	box_check = 1;
-			memset(&OFN, 0, sizeof(OPENFILENAME));
-			OFN.lStructSize = sizeof(OPENFILENAME);
-			OFN.hwndOwner = hwnd;
-			OFN.lpstrFilter = TEXT(" 8비트 비트맵 파일(*.bmp)\0*.bmp\0 24비트비트맵(*.bmp)\0*.bmp\0 vi 파일(*.vi)\0*.vi");
-			OFN.lpstrFile = lpstrFile;
-			OFN.nMaxFile = MAX_PATH;
-			HANDLE fp; 
+			box_check = 1;
+			memset(&SFN, 0, sizeof(OPENFILENAME));
+			SFN.lStructSize = sizeof(OPENFILENAME);
+			SFN.hwndOwner = hwnd;
+			SFN.lpstrFilter = TEXT(" 8비트 비트맵 파일(*.bmp)\0*.bmp\0 24비트비트맵(*.bmp)\0*.bmp\0 vi 파일(*.vi)\0*.vi");
+			SFN.lpstrFile = lpstrFile;
+			SFN.nMaxFile = MAX_PATH;
+			HANDLE fp;
+			HANDLE FP;
 	
 			DWORD dwRead;
 		//vi
@@ -365,67 +366,10 @@ void SAVE(HWND hwnd)
 			index = 0;
 			//vi end
 
-			if(GetSaveFileName(&OFN) != 0) //다이얼로그 열기
+			if(GetSaveFileName(&SFN) != 0) //다이얼로그 열기
 			{
-				if(OFN.nFilterIndex == 2){ //24비트 비트맵
-					BITMAP bit; //비트맵 구조체를 선언한다
-			
-					hdc = GetDC(NULL);
-					int  r, g, b;
-
-					GetObject(saveBit, sizeof(BITMAP), &bit);//비트맵 핸들이 가진 비트맵 정보를 BITMAP구조체에 저장한다
-
-					HF_info.biSize = sizeof(BITMAPINFOHEADER);//구조체의 크기
-					HF_info.biWidth = bit.bmWidth;//비트맵 가로
-					HF_info.biHeight = bit.bmHeight;//비트맵 세로
-					HF_info.biPlanes = 1; //1로 고정
-					HF_info.biBitCount = 24;
-					HF_info.biCompression = BI_RGB;//압축되지 않은 비트맵 (BI_RGB)
-					/*hinfo.biSizeImage = 0;*///비트맵이면 0
-					HF_info.biXPelsPerMeter = 0;//미터당 가로픽셀수 -> 시스템은 사용안함
-					HF_info.biYPelsPerMeter = 0;//미터당 세로픽셀수 -> 시스템은 사용안함
-					HF_info.biClrUsed = 0;//0일 경우 비트맵은 사용 가능한 모든 색상을 다 사용한다. 
-					HF_info.biClrImportant = 0;//0일 경우 비트맵은 사용 가능한 모든 색상을 다 사용되어야한다.
-					int widthstep = 4 - (HF_info.biWidth * 3 % 4);
-					if (widthstep == 4) 
-						widthstep = 0;
-			
-					HF.bfSize = (widthstep * HF_info.biHeight) + (HF_info.biWidth * HF_info.biHeight *3 ) + 54;		// 비트맵 파일 전체의 크기
-					HF.bfOffBits = 54;																					// 픽셀 데이터의 시작 주소																	
-					HF_info.biSizeImage = HF.bfSize - 54;
-
-					HF.bfType = 0x4d42;
-			
-					HF.bfReserved1 = 0;
-					HF.bfReserved2 = 0;
-			
-					fp = CreateFile(lpstrFile, GENERIC_WRITE, 0, NULL,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); // write = 쓰기전용, always는 파일이 존재할 경우 덮어쓰기, normal 속성지정x
-				    WriteFile(fp, &HF, sizeof(HF), &dwRead, NULL);//헤더
-					WriteFile(fp, &HF_info, sizeof(HF_info), &dwRead, NULL);//헤더랑 내용	
-					COLORREF color;
-					for (int y = rt.bottom-1; y >= 0; y--)
-					{
-						for (int k = 0; k < rt.right; k++)
-						{
-							color = GetPixel(saveMemDC, k, y);
-							b = color & 255;
-							color = color >> 8;
-							g = color & 255;
-							color = color >> 8;
-							r = color & 255;
-							WriteFile(fp,(char*)&r,1,&color,NULL);
-							WriteFile(fp,(char*)&g,1,&color,NULL);
-							WriteFile(fp,(char*)&b,1,&color,NULL);
-						}
-						for (int temp = widthstep; temp > 0; temp--)
-							{
-								int step = 0;
-								WriteFile(fp,(char*)&step, 1, &color, NULL);
-							}
-					}
-					CloseHandle(fp);
-				}
-				else if(OFN.nFilterIndex == 1) //8비트 비트맵
+				
+				if(SFN.nFilterIndex == 1) //8비트 비트맵
 				{
 					BITMAP bitmap;
 					COLORREF color;
@@ -522,9 +466,69 @@ void SAVE(HWND hwnd)
 					CloseHandle(fp);
 				}
 				
-				
+				else if(SFN.nFilterIndex == 2){ //24비트 비트맵
+					BITMAP bit; //비트맵 구조체를 선언한다
+			
+					hdc = GetDC(NULL);
+					int  r, g, b;
 
-				else if(OFN.nFilterIndex == 3){ //vi 저장
+					GetObject(saveBit, sizeof(BITMAP), &bit);//비트맵 핸들이 가진 비트맵 정보를 BITMAP구조체에 저장한다
+
+					HF_info.biSize = sizeof(BITMAPINFOHEADER);//구조체의 크기
+					HF_info.biWidth = bit.bmWidth;//비트맵 가로
+					HF_info.biHeight = bit.bmHeight;//비트맵 세로
+					HF_info.biPlanes = 1; //1로 고정
+					HF_info.biBitCount = 24;
+					HF_info.biCompression = BI_RGB;//압축되지 않은 비트맵 (BI_RGB)
+					/*hinfo.biSizeImage = 0;*///비트맵이면 0
+					HF_info.biXPelsPerMeter = 0;//미터당 가로픽셀수 -> 시스템은 사용안함
+					HF_info.biYPelsPerMeter = 0;//미터당 세로픽셀수 -> 시스템은 사용안함
+					HF_info.biClrUsed = 0;//0일 경우 비트맵은 사용 가능한 모든 색상을 다 사용한다. 
+					HF_info.biClrImportant = 0;//0일 경우 비트맵은 사용 가능한 모든 색상을 다 사용되어야한다.
+					int widthstep = 4 - (HF_info.biWidth * 3 % 4);
+					if (widthstep == 4) 
+						widthstep = 0;
+			
+					HF.bfSize = (widthstep * HF_info.biHeight) + (HF_info.biWidth * HF_info.biHeight *3 ) + 54;		// 비트맵 파일 전체의 크기
+					HF.bfOffBits = 54;																					// 픽셀 데이터의 시작 주소																	
+					HF_info.biSizeImage = HF.bfSize - 54;
+
+					HF.bfType = 0x4d42;
+			
+					HF.bfReserved1 = 0;
+					HF.bfReserved2 = 0;
+			
+					FP = CreateFile(lpstrFile, GENERIC_WRITE, 0, NULL,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); // write = 쓰기전용, always는 파일이 존재할 경우 덮어쓰기, normal 속성지정x
+				    WriteFile(FP, &HF, sizeof(HF), &dwRead, NULL);//헤더
+					WriteFile(FP, &HF_info, sizeof(HF_info), &dwRead, NULL);//헤더랑 내용	
+					COLORREF color;
+					for (int y = rt.bottom-1; y >= 0; y--)
+					{
+						for (int k = 0; k < rt.right; k++)
+						{
+							color = GetPixel(saveMemDC, k, y);
+							b = color & 255;
+							color = color >> 8;
+							g = color & 255;
+							color = color >> 8;
+							r = color & 255;
+							WriteFile(FP,(char*)&r,1,&color,NULL);
+							WriteFile(FP,(char*)&g,1,&color,NULL);
+							WriteFile(FP,(char*)&b,1,&color,NULL);
+						}
+						for (int temp = widthstep; temp > 0; temp--)
+							{
+								int step = 0;
+								WriteFile(fp,(char*)&step, 1, &color, NULL);
+							}
+					}
+					CloseHandle(FP);
+					BitBlt(saveMemDC, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY);
+					BitBlt(MemDC, 0, 0, rt.right, rt.bottom, saveMemDC, 0, 0, SRCCOPY);
+					BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
+				}
+
+				else if(SFN.nFilterIndex == 3){ //vi 저장
 					int size = 0;
 					vi_fp = CreateFile(lpstrFile, GENERIC_WRITE, 0, NULL,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 					for(int i=0; i<count; i++){
@@ -589,5 +593,7 @@ void SAVE(HWND hwnd)
 					index = 0;
 					CloseHandle(vi_fp);
 				}
+
+				
 			}
 }
