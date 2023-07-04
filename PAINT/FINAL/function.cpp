@@ -367,15 +367,9 @@ void SAVE(HWND hwnd)
 
 			if(GetSaveFileName(&OFN) != 0) //다이얼로그 열기
 			{
-
-
-
 				if(OFN.nFilterIndex == 2){ //24비트 비트맵
-			
-			
 					BITMAP bit; //비트맵 구조체를 선언한다
 			
-		
 					hdc = GetDC(NULL);
 					int  r, g, b;
 
@@ -400,13 +394,11 @@ void SAVE(HWND hwnd)
 					HF.bfOffBits = 54;																					// 픽셀 데이터의 시작 주소																	
 					HF_info.biSizeImage = HF.bfSize - 54;
 
-
 					HF.bfType = 0x4d42;
 			
 					HF.bfReserved1 = 0;
 					HF.bfReserved2 = 0;
 			
-
 					fp = CreateFile(lpstrFile, GENERIC_WRITE, 0, NULL,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); // write = 쓰기전용, always는 파일이 존재할 경우 덮어쓰기, normal 속성지정x
 				    WriteFile(fp, &HF, sizeof(HF), &dwRead, NULL);//헤더
 					WriteFile(fp, &HF_info, sizeof(HF_info), &dwRead, NULL);//헤더랑 내용	
@@ -507,6 +499,7 @@ void SAVE(HWND hwnd)
 					{
 						for (x = 0; x < rt.right; x++)
 						{
+
 							color = GetPixel(saveMemDC, x, y);
 							b = color &  255;
 							color = color >> 8;
@@ -593,6 +586,7 @@ void SAVE(HWND hwnd)
 					}					
 					WriteFile(vi_fp, strRead, index*2, &dwRead, NULL);
 					strRead[resize+10] = NULL;
+					index = 0;
 					CloseHandle(vi_fp);
 				}
 			}
