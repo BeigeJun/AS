@@ -28,7 +28,7 @@ extern TCHAR free_xy[100][1000000][2];
 extern int box_check;
 extern int free_size;
 extern int index;
-extern OPENFILENAME OFN;
+extern OPENFILENAME OFN, SFN;
 extern TCHAR lpstrFile[260];
 extern BITMAPFILEHEADER HF;
 extern BITMAPINFOHEADER HF_info;
