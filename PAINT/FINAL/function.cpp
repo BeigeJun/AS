@@ -343,6 +343,9 @@ void OPEN(HWND hwnd)
 				}
 			}
 		}
+		
+
+
 
 
 void SAVE(HWND hwnd)
@@ -453,12 +456,12 @@ void SAVE(HWND hwnd)
 							// 각 rgb값 찾았음
 							for(int num = 0; num < 256; num++){ // 팔레트에 있는 색이면 삽입
 								if(pal[num].rgbBlue == r && pal[num].rgbGreen == g && pal[num].rgbRed == b){
-									WriteFile(fp,(char*)&num,1,&dwRead,NULL);
+									WriteFile(FP,(char*)&num,1,&dwRead,NULL);
 									break;
 								}
 							}
 							for(int temp = 0; temp < widthstep/2; temp++){
-									WriteFile(fp, (char*)zero, 1, &dwRead, NULL);
+									WriteFile(FP, (char*)zero, 1, &dwRead, NULL);
 							}
 						}// 한줄 다 작성
 						x = 0;
@@ -467,7 +470,7 @@ void SAVE(HWND hwnd)
 				}
 				
 				else if(SFN.nFilterIndex == 2){ //24비트 비트맵
-					BITMAP bit; //비트맵 구조체를 선언한다
+					BITMAP bit; //비트맵 구조체를 선언
 			
 					hdc = GetDC(NULL);
 					int  r, g, b;
