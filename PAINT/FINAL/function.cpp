@@ -14,7 +14,7 @@ void NEW(HWND hwnd)
 			InvalidateRect(hwnd, NULL, false);
 }
 
-void OPEN(HWND hwnd)
+int OPEN(HWND hwnd)
 	{
 			box_check = 1;
 			memset(&OFN, 0, sizeof(OPENFILENAME));
@@ -70,6 +70,7 @@ void OPEN(HWND hwnd)
 							}
 						}
 						InvalidateRect(hwnd, NULL, FALSE);
+						return 0;
 					}
 
 					else if(HF_info.biBitCount == 24){
@@ -102,6 +103,7 @@ void OPEN(HWND hwnd)
 						}
 						InvalidateRect(hwnd, NULL, FALSE);
 						CloseHandle(f);
+						return 0;
 					}
 				}
 				else if(OFN.nFilterIndex == 2){
@@ -340,22 +342,22 @@ void OPEN(HWND hwnd)
 							index++; // \n을 넘기기 위함
 						}
 					}
+					return 0;
 				}
 			}
 		}
 
 
-void SAVE(HWND hwnd)
+int SAVE(HWND hwnd)
 {
 			box_check = 1;
-			memset(&SFN, 0, sizeof(OPENFILENAME));
-			SFN.lStructSize = sizeof(OPENFILENAME);
-			SFN.hwndOwner = hwnd;
-			SFN.lpstrFilter = TEXT(" 8비트 비트맵 파일(*.bmp)\0*.bmp\0 24비트비트맵(*.bmp)\0*.bmp\0 vi 파일(*.vi)\0*.vi");
-			SFN.lpstrFile = lpstrFile;
-			SFN.nMaxFile = MAX_PATH;
-			HANDLE fp;
-			HANDLE FP;
+			memset(&OFN, 0, sizeof(OPENFILENAME));
+			OFN.lStructSize = sizeof(OPENFILENAME);
+			OFN.hwndOwner = hwnd;
+			OFN.lpstrFilter = TEXT(" 8비트 비트맵 파일(*.bmp)\0*.bmp\0 24비트비트맵(*.bmp)\0*.bmp\0 vi 파일(*.vi)\0*.vi");
+			OFN.lpstrFile = lpstrFile;
+			OFN.nMaxFile = MAX_PATH;
+			HANDLE fp; 
 	
 			DWORD dwRead;
 		//vi
@@ -366,10 +368,9 @@ void SAVE(HWND hwnd)
 			index = 0;
 			//vi end
 
-			if(GetSaveFileName(&SFN) != 0) //다이얼로그 열기
+			if(GetSaveFileName(&OFN) != 0) //다이얼로그 열기
 			{
-				
-				if(SFN.nFilterIndex == 1) //8비트 비트맵
+				if(OFN.nFilterIndex == 1) //8비트 비트맵
 				{
 					BITMAP bitmap;
 					COLORREF color;
@@ -443,7 +444,6 @@ void SAVE(HWND hwnd)
 					{
 						for (x = 0; x < rt.right; x++)
 						{
-
 							color = GetPixel(saveMemDC, x, y);
 							b = color &  255;
 							color = color >> 8;
@@ -464,11 +464,10 @@ void SAVE(HWND hwnd)
 						x = 0;
 					}	
 					CloseHandle(fp);
+					return 0;
 				}
-				
-				else if(SFN.nFilterIndex == 2){ //24비트 비트맵
+				else if(OFN.nFilterIndex == 2){ //24비트 비트맵
 					BITMAP bit; //비트맵 구조체를 선언한다
-			
 					hdc = GetDC(NULL);
 					int  r, g, b;
 
@@ -493,14 +492,16 @@ void SAVE(HWND hwnd)
 					HF.bfOffBits = 54;																					// 픽셀 데이터의 시작 주소																	
 					HF_info.biSizeImage = HF.bfSize - 54;
 
+
 					HF.bfType = 0x4d42;
 			
 					HF.bfReserved1 = 0;
 					HF.bfReserved2 = 0;
 			
-					FP = CreateFile(lpstrFile, GENERIC_WRITE, 0, NULL,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); // write = 쓰기전용, always는 파일이 존재할 경우 덮어쓰기, normal 속성지정x
-				    WriteFile(FP, &HF, sizeof(HF), &dwRead, NULL);//헤더
-					WriteFile(FP, &HF_info, sizeof(HF_info), &dwRead, NULL);//헤더랑 내용	
+
+					fp = CreateFile(lpstrFile, GENERIC_WRITE, 0, NULL,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); // write = 쓰기전용, always는 파일이 존재할 경우 덮어쓰기, normal 속성지정x
+				    WriteFile(fp, &HF, sizeof(HF), &dwRead, NULL);//헤더
+					WriteFile(fp, &HF_info, sizeof(HF_info), &dwRead, NULL);//헤더랑 내용	
 					COLORREF color;
 					for (int y = rt.bottom-1; y >= 0; y--)
 					{
@@ -512,23 +513,28 @@ void SAVE(HWND hwnd)
 							g = color & 255;
 							color = color >> 8;
 							r = color & 255;
-							WriteFile(FP,(char*)&r,1,&color,NULL);
-							WriteFile(FP,(char*)&g,1,&color,NULL);
-							WriteFile(FP,(char*)&b,1,&color,NULL);
+							WriteFile(fp,(char*)&r,1,&color,NULL);
+							WriteFile(fp,(char*)&g,1,&color,NULL);
+							WriteFile(fp,(char*)&b,1,&color,NULL);
 						}
-						for (int temp = widthstep; temp > 0; temp--)
-							{
-								int step = 0;
-								WriteFile(fp,(char*)&step, 1, &color, NULL);
-							}
+				//		for (int temp = widthstep; temp > 0; temp--)
+				//			{
+				//				int step = 0;
+				//				WriteFile(fp,(char*)&step, 1, &color, NULL);
+				//			}
 					}
-					CloseHandle(FP);
+
+					CloseHandle(fp);
 					BitBlt(saveMemDC, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY);
 					BitBlt(MemDC, 0, 0, rt.right, rt.bottom, saveMemDC, 0, 0, SRCCOPY);
 					BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
+					return 0;
 				}
+				
+				
+				
 
-				else if(SFN.nFilterIndex == 3){ //vi 저장
+				else if(OFN.nFilterIndex == 3){ //vi 저장
 					int size = 0;
 					vi_fp = CreateFile(lpstrFile, GENERIC_WRITE, 0, NULL,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 					for(int i=0; i<count; i++){
@@ -591,9 +597,7 @@ void SAVE(HWND hwnd)
 					WriteFile(vi_fp, strRead, index*2, &dwRead, NULL);
 					strRead[resize+10] = NULL;
 					CloseHandle(vi_fp);
-
+					return 0;
 				}
-
-				
 			}
-}
+} 
