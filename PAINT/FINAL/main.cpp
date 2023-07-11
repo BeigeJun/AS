@@ -326,8 +326,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				count++;
 			}
 				else{ //자유선일때
-				free_xy[count][free_size][0] = x;
-				free_xy[count][free_size++][1] = y;
 				free_l[count][0] = paint_mode;
 				free_l[count][1] = free_size;
 				free_l[count][2] = pen_mode;
@@ -345,8 +343,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			hdc = GetDC(hwnd);
 			r_x = LOWORD(lParam);
 			r_y = HIWORD(lParam);
-
-		
 
 			int count_;
 			count_ = count;
