@@ -75,12 +75,10 @@ TCHAR free_xy[100][1000000][2];
 int box_check = 0;
 int free_size =0;
 int index;
-OPENFILENAME OFN,SFN;
+OPENFILENAME OFN;
 TCHAR lpstrFile[260];
 BITMAPFILEHEADER HF;
 BITMAPINFOHEADER HF_info;
-
-
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)     
 {
 	switch (iMsg) 
@@ -275,9 +273,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_LBUTTONDOWN:	//	마우스 누름
 		{
-			BitBlt(MemDC, 0, 0, rt.right, rt.bottom, saveMemDC, 0, 0, SRCCOPY);
-			BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
-			BitBlt(saveMemDC, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY);
 
 			if(box_check == 1){
 				box_check = 0;
@@ -310,7 +305,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		//	그림 그리기 끝
 		case WM_LBUTTONUP:
 		{
-			hdc = GetDC(hwnd);
 			BitBlt(saveMemDC, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY);
 			Draw = FALSE;
 			if(paint_mode !=0){
@@ -384,10 +378,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 						break;
 
 					}
-					BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
-					break;
 				}
 			}
+			BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
 			BitBlt(saveMemDC, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY);
 			break;
 
@@ -459,11 +452,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 
 
-	case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
-		{
-			PostQuitMessage(0);
-			break;
-		}
+		case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
+			{
+				PostQuitMessage(0);
+				break;
+			}
 	} 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
 }
