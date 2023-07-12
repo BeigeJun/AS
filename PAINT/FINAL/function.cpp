@@ -7,6 +7,7 @@ void NEW(HWND hwnd)
 			FillRect(saveMemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
 			FillRect(hdc, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
 			im[0][0] = NULL;
+
 			free_l[0][0] = NULL;
 			free_xy[0][0][0] = NULL;
 			box_check = 1;
@@ -799,9 +800,9 @@ int SAVE(HWND hwnd)
 					vi_fp = CreateFile(lpstrFile, GENERIC_WRITE, 0, NULL,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 					for(int i=0; i<count; i++){
 						if(free_l[i][0] != 0)
-							size += 13*5+1;
+							size += 13*5+1; //
 						else
-							size += (7*5) + (free_l[i][1] * 10) +2;
+							size += ((7*5)+1) + ((free_l[i][1] * 10) +1); //
 					}
 					strRead = (TCHAR*)malloc(size+10);
 
