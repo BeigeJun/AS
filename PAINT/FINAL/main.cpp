@@ -4,7 +4,7 @@
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, 
 			WPARAM wParam, LPARAM lParam);
 
-LPCTSTR lpszClass = TEXT("메모짱");			// LPCSTR = char *
+LPCTSTR lpszClass = TEXT("그림판");			// LPCSTR = char *
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈도우 프로그램이라는 의미
 		   LPSTR lpszCmdLine, int nCmdShow)						 //hInstance : 운영체제의 커널이 응용 프로그램에 부여한 ID
@@ -348,13 +348,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			count_ = count;
 			BitBlt(MemDC, 0, 0, rt.right, rt.bottom, saveMemDC, 0, 0, SRCCOPY);
 			for(int i = count_ -1;i>=0; i--){
-				if(r_x < im[i][1] && r_x > im[i][3] && r_y < im[i][2] && r_y > im[i][4]){//좌표에 걸리면
+				if((r_x < im[i][1] && r_x > im[i][3] && r_y < im[i][2] && r_y > im[i][4]) ||
+				   (r_x > im[i][1] && r_x < im[i][3] && r_y > im[i][2] && r_y < im[i][4]) ||
+				   (r_x < im[i][1] && r_x > im[i][3] && r_y > im[i][2] && r_y < im[i][4]) ||
+				   (r_x > im[i][1] && r_x < im[i][3] && r_y < im[i][2] && r_y > im[i][4])){//좌표에 걸리면
 					Pen = CreatePen(im[i][5], im[i][6],RGB(im[i][7],im[i][8],im[i][9]) );
 					Old_Pen = (HPEN)SelectObject(MemDC, Pen);
 
 					Brush = CreateSolidBrush(RGB(im[i][10],im[i][11],im[i][12]));
 					Old_Brush = (HBRUSH)SelectObject(MemDC, Brush);
+
+					//FillRect(MemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
+					//FillRect(saveMemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
+					//FillRect(hdc, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
 					switch(im[i][0]){
+
+					case 1 :
+						MoveToEx( MemDC, im[i][3], im[i][4], NULL );
+						LineTo( MemDC, im[i][1], im[i][2]);
+						break;
+
 					case 2:
 						Ellipse(MemDC,  im[i][1], im[i][2], im[i][3], im[i][4]);
 						break;
