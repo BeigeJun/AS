@@ -801,11 +801,11 @@ int SAVE(HWND hwnd)
 		else if(OFN.nFilterIndex == 3){ //vi 저장
 			int size = 0;
 			vi_fp = CreateFile(lpstrFile, GENERIC_WRITE, 0, NULL,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-			for(int i=0; i<count; i++){
+			for(int i=0; i<count-1; i++){
 				if(im[i][0] != 0 && free_l[i][0] == 0)
 					size += 14*5+1; //
 				else
-					size += ((7*5)+1) + ((free_l[i][1] * 10) +1); //
+					size += ((7*5)+1) + ((free_l[i][1] * 10 * 2) +1); //
 			}
 
 			strRead = (TCHAR*)malloc(size+11);
