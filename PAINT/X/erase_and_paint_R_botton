@@ -49,7 +49,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈�
 
 HDC hdc, saveMemDC, MemDC; // DC 3개 생성->두 개만 쓰면 색 겹쳤을 때 반전 해결 어려움
 HBITMAP saveBit, Bit;
-int im[100][14];//도형
+int im[100][13];//도형
 int x,y,r_x,r_y;				//	마우스 좌표를 얻기 위한 변수
 int Old_x,Old_y;				//	마우스 좌표를 얻기 위한 변수
 bool Draw = FALSE;	//	마우스의 눌림 혹은 떼짐을 판단하는 변수
@@ -64,10 +64,8 @@ int B_Color_b = 0;
 int In_Color_r = 255;
 int In_Color_g = 255;
 int In_Color_b = 255;
-int number = 0;
-int im_flag = 0;
 RECT rt;
-int count =1;
+int count =0;
 int mode = 0;
 int paint_mode = 0;
 int pen_mode = 0;
@@ -77,8 +75,7 @@ TCHAR free_xy[100][1000000][2];
 int box_check = 0;
 int free_size =0;
 int index;
-int free_line_count = 0;
-OPENFILENAME OFN;
+OPENFILENAME OFN,SFN;
 TCHAR lpstrFile[260];
 BITMAPFILEHEADER HF;
 BITMAPINFOHEADER HF_info;
@@ -324,11 +321,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				im[count][10] = In_Color_r;
 				im[count][11] = In_Color_g;
 				im[count][12] = In_Color_b;
-				im[count][13] = count;
-				im_flag = 1;
+
+
 				count++;
 			}
 				else{ //자유선일때
+				free_xy[count][free_size][0] = x;
+				free_xy[count][free_size++][1] = y;
 				free_l[count][0] = paint_mode;
 				free_l[count][1] = free_size;
 				free_l[count][2] = pen_mode;
@@ -338,7 +337,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				free_l[count][6] = B_Color_b;
 				free_size = 0;
 				count++;
-				free_line_count++;
 			}
 			break;
 		}
@@ -347,79 +345,45 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			hdc = GetDC(hwnd);
 			r_x = LOWORD(lParam);
 			r_y = HIWORD(lParam);
-			int num_save;
+
+		
+
 			int count_;
 			count_ = count;
 			BitBlt(MemDC, 0, 0, rt.right, rt.bottom, saveMemDC, 0, 0, SRCCOPY);
 			for(int i = count_ -1;i>=0; i--){
-				if((r_x < im[i][1] && r_x > im[i][3] && r_y < im[i][2] && r_y > im[i][4]) ||
-				   (r_x > im[i][1] && r_x < im[i][3] && r_y > im[i][2] && r_y < im[i][4]) ||
-				   (r_x < im[i][1] && r_x > im[i][3] && r_y > im[i][2] && r_y < im[i][4]) ||
-				   (r_x > im[i][1] && r_x < im[i][3] && r_y < im[i][2] && r_y > im[i][4])){//좌표에 걸리면
+				if(r_x < im[i][1] && r_x > im[i][3] && r_y < im[i][2] && r_y > im[i][4]){//좌표에 걸리면
+					Pen = CreatePen(im[i][5], im[i][6],RGB(im[i][7],im[i][8],im[i][9]) );
+					Old_Pen = (HPEN)SelectObject(MemDC, Pen);
 
-					num_save = im[i][13];
-
-					for(int c = 0; c < count;c++)
-					{
-						if(im[c][13] >= num_save)
-						{
-							im[c][13] = im[c][13] - 1;
-						}
-					}
-
-					im[i][13] = count-1;
-					//FillRect(MemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
-					//FillRect(saveMemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
-					//FillRect(hdc, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
-
-					int num7 = 0;
-					for(int s = 0 ; s < count ; s++)
-					{
-						for(int w = 0; w < count ; w++)
-						{
-							if(im[w][13] == num7)
-							{
-								Pen = CreatePen(im[w][5], im[w][6],RGB(im[w][7],im[w][8],im[w][9]) );
-								Old_Pen = (HPEN)SelectObject(MemDC, Pen);
-
-								Brush = CreateSolidBrush(RGB(im[w][10],im[w][11],im[w][12]));
-								Old_Brush = (HBRUSH)SelectObject(MemDC, Brush);
-
-								switch(im[w][0]){
-
-									case 1 :
-										MoveToEx( MemDC, im[w][3], im[w][4], NULL );
-										LineTo( MemDC, im[w][1], im[w][2]);
-										break;
-
-									case 2:
-										Ellipse(MemDC,  im[w][1], im[w][2], im[w][3], im[w][4]);
-										break;
+					Brush = CreateSolidBrush(RGB(im[i][10],im[i][11],im[i][12]));
+					Old_Brush = (HBRUSH)SelectObject(MemDC, Brush);
+					switch(im[i][0]){
+					case 2:
+						Ellipse(MemDC,  im[i][1], im[i][2], im[i][3], im[i][4]);
+						break;
 		
-									case 3: 
-										apnt[0].x = (im[w][1] + im[w][3])/2;
-										apnt[0].y = im[w][4];
-										apnt[1].x = im[w][3];
-										apnt[1].y = im[w][2];
-										apnt[2].x = im[w][1];
-										apnt[2].y = im[w][2];
-										Polygon(MemDC, apnt, 3);
-										break;
+					case 3: 
+						apnt[0].x = (im[i][1] + im[i][3])/2;
+						apnt[0].y = im[i][4];
+						apnt[1].x = im[i][3];
+						apnt[1].y = im[i][2];
+						apnt[2].x = im[i][1];
+						apnt[2].y = im[i][2];
+						Polygon(MemDC, apnt, 3);
+						break;
 
-									case 4:
-										Rectangle(MemDC,im[w][1],im[w][2], im[w][3], im[w][4]);
-										break;
+					case 4:
+						Rectangle(MemDC,im[i][1],im[i][2], im[i][3], im[i][4]);
+						break;
 
-									}
-									BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
-									BitBlt(saveMemDC, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY);
-									num7++;
-									break;
-							}
-						}
 					}
+					BitBlt(hdc, 0, 0, rt.right, rt.bottom, MemDC, 0, 0, SRCCOPY);
+					break;
 				}
 			}
+			
+			BitBlt(saveMemDC, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY);
 			break;
 
 		case WM_PAINT:
@@ -490,11 +454,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 
 
-		case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
-			{
-				PostQuitMessage(0);
-				break;
-			}
+	case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
+		{
+			PostQuitMessage(0);
+			break;
+		}
 	} 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
 }
