@@ -4,7 +4,7 @@
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, 
 			WPARAM wParam, LPARAM lParam);
 
-LPCTSTR lpszClass = TEXT("그림판");			// LPCSTR = char *
+LPCTSTR lpszClass = TEXT("메모짱");			// LPCSTR = char *
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, //WINAPI : 윈도우 프로그램이라는 의미
 		   LPSTR lpszCmdLine, int nCmdShow)						 //hInstance : 운영체제의 커널이 응용 프로그램에 부여한 ID
@@ -75,7 +75,7 @@ TCHAR free_xy[100][1000000][2];
 int box_check = 0;
 int free_size =0;
 int index;
-OPENFILENAME OFN;
+OPENFILENAME OFN,SFN;
 TCHAR lpstrFile[260];
 BITMAPFILEHEADER HF;
 BITMAPINFOHEADER HF_info;
@@ -326,6 +326,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				count++;
 			}
 				else{ //자유선일때
+				free_xy[count][free_size][0] = x;
+				free_xy[count][free_size++][1] = y;
 				free_l[count][0] = paint_mode;
 				free_l[count][1] = free_size;
 				free_l[count][2] = pen_mode;
@@ -344,6 +346,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			r_x = LOWORD(lParam);
 			r_y = HIWORD(lParam);
 
+		
+
 			int count_;
 			count_ = count;
 			BitBlt(MemDC, 0, 0, rt.right, rt.bottom, saveMemDC, 0, 0, SRCCOPY);
@@ -352,18 +356,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				   (r_x > im[i][1] && r_x < im[i][3] && r_y > im[i][2] && r_y < im[i][4]) ||
 				   (r_x < im[i][1] && r_x > im[i][3] && r_y > im[i][2] && r_y < im[i][4]) ||
 				   (r_x > im[i][1] && r_x < im[i][3] && r_y < im[i][2] && r_y > im[i][4])){//좌표에 걸리면
+
 					Pen = CreatePen(im[i][5], im[i][6],RGB(im[i][7],im[i][8],im[i][9]) );
 					Old_Pen = (HPEN)SelectObject(MemDC, Pen);
 
 					Brush = CreateSolidBrush(RGB(im[i][10],im[i][11],im[i][12]));
 					Old_Brush = (HBRUSH)SelectObject(MemDC, Brush);
 
-					//FillRect(MemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
-					//FillRect(saveMemDC, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
-					//FillRect(hdc, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
-
 					switch(im[i][0]){
-
 					case 1 :
 						MoveToEx( MemDC, im[i][3], im[i][4], NULL );
 						LineTo( MemDC, im[i][1], im[i][2]);
@@ -462,11 +462,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 
 
-		case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
-			{
-				PostQuitMessage(0);
-				break;
-			}
+	case WM_DESTROY:			//프로그램 종료 처리 // 예를들어 동적할당들을 했으면 꼭 해지를 해야함
+		{
+			PostQuitMessage(0);
+			break;
+		}
 	} 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);			 //CASE에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
 }
