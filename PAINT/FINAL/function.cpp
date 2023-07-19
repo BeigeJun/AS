@@ -93,9 +93,9 @@ void OPEN(HWND hwnd)
 								Old_y--;
 								widthstep_count++;
 							}
-							SetPixel(MemDC, Old_x, Old_y, RGB(Data[(i*3)+(widthstep_count*widthstep)+2], Data[(i*3)+(widthstep_count*widthstep)+1], Data[(i*3)+(widthstep_count*widthstep)]));//그리기
-							SetPixel(saveMemDC, Old_x, Old_y, RGB(Data[(i*3)+(widthstep_count*widthstep)+2], Data[(i*3)+(widthstep_count*widthstep)+1], Data[(i*3)+(widthstep_count*widthstep)]));
-							// i*3 은 1픽셀이 3바이트라서, count*widthstep 허수의 개수를 계산하기 위함, +2 +1은 bgr 순서라서
+							SetPixel(MemDC, Old_x, Old_y, RGB(Data[(i*3)+2], Data[(i*3)+1], Data[(i*3)]));//그리기
+							SetPixel(saveMemDC, Old_x, Old_y, RGB(Data[(i*3)+2], Data[(i*3)+1], Data[(i*3)]));
+							// i*3 은 1픽셀이 3바이트라서, +2 +1은 bgr 순서라서
 							//점을 찍어주는 함수 SetPixel(hdc, nXPos(좌표), nYPos(좌표), clrref(칼라)) 
 							//색은 RGB순이 아니라 BGR순이다. 줄이 뛰어 넘을 떄 마다 00이 껴있어서 뛰어줘야한다.
 							Old_x++;
@@ -128,8 +128,8 @@ void OPEN(HWND hwnd)
 						strsize += str[index++] - 48;
 						index++; // \n 넘겨주기
 
-						str = (TCHAR*)malloc(strsize*4);
-						ReadFile(vi_f, str, strsize*4, &dwRead, NULL);
+						str = (TCHAR*)malloc(strsize*2);
+						ReadFile(vi_f, str, strsize*2, &dwRead, NULL);
 						index = 0;
 		
 						for(int i=0; i<count; i++){		// 그리는 갯수
@@ -457,10 +457,11 @@ void SAVE(HWND hwnd)
 									break;
 								}
 							}
-							for(int temp = 0; temp < widthstep/2; temp++){
-									WriteFile(fp, (char*)zero, 1, &dwRead, NULL);
-							}
+							
 						}// 한줄 다 작성
+						for(int temp = 0; temp < widthstep; temp++){
+									WriteFile(fp, (char*)zero, 1, &dwRead, NULL);
+						}
 						x = 0;
 					}	
 					CloseHandle(fp);
@@ -535,7 +536,7 @@ void SAVE(HWND hwnd)
 						if(im[i][0] != 0 && free_l[i][0] == 0)
 							size += 13*5+1;
 						else
-							size += (7*5 + 1) + (free_l[i][1] * 10 + 1);
+							size += (7*5 + 1) + (free_l[i][1] * 10*2 + 1);
 					}
 					size = size + 11;
 					strRead = (TCHAR*)malloc(size);
@@ -590,7 +591,7 @@ void SAVE(HWND hwnd)
 						strRead[index++] = '\n';
 					}					
 					strRead[index] = NULL;
-					WriteFile(vi_fp, strRead, index*2, &dwRead, NULL);
+					WriteFile(vi_fp, strRead, index*2, &dwRead, NULL); //유니코드 문자열은 일반적인 ASCII 문자열과는 다르게, 각 문자를 2바이트로 표현
 					CloseHandle(vi_fp);
 
 				}
