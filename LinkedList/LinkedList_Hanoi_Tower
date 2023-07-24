@@ -1,0 +1,294 @@
+#include<iostream>
+using namespace std;
+
+class Node {
+public:
+    Node* Pre = NULL;
+    Node* Next = NULL;
+    unsigned int number = 0;
+};
+class LinkedList : public Node {
+public:
+    Node* Head = NULL;
+    Node* Tail = NULL;
+    int getsu = 0;
+    char name = 'A';
+};
+class DEF : public LinkedList {
+public:
+    LinkedList* create(char num);
+    Node* getnode(int num);
+    Node* append(LinkedList* _ptList, int num);
+    Node* delete_small(LinkedList* _ptList);
+    void veiw(LinkedList* _ptList);
+    void veiwAll(LinkedList* A, LinkedList* B, LinkedList* C);
+    void hanoi(int n, int from, int by, int to, LinkedList* A, LinkedList* B, LinkedList* C);
+    void hanoi(int n, LinkedList* A, LinkedList* B, LinkedList* C);
+    void Move(int from, int to, LinkedList* A, LinkedList* B, LinkedList* C);
+    int menu();
+    void del(LinkedList* _ptList, int num);
+};
+LinkedList* DEF::create(char num)
+{
+    LinkedList* New = new LinkedList;
+    New->Head = New->Tail;
+    New->Tail = New->Head;
+    New->getsu = 0;
+    New->name = num;
+    return New;
+}
+Node* DEF::getnode(int num)
+{
+    Node* New = new Node;
+    New->Next = New->Pre;
+    New->Pre = New->Next;
+    New->number = num;
+    return New;
+}
+Node* DEF::append(LinkedList* _ptList, int num)
+{
+    Node* New = getnode(num);
+
+    if (_ptList->Tail) {
+        New->Pre = _ptList->Tail;
+        _ptList->Tail->Next = New;
+    }
+    else
+        _ptList->Head = New;
+
+    _ptList->Tail = New;
+    (_ptList->getsu)++;
+    return 0;
+}
+Node* DEF::delete_small(LinkedList* _ptList)
+{
+    if (_ptList->getsu == 0)
+    {
+        cout << "정보가 없습니다" << endl;
+    }
+    else if (_ptList->getsu == 1)
+    {
+        Node* pointer;
+        pointer = _ptList->Head;
+        free(pointer);
+        _ptList->Head = NULL;
+        _ptList->Tail = NULL;
+        _ptList->getsu = 0;
+    }
+    else {
+        Node* pointer;
+        pointer = _ptList->Tail;
+        pointer = pointer->Pre;
+        pointer->Next = pointer;
+        pointer = _ptList->Tail;
+        _ptList->Tail = pointer->Pre;
+        free(pointer);
+        (_ptList->getsu)--;
+    }
+    return 0;
+}
+void DEF::veiw(LinkedList* _ptList)
+{
+    if (_ptList->getsu == 0)
+    {
+        cout << "(  )";
+    }
+    else {
+        Node* pointer = _ptList->Tail;
+        cout << "(";
+        for (int i = 0; i < _ptList->getsu; i++)
+        {
+            cout << pointer->number << " ";
+            pointer = pointer->Pre;
+        }
+        pointer = NULL;
+        free(pointer);
+        cout << ")";
+    }
+}
+void DEF::veiwAll(LinkedList* A, LinkedList* B, LinkedList* C)
+{
+    veiw(A);
+    veiw(B);
+    veiw(C);
+    cout << endl;
+}
+void DEF::Move(int from, int to, LinkedList* A, LinkedList* B, LinkedList* C)
+{
+    if (from == 1)
+    {
+        int num = A->Tail->number;
+        delete_small(A);
+        if (to == 2)
+        {
+            append(B, num);
+        }
+        else
+        {
+            append(C, num);
+        }
+    }
+    else if (from == 2)
+    {
+        int num = B->Tail->number;
+        delete_small(B);
+        if (to == 1)
+        {
+            append(A, num);
+        }
+        else
+        {
+            append(C, num);
+        }
+    }
+    else
+    {
+        int num = C->Tail->number;
+        delete_small(C);
+        if (to == 1)
+        {
+            append(A, num);
+        }
+        else
+        {
+            append(B, num);
+        }
+    }
+}
+void DEF::del(LinkedList* _ptList, int num)
+{
+    if (num != 0)
+    {
+        Node* pointer = _ptList->Head;
+        for (int i = 1; i < num; i++)
+        {
+            pointer = pointer->Next;
+            free(pointer->Pre);
+        }
+        free(pointer);
+    }
+    delete(_ptList);
+}
+void DEF::hanoi(int n, LinkedList* A, LinkedList* B, LinkedList* C)
+{
+    // 1은 옮겨야할 디스크를 나타내고,
+    // 0은 옮겨진 디스크를 나타낸다. (바뀔 수 있다.)
+    int disk[10] = { 1, };
+    // 각 디스크의 위치
+    char loc[10] = { 'A', };
+    // 현재 디스크의 원위치
+    char pos;
+    int i;
+    // loc과 disk초기화
+    for (i = 0; i < 10; i += 1) { disk[i] = 1; loc[i] = 'A'; }
+    // 하노이 탑의 높이, 최대 높이는 10까지
+    // 메인 루프 시작
+    // i+1은 디스크번호를 나타낸다.
+    // 처음에는 1번 디스크부터 움직인다.
+    i = 0;
+    while (1) {
+        // 아래의 디스크들이 모두 옮겨졌다면
+        // 그 다음 디스크를 옮겨야 한다.
+        while (i < n && disk[i] == 0) { i += 1; } // 움직여야하는 디스크를 찾는 반복문
+        // 만약 다음 디스크가 n+1이라면 모두 끝난것이다.
+        if (i == n) break;
+        // 현재 디스크의 위치
+        pos = loc[i];
+        // 디스크는 i+n이 짝수이냐 홀수이냐에 따라서 오른쪽 또는 왼쪽으로 이동한다.
+        // i+n이 홀수: 왼쪽으로 한칸 A=>C B=>A C=>B 이동한다.
+        // i+n이 짝수: 오른쪽으로 한칸 A=>B B=>C C=>A 이동한다.
+        loc[i] = (loc[i] - 'A' + 1 + (i + n/*(3)*/) % 2) % 3 + 'A';
+        cout << "move " << i + 1 << " from " << pos << " to " << loc[i] << endl;
+
+        LinkedList* pointer = new LinkedList;
+        LinkedList* pointer1 = new LinkedList;
+        pointer->name = pos;
+        pointer1->name = loc[i];
+        if (pointer->name == 'A')
+        {
+           pointer = A;
+        }
+        else if (pointer->name == 'B')
+        {
+           pointer = B;
+        }
+        else
+        {
+           pointer = C;
+        }
+        if (pointer1->name == 'A')
+        {
+           pointer1 = A;
+        }
+        else if (pointer1->name == 'B')
+        {
+           pointer1 = B;
+        }
+        else
+        {
+           pointer1 = C;
+        }
+        int num = pointer->Tail->number;
+        delete_small(pointer);
+        append(pointer1, num);
+        veiwAll(A, B, C);
+        cout << endl;
+        pointer = NULL;
+        pointer1 = NULL;
+        free(pointer);
+        free(pointer1);
+ 
+        // 디스크를 이동하고 나면 0으로 표시하고, 아래로 이동한다.
+        disk[i] = 0; i -= 1;
+        // 아래의 0으로 표시된 디스크를 모두 1로 표시한다.
+        // 디스크2를 옮기고 나면 다시 디스크1을 옮겨야 한다.
+        // 디스크3을 옮기고 나면 다시 디스크1,2를 옮겨야 한다.
+        while (i >= 0 && disk[i] == 0) { disk[i] = 1; i -= 1; } // 이제 안움직여도 되는 디스크 컷해주는 반복문
+        if (i < 0) { i = 0; }
+    }
+}
+//                      출발      경유    도착
+void DEF::hanoi(int n, int from, int by, int to, LinkedList* A, LinkedList* B, LinkedList* C)
+{
+    if (n == 1) {
+        cout << from << " " << to << endl;
+        Move(from, to, A, B, C);
+        veiwAll(A, B, C);
+    }
+    else
+    {
+        //                   출발 경유 도착
+        hanoi(n - 1, from, to, by, A, B, C);
+        cout << from << " " << to << endl;
+        Move(from, to, A, B, C);
+        veiwAll(A, B, C);
+        hanoi(n - 1,/* by, from, to,*/ A, B, C);
+    }
+}
+int DEF::menu()
+{   
+
+
+    LinkedList* A = create('A');
+    LinkedList* B = create('B');
+    LinkedList* C = create('C');
+    int n;
+    cout << "계단의 수를 입력하시오: ";
+    cin >> n;
+    for (int i = n; i != 0; i--)
+    {
+        append(A, i);
+    }
+    hanoi(n,A, B, C);
+    del(A, 0);
+    del(B, 0);
+    del(C, n);
+    return 0;
+}
+int main()
+{
+    int n;
+    DEF a;
+    a.menu();
+    return 0;
+}
