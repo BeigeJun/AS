@@ -58,6 +58,7 @@ void CfirstMFCView::OnDraw(CDC* pDC)
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
 		return;
+
 	pDC = GetDC(); // dc 가져옴
 	pDC -> Rectangle(10, 30, 300, 350);		// 1 원본 사진
 	pDC -> Rectangle(310, 30, 600, 350);	// 2 필터 적용 사진
@@ -65,6 +66,8 @@ void CfirstMFCView::OnDraw(CDC* pDC)
 	pDC -> Rectangle(10, 360, 300, 680);	// 4 히스토그램
 	pDC -> Rectangle(310, 360, 600, 680);	// 5 프로젝션
 	pDC -> Rectangle(610, 360, 900, 680);	// 6 확대 
+	ReleaseDC(pDC);
+	
 	// TODO: 여기에 원시 데이터에 대한 그리기 코드를 추가합니다.
 }
 
