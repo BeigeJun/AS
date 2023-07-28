@@ -7,6 +7,7 @@
 // 해당 프로젝트와 문서 코드를 공유하도록 해 줍니다.
 #ifndef SHARED_HANDLERS
 #include "MFCGAJA.h"
+#include "SLD.h"
 #endif
 
 #include "MFCGAJADoc.h"
@@ -24,6 +25,8 @@ IMPLEMENT_DYNCREATE(CMFCGAJADoc, CDocument)
 BEGIN_MESSAGE_MAP(CMFCGAJADoc, CDocument)
 		ON_COMMAND(ID_FILE_OPEN, &CMFCGAJADoc::OnFileOpen)
 		ON_COMMAND(ID_GRAY, &CMFCGAJADoc::GRAY)
+		ON_COMMAND(ID_Binary, &CMFCGAJADoc::Binary)
+		ON_COMMAND(ID_SLIDER, &CMFCGAJADoc::Slider)
 END_MESSAGE_MAP()
 
 
@@ -138,7 +141,13 @@ void CMFCGAJADoc::Dump(CDumpContext& dc) const
 
 // CMFCGAJADoc 명령
 
+SLD sld;
+void CMFCGAJADoc::Slider()
+{
 
+	
+	sld.DoModal();
+}
 void CMFCGAJADoc::OnFileOpen()
 {
 	// 파일 오픈!
@@ -181,7 +190,115 @@ void CMFCGAJADoc::OnFileOpen()
 	UpdateAllViews(NULL);// 뷰 갱신
 }
 
+
+
+
+void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image){
+
+	BYTE *p = (BYTE*)image->GetPixelAddress(x, y);					//포인터 사용하여서 주소 바꿔줌 -> 기존 라이브러리함수 setpixel보다 속도가 빠름
+	*p++ = color;
+	*p++ = color;
+	*p = color;
+}
+
+
 void CMFCGAJADoc::GRAY()
 {
+	COLORREF* color;
+	double r,g,b,new_color;
 
+	if(!m_Img.IsNull()){
+		if(!Second_Img.IsNull()){
+			Second_Img.Destroy();				
+		}
+
+		Second_Img.Create(m_Img.GetWidth(), m_Img.GetHeight(), 24); // 24비트 비트맵 생성
+		GRAYIMG = new BYTE*[m_Img.GetHeight()];
+
+		for(int i = 0; i < m_Img.GetWidth(); i++)
+		{
+			GRAYIMG[i] = new BYTE[m_Img.GetWidth()];
+		}
+		for(int y = 0; y < m_Img.GetHeight();y++){
+			for(int x = 0 ; x < m_Img.GetWidth(); x++){
+				color = (COLORREF*)m_Img.GetPixelAddress(x,y);
+
+				r = GetRValue(*color);
+				g = GetGValue(*color);
+				b = GetBValue(*color);
+
+				new_color = (r+b+g)/3;
+
+				GRAYIMG[y][x] = new_color;
+				SetPixel(x,y,GRAYIMG[y][x],&Second_Img);
+			}
+		}
+/*	m_Img.BitBlt(Second_Img.GetDC(), 0, 0, m_Img.GetWidth(), m_Img.GetHeight(), 0, 0, SRCCOPY); // 원래 이미지를 복사함
+	Second_Img.ReleaseDC(); // dc 해제
+
+
+
+	for(int y = 0; y < Second_Img.GetHeight();y++){
+		for(int x = 0 ; x < Second_Img.GetWidth(); x++){
+			color = Second_Img.GetPixel(x,y);
+
+			int r = GetRValue(color);
+			int g = GetGValue(color);
+			int b = GetBValue(color);
+
+			int new_color = (r+g+b)/3;
+			Second_Img.SetPixel(x,y,RGB(new_color,new_color,new_color));
+		}
+	}
+*/  }
+	UpdateAllViews(NULL);
 }
+
+void CMFCGAJADoc::Binary()
+{
+	COLORREF color;
+	
+
+	if(!m_Img.IsNull()){
+		if(!Second_Img.IsNull()){
+			Second_Img.Destroy();				
+		}
+		GRAY();
+
+
+
+	}
+
+	/*
+	m_Img.BitBlt(Second_Img.GetDC(), 0, 0, m_Img.GetWidth(), m_Img.GetHeight(), 0, 0, SRCCOPY); // 원래 이미지를 복사함
+	Second_Img.ReleaseDC(); // dc 해제
+
+	for(int y = 0; y < m_Img.GetHeight();y++){
+		for(int x = 0 ; x < m_Img.GetWidth(); x++){
+			color = m_Img.GetPixel(x,y);
+
+			BYTE b = GetRValue(color);
+			BYTE g = GetGValue(color);
+			BYTE r = GetBValue(color);
+
+			BYTE new_r = r*0.0722;
+			BYTE new_b = b*0.2126;
+			BYTE new_g = g*0.7152;
+
+			BYTE new_color = (new_r+new_b+new_g)/3;
+
+			if(RGB(new_r,new_g,new_b) > sld.SS)
+			{
+				Second_Img.SetPixel(x,y,RGB(255,255,255));
+			}
+			else
+			{
+				Second_Img.SetPixel(x,y,RGB(new_color,new_color,new_color));
+			}
+		}
+	}
+	*/
+
+	UpdateAllViews(NULL);
+}
+
