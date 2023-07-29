@@ -77,7 +77,12 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 		// HALFTONE 원본 사각형에서 대상 사각형 안의 픽셀 영역으로 픽셀을 보여줍니다. *대상 픽셀의 평균 색상을 원본 픽셀 색상으로 근사치로 계산합니다.
 		// WHITEONBLACK 제거되거나 존재하는 픽셀의 색상 값을 사용하여 OR 연산자를 수행합니다.흑백 비트맵의 경우 검은 픽셀을 훼손시키고 흰 픽셀을 보존합니다.
 		pDoc->m_Img.StretchBlt(pDC->m_hDC, 11, 31, 288, 318);
+		if (!pDoc->Second_Img.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->Second_Img.StretchBlt(pDC->m_hDC, 311, 31, 288, 318);
+			}
 		}
+
 
 	ReleaseDC(pDC);
 	// TODO: 여기에 원시 데이터에 대한 그리기 코드를 추가합니다.
