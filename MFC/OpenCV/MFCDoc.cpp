@@ -27,6 +27,7 @@ BEGIN_MESSAGE_MAP(CMFCGAJADoc, CDocument)
 		ON_COMMAND(ID_GRAY, &CMFCGAJADoc::GRAY)
 		ON_COMMAND(ID_Binary, &CMFCGAJADoc::Binary)
 		ON_COMMAND(ID_SLIDER, &CMFCGAJADoc::Slider)
+		ON_COMMAND(ID_SOBEL, &CMFCGAJADoc::Sobel)
 END_MESSAGE_MAP()
 
 
@@ -142,10 +143,10 @@ void CMFCGAJADoc::Dump(CDumpContext& dc) const
 // CMFCGAJADoc 명령
 
 SLD sld;
+
 void CMFCGAJADoc::Slider()
 {
-
-	
+	sld.SS =128;
 	sld.DoModal();
 }
 void CMFCGAJADoc::OnFileOpen()
@@ -256,15 +257,42 @@ void CMFCGAJADoc::GRAY()
 
 void CMFCGAJADoc::Binary()
 {
-	COLORREF color;
-	
+	COLORREF* color;
+	double r,g,b,new_color;
 
 	if(!m_Img.IsNull()){
 		if(!Second_Img.IsNull()){
 			Second_Img.Destroy();				
 		}
 		GRAY();
+		BINARYIMG = new BYTE*[m_Img.GetHeight()];
 
+		for(int i = 0; i < m_Img.GetWidth(); i++)
+		{
+			BINARYIMG[i] = new BYTE[m_Img.GetWidth()];
+		}
+		for(int y = 0; y < m_Img.GetHeight();y++){
+			for(int x = 0 ; x < m_Img.GetWidth(); x++){
+
+				color = (COLORREF*)m_Img.GetPixelAddress(x,y);
+
+				r = GetRValue(*color);
+				g = GetGValue(*color);
+				b = GetBValue(*color);
+
+				new_color = (r+b+g)/3;
+
+				GRAYIMG[y][x] = new_color;
+				if(new_color > sld.SS)
+				{
+					SetPixel(x,y,255,&Second_Img);
+				}
+				else
+				{
+					SetPixel(x,y,0,&Second_Img);
+				}
+			}
+		}
 
 
 	}
@@ -302,3 +330,46 @@ void CMFCGAJADoc::Binary()
 	UpdateAllViews(NULL);
 }
 
+void CMFCGAJADoc::Sobel()
+{
+	if(!m_Img.IsNull()){
+		if(!Second_Img.IsNull())
+		{
+			Second_Img.Destroy();				
+		}
+
+		GRAY();
+
+		int x_filter[3][3]={{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
+		int y_filter[3][3]={{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
+
+		SOBELIMG = new BYTE*[m_Img.GetHeight()];
+
+		for(int i = 0; i < m_Img.GetWidth(); i++)
+		{
+			SOBELIMG[i] = new BYTE[m_Img.GetWidth()];
+		}
+
+
+		for(int y = 0; y < m_Img.GetHeight(); y++){
+			for(int x = 0 ; x < m_Img.GetWidth(); x++){
+				int x_temp = 0, y_temp = 0;
+				for(int xx = 0 ; xx < 3 ; xx++){
+					for(int yy = 0 ; yy < 3 ; yy++)
+					{
+						x_temp = GRAYIMG[y+yy][x+xx] * x_filter[xx][yy];
+						y_temp = GRAYIMG[y+yy][x+xx] * y_filter[xx][yy];
+					}
+				}
+				if(abs(x_temp)+abs(y_temp) > sld.SS)
+				{
+					SetPixel(x,y,0,&Second_Img);
+				}
+				else
+				{
+					SetPixel(x,y,255,&Second_Img);
+				}
+			}
+		}
+	}
+}
