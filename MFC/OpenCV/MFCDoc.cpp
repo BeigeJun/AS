@@ -140,6 +140,7 @@ void CMFCGAJADoc::Dump(CDumpContext& dc) const
 #endif //_DEBUG
 
 
+
 // CMFCGAJADoc 명령
 
 SLD sld;
@@ -192,6 +193,17 @@ void CMFCGAJADoc::OnFileOpen()
 }
 
 
+void CMFCGAJADoc::DESTROY()
+{
+	if(!Second_Img.IsNull())
+	{
+		Second_Img.Destroy();				
+	}
+//	if(!histo.IsNull())
+//	{
+//		histo.Destroy();
+//	}
+}
 
 
 void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image){
@@ -209,16 +221,14 @@ void CMFCGAJADoc::GRAY()
 	double r,g,b,new_color;
 
 	if(!m_Img.IsNull()){
-		if(!Second_Img.IsNull()){
-			Second_Img.Destroy();				
-		}
+		DESTROY();
 
 		Second_Img.Create(m_Img.GetWidth(), m_Img.GetHeight(), 24); // 24비트 비트맵 생성
-		GRAYIMG = new int*[m_Img.GetHeight()];
+		GRAYIMG = new BYTE*[m_Img.GetHeight()];
 
 		for(int i = 0; i < m_Img.GetWidth(); i++)
 		{
-			GRAYIMG[i] = new int[m_Img.GetWidth()];
+			GRAYIMG[i] = new BYTE[m_Img.GetWidth()];
 		}
 		for(int y = 0; y < m_Img.GetHeight();y++){
 			for(int x = 0 ; x < m_Img.GetWidth(); x++){
@@ -261,15 +271,13 @@ void CMFCGAJADoc::Binary()
 	double r,g,b,new_color;
 
 	if(!m_Img.IsNull()){
-		if(!Second_Img.IsNull()){
-			Second_Img.Destroy();				
-		}
+		DESTROY();
 		GRAY();
-		BINARYIMG = new int*[m_Img.GetHeight()];
+		BINARYIMG = new BYTE*[m_Img.GetHeight()];
 
 		for(int i = 0; i < m_Img.GetWidth(); i++)
 		{
-			BINARYIMG[i] = new int[m_Img.GetWidth()];
+			BINARYIMG[i] = new BYTE[m_Img.GetWidth()];
 		}
 		for(int y = 0; y < m_Img.GetHeight();y++){
 			for(int x = 0 ; x < m_Img.GetWidth(); x++){
@@ -333,21 +341,17 @@ void CMFCGAJADoc::Binary()
 void CMFCGAJADoc::Sobel()
 {
 	if(!m_Img.IsNull()){
-		if(!Second_Img.IsNull())
-		{
-			Second_Img.Destroy();				
-		}
-
+		DESTROY();
 		GRAY();
 
 		int x_filter[3][3]={{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
 		int y_filter[3][3]={{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
 
-		SOBELIMG = new int*[m_Img.GetHeight()];
+		SOBELIMG = new BYTE*[m_Img.GetHeight()];
 
 		for(int i = 0; i < m_Img.GetWidth(); i++)
 		{
-			SOBELIMG[i] = new int[m_Img.GetWidth()];
+			SOBELIMG[i] = new BYTE[m_Img.GetWidth()];
 		}
 
 
@@ -361,7 +365,7 @@ void CMFCGAJADoc::Sobel()
 						y_temp = GRAYIMG[y+yy][x+xx] * y_filter[xx][yy];
 					}
 				}
-				if(abs(x_temp) + abs(y_temp) > sld.SS)
+				if(abs(x_temp + abs(y_temp)) > sld.SS)
 				{
 					SetPixel(x,y,0,&Second_Img);
 				}
