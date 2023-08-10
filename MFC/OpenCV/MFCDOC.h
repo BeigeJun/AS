@@ -44,11 +44,12 @@ public:
 	CImage m_Img;
 	CImage Second_Img;
 	HBITMAP bitmap;
-	int** GRAYIMG;
-	int** BINARYIMG;
-	int** SOBELIMG;
+	BYTE** GRAYIMG;
+	BYTE** BINARYIMG;
+	BYTE** SOBELIMG;
 	void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image);
 	void CMFCGAJADoc::OnFileOpen();
+	void CMFCGAJADoc::DESTROY();
 	void CMFCGAJADoc::GRAY();
 	void CMFCGAJADoc::Binary();
 	void CMFCGAJADoc::Slider();
