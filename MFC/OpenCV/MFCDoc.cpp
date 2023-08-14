@@ -54,9 +54,6 @@ BOOL CMFCGAJADoc::OnNewDocument()
 	return TRUE;
 }
 
-
-
-
 // CMFCGAJADoc serialization
 
 void CMFCGAJADoc::Serialize(CArchive& ar)
@@ -150,6 +147,7 @@ void CMFCGAJADoc::Slider()
 	sld.SS =128;
 	sld.DoModal();
 }
+
 void CMFCGAJADoc::OnFileOpen()
 {
 	// 파일 오픈!
@@ -192,19 +190,25 @@ void CMFCGAJADoc::OnFileOpen()
 	UpdateAllViews(NULL);// 뷰 갱신
 }
 
-
 void CMFCGAJADoc::DESTROY()
 {
 	if(!Second_Img.IsNull())
 	{
 		Second_Img.Destroy();				
 	}
+	if(!Pro_w.IsNull())
+	{
+		Pro_w.Destroy();
+	}
+	if(!Pro_h.IsNull())
+	{
+		Pro_h.Destroy();
+	}
 //	if(!histo.IsNull())
 //	{
 //		histo.Destroy();
 //	}
 }
-
 
 void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image){
 
@@ -213,7 +217,6 @@ void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image){
 	*p++ = color;
 	*p = color;
 }
-
 
 void CMFCGAJADoc::GRAY()
 {
@@ -268,8 +271,6 @@ void CMFCGAJADoc::GRAY()
 */  }
 	UpdateAllViews(NULL);
 }
-
-
 
 void CMFCGAJADoc::Binary()
 {
@@ -340,7 +341,7 @@ void CMFCGAJADoc::Binary()
 		}
 	}
 	*/
-
+	PROJECTION(1);
 	UpdateAllViews(NULL);
 }
 
@@ -402,18 +403,79 @@ void CMFCGAJADoc::PROJECTION(int select)
 					y_p_sum++;
 				}
 			}
-			for(int yy = 0 ; yy < y_p_sum ; y++)
+			for(int xx = 0 ; xx <= y_p_sum ; xx++)
 			{
-				SetPixel(y,yy,0,&Pro_w);
+				SetPixel(xx,y,0,&Pro_w);
 			}
-			for(int yy = 0 ; yy < Second_Img.GetWidth() - y_p_sum ; y++)
+			for(int xx = y_p_sum + 1 ; xx < Second_Img.GetWidth()-1 ; xx++)
 			{
-				SetPixel(y,yy,255,&Pro_w);
+				SetPixel(xx,y,255,&Pro_w);
 			}
+			y_p_sum = 0;
 		}
-		y_p_sum = 0;
+
+		for(int x = 0 ; x < Second_Img.GetWidth() ; x++)
+		{
+			for(int y = 0 ; y < Second_Img.GetHeight(); y++)
+			{
+				if(average  < GRAYIMG[y][x])
+				{
+					x_p_sum++;
+				}
+			}
+			for(int yy = 0 ; yy <= x_p_sum ; yy++)
+			{
+				SetPixel(x,yy,0,&Pro_h);
+			}
+			for(int yy = x_p_sum + 1 ; yy < Second_Img.GetHeight()-1 ; yy++)
+			{
+				SetPixel(x,yy,255,&Pro_h);
+			}
+			x_p_sum = 0;
+		}
+		UpdateAllViews(NULL);
 		break;
 	case 1:
+		for(int y = 0 ; y < Second_Img.GetHeight() ; y++)
+		{
+			for(int x = 0 ; x < Second_Img.GetWidth() ; x++)
+			{
+				if(sld.SS  < GRAYIMG[y][x])
+				{
+					y_p_sum++;
+				}
+			}
+			for(int xx = 0 ; xx <= y_p_sum ; xx++)
+			{
+				SetPixel(xx,y,0,&Pro_w);
+			}
+			for(int xx = y_p_sum + 1 ; xx < Second_Img.GetWidth()-1 ; xx++)
+			{
+				SetPixel(xx,y,255,&Pro_w);
+			}
+			y_p_sum = 0;
+		}
+
+		for(int x = 0 ; x < Second_Img.GetWidth() ; x++)
+		{
+			for(int y = 0 ; y < Second_Img.GetHeight(); y++)
+			{
+				if(sld.SS  < GRAYIMG[y][x])
+				{
+					x_p_sum++;
+				}
+			}
+			for(int yy = 0 ; yy <= x_p_sum ; yy++)
+			{
+				SetPixel(x,yy,0,&Pro_h);
+			}
+			for(int yy = x_p_sum + 1 ; yy < Second_Img.GetHeight()-1 ; yy++)
+			{
+				SetPixel(x,yy,255,&Pro_h);
+			}
+			x_p_sum = 0;
+		}
+		UpdateAllViews(NULL);
 		break;
 	case 2:
 		break;
