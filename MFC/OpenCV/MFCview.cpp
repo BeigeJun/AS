@@ -81,6 +81,14 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
 			pDoc->Second_Img.StretchBlt(pDC->m_hDC, 311, 31, 288, 318);
 			}
+		if (!pDoc->Pro_w.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->Pro_w.StretchBlt(pDC->m_hDC, 611, 31, 288, 318);
+			}
+		if (!pDoc->Pro_h.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->Pro_h.StretchBlt(pDC->m_hDC, 311, 361, 288, 318);
+			}
 		}
 
 
