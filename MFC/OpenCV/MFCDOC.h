@@ -41,9 +41,11 @@ protected:
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
+	double average;
 	CImage m_Img;
 	CImage Second_Img;
-	HBITMAP bitmap;
+	CImage Pro_w;
+	CImage Pro_h;
 	BYTE** GRAYIMG;
 	BYTE** BINARYIMG;
 	BYTE** SOBELIMG;
@@ -54,6 +56,7 @@ public:
 	void CMFCGAJADoc::Binary();
 	void CMFCGAJADoc::Slider();
 	void CMFCGAJADoc::Sobel();
+	void CMFCGAJADoc::PROJECTION(int select);
 #ifdef SHARED_HANDLERS
 	// 검색 처리기에 대한 검색 콘텐츠를 설정하는 도우미 함수
 	void SetSearchContent(const CString& value);
