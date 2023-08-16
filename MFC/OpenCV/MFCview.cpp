@@ -67,7 +67,8 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 	pDC -> Rectangle(310, 360, 600, 680);	// 5 프로젝션
 	pDC -> Rectangle(610, 360, 900, 680);	// 6 확대 
 
-
+	pDC->TextOutW(11, 680, _T("0"));
+	pDC->TextOutW(274, 680, _T("255"));
 	
 	if (!pDoc->m_Img.IsNull()){ // 원본 이미지 출력
 		SetStretchBltMode(pDC->m_hDC, HALFTONE); // m_hDC 소유 창의 디바이스 컨텍스트에 대한 핸들입니다.
@@ -88,6 +89,10 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 		if (!pDoc->Pro_h.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
 			pDoc->Pro_h.StretchBlt(pDC->m_hDC, 311, 361, 288, 318);
+			}
+		if (!pDoc->HISTO_Img.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->HISTO_Img.StretchBlt(pDC->m_hDC, 11, 361, 288, 318);
 			}
 		}
 
