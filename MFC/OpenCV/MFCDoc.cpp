@@ -192,10 +192,7 @@ void CMFCGAJADoc::OnFileOpen()
 
 void CMFCGAJADoc::DESTROY()
 {
-	if(!Second_Img.IsNull())
-	{
-		Second_Img.Destroy();				
-	}
+	
 	if(!Pro_w.IsNull())
 	{
 		Pro_w.Destroy();
@@ -223,8 +220,25 @@ void CMFCGAJADoc::GRAY()
 	COLORREF* color;
 	double r,g,b,new_color;
 	average = 0;
+
+	for( int i = 0 ; i <=255 ; i++)
+	{
+		HISTO_arr[i] = 0;
+	}
+
 	if(!m_Img.IsNull()){
-		DESTROY();
+		if(!Second_Img.IsNull())
+		{
+			Second_Img.Destroy();
+		}
+		if(!Pro_w.IsNull())
+		{
+			Pro_w.Destroy();
+		}
+		if(!Pro_h.IsNull())
+		{
+			Pro_h.Destroy();
+		}
 
 		Second_Img.Create(m_Img.GetWidth(), m_Img.GetHeight(), 24); // 24비트 비트맵 생성
 		GRAYIMG = new BYTE*[m_Img.GetHeight()];
@@ -243,6 +257,8 @@ void CMFCGAJADoc::GRAY()
 
 				new_color = (r+b+g)/3;
 
+				HISTO_arr[(int)new_color] += 1;
+
 				average += new_color;
 
 				GRAYIMG[y][x] = new_color;
@@ -250,6 +266,7 @@ void CMFCGAJADoc::GRAY()
 			}
 		}
 		average /= m_Img.GetHeight() * m_Img.GetWidth();
+		HISTO();
 		PROJECTION(0);
 /*	m_Img.BitBlt(Second_Img.GetDC(), 0, 0, m_Img.GetWidth(), m_Img.GetHeight(), 0, 0, SRCCOPY); // 원래 이미지를 복사함
 	Second_Img.ReleaseDC(); // dc 해제
@@ -278,8 +295,9 @@ void CMFCGAJADoc::Binary()
 	double r,g,b,new_color;
 
 	if(!m_Img.IsNull()){
-		DESTROY();
 		GRAY();
+		DESTROY();
+
 		BINARYIMG = new BYTE*[m_Img.GetHeight()];
 
 		for(int i = 0; i < m_Img.GetHeight(); i++)
@@ -383,6 +401,8 @@ void CMFCGAJADoc::Sobel()
 			}
 		}
 	}
+	PROJECTION(1);
+	UpdateAllViews(NULL);
 }
 
 void CMFCGAJADoc::PROJECTION(int select)
@@ -477,7 +497,36 @@ void CMFCGAJADoc::PROJECTION(int select)
 		}
 		UpdateAllViews(NULL);
 		break;
-	case 2:
-		break;
 	}
+}
+
+void CMFCGAJADoc::HISTO()
+{
+	int MAX = 0;
+	for(int i = 0 ; i <= 255 ; i++)
+	{
+		if(HISTO_arr[i] > MAX)
+		{
+			MAX = HISTO_arr[i];
+		}
+	}
+
+	if(HISTO_Img.Create(255, MAX, 24) != 0)
+	{
+		for(int x = 0 ; x < 255 ; x++)
+		{
+			for(int y = 0 ; y < MAX ; y++)
+			{
+				if(y < HISTO_arr[x])
+				{
+					SetPixel(x,MAX-y-1,0,&HISTO_Img);
+				}
+				else
+				{
+					SetPixel(x,MAX-y-1,255,&HISTO_Img);
+				}
+			}
+		}	
+	}
+	UpdateAllViews(NULL);
 }
