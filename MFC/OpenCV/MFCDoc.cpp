@@ -29,6 +29,7 @@ BEGIN_MESSAGE_MAP(CMFCGAJADoc, CDocument)
 		ON_COMMAND(ID_SLIDER, &CMFCGAJADoc::Slider)
 		ON_COMMAND(ID_SOBEL, &CMFCGAJADoc::Sobel)
 		ON_COMMAND(ID_RGB, &CMFCGAJADoc::HISTO_RGB)
+		ON_COMMAND(ID_ZOOM, &CMFCGAJADoc::ZOOM)
 END_MESSAGE_MAP()
 
 
@@ -274,6 +275,7 @@ void CMFCGAJADoc::GRAY()
 		}
 		average /= m_Img.GetHeight() * m_Img.GetWidth();
 		HISTO();
+		HISTO_RGB();
 		PROJECTION(0);
 /*	m_Img.BitBlt(Second_Img.GetDC(), 0, 0, m_Img.GetWidth(), m_Img.GetHeight(), 0, 0, SRCCOPY); // 원래 이미지를 복사함
 	Second_Img.ReleaseDC(); // dc 해제
@@ -325,11 +327,11 @@ void CMFCGAJADoc::Binary()
 				GRAYIMG[y][x] = new_color;
 				if(new_color > sld.SS)
 				{
-					SetPixel(x,y,255,&Second_Img);
+					SetPixel(x,y,0,&Second_Img);
 				}
 				else
 				{
-					SetPixel(x,y,0,&Second_Img);
+					SetPixel(x,y,255,&Second_Img);
 				}
 			}
 		}
@@ -399,11 +401,11 @@ void CMFCGAJADoc::Sobel()
 				}
 				if(abs(x_temp + abs(y_temp)) > sld.SS)
 				{
-					SetPixel(w,h,0,&Second_Img);
+					SetPixel(w,h,255,&Second_Img);
 				}
 				else
 				{
-					SetPixel(w,h,255,&Second_Img);
+					SetPixel(w,h,0,&Second_Img);
 				}
 			}
 		}
@@ -541,7 +543,6 @@ void CMFCGAJADoc::HISTO()
 
 void CMFCGAJADoc::HISTO_RGB()
 {
-	GRAY();
 	int MAX_R = 0, MAX_G = 0, MAX_B =0;
 	for(int i = 0 ; i <= 255 ; i++)
 	{
@@ -599,4 +600,10 @@ void CMFCGAJADoc::HISTO_RGB()
 		}
 	}
 	UpdateAllViews(NULL);
+}
+
+
+void CMFCGAJADoc::ZOOM()
+{
+
 }
