@@ -66,6 +66,9 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 	pDC -> Rectangle(10, 360, 300, 680);	// 4 히스토그램
 	pDC -> Rectangle(310, 360, 600, 680);	// 5 프로젝션
 	pDC -> Rectangle(610, 360, 900, 680);	// 6 확대 
+	pDC -> Rectangle(910, 30, 1200, 260);	// 7 R 
+	pDC -> Rectangle(910, 270, 1200, 500);	// 8 G 
+	pDC -> Rectangle(910, 510, 1200, 740);	// 9 B 
 
 	pDC->TextOutW(11, 680, _T("0"));
 	pDC->TextOutW(274, 680, _T("255"));
@@ -93,6 +96,18 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 		if (!pDoc->HISTO_Img.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
 			pDoc->HISTO_Img.StretchBlt(pDC->m_hDC, 11, 361, 288, 318);
+			}
+		if (!pDoc->HISTO_R_Img.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->HISTO_R_Img.StretchBlt(pDC->m_hDC, 911, 31, 288, 218);
+			}
+		if (!pDoc->HISTO_G_Img.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->HISTO_G_Img.StretchBlt(pDC->m_hDC, 911, 271, 288, 218);
+			}
+		if (!pDoc->HISTO_B_Img.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->HISTO_B_Img.StretchBlt(pDC->m_hDC, 911, 511, 288, 218);
 			}
 		}
 
