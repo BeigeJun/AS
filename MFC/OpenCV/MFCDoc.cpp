@@ -28,6 +28,7 @@ BEGIN_MESSAGE_MAP(CMFCGAJADoc, CDocument)
 		ON_COMMAND(ID_Binary, &CMFCGAJADoc::Binary)
 		ON_COMMAND(ID_SLIDER, &CMFCGAJADoc::Slider)
 		ON_COMMAND(ID_SOBEL, &CMFCGAJADoc::Sobel)
+		ON_COMMAND(ID_RGB, &CMFCGAJADoc::HISTO_RGB)
 END_MESSAGE_MAP()
 
 
@@ -224,6 +225,9 @@ void CMFCGAJADoc::GRAY()
 	for( int i = 0 ; i <=255 ; i++)
 	{
 		HISTO_arr[i] = 0;
+		HISTO_R[i] = 0;
+		HISTO_G[i] = 0;
+		HISTO_B[i] = 0;
 	}
 
 	if(!m_Img.IsNull()){
@@ -247,8 +251,8 @@ void CMFCGAJADoc::GRAY()
 		{
 			GRAYIMG[i] = new BYTE[m_Img.GetWidth()];
 		}
-		for(int y = 0; y < m_Img.GetHeight();y++){
-			for(int x = 0 ; x < m_Img.GetWidth(); x++){
+		for(int y = 0; y < m_Img.GetHeight()-1;y++){
+			for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
 				color = (COLORREF*)m_Img.GetPixelAddress(x,y);
 
 				r = GetRValue(*color);
@@ -258,6 +262,9 @@ void CMFCGAJADoc::GRAY()
 				new_color = (r+b+g)/3;
 
 				HISTO_arr[(int)new_color] += 1;
+				HISTO_R[(int)r] += 1;
+				HISTO_G[(int)g] += 1;
+				HISTO_B[(int)b] += 1;
 
 				average += new_color;
 
@@ -414,9 +421,9 @@ void CMFCGAJADoc::PROJECTION(int select)
 	switch(select)
 	{
 	case 0:
-		for(int y = 0 ; y < Second_Img.GetHeight() ; y++)
+		for(int y = 0 ; y < Second_Img.GetHeight()-1 ; y++)
 		{
-			for(int x = 0 ; x < Second_Img.GetWidth() ; x++)
+			for(int x = 0 ; x < Second_Img.GetWidth()-1 ; x++)
 			{
 				if(average  < GRAYIMG[y][x])
 				{
@@ -425,18 +432,18 @@ void CMFCGAJADoc::PROJECTION(int select)
 			}
 			for(int xx = 0 ; xx <= y_p_sum ; xx++)
 			{
-				SetPixel(xx,y,0,&Pro_w);
+				SetPixel(xx,y,255,&Pro_w);
 			}
 			for(int xx = y_p_sum + 1 ; xx < Second_Img.GetWidth()-1 ; xx++)
 			{
-				SetPixel(xx,y,255,&Pro_w);
+				SetPixel(xx,y,0,&Pro_w);
 			}
 			y_p_sum = 0;
 		}
 
-		for(int x = 0 ; x < Second_Img.GetWidth() ; x++)
+		for(int x = 0 ; x < Second_Img.GetWidth()-1 ; x++)
 		{
-			for(int y = 0 ; y < Second_Img.GetHeight(); y++)
+			for(int y = 0 ; y < Second_Img.GetHeight()-1; y++)
 			{
 				if(average  < GRAYIMG[y][x])
 				{
@@ -445,11 +452,11 @@ void CMFCGAJADoc::PROJECTION(int select)
 			}
 			for(int yy = 0 ; yy <= x_p_sum ; yy++)
 			{
-				SetPixel(x,yy,0,&Pro_h);
+				SetPixel(x,yy,255,&Pro_h);
 			}
 			for(int yy = x_p_sum + 1 ; yy < Second_Img.GetHeight()-1 ; yy++)
 			{
-				SetPixel(x,yy,255,&Pro_h);
+				SetPixel(x,yy,0,&Pro_h);
 			}
 			x_p_sum = 0;
 		}
@@ -527,6 +534,69 @@ void CMFCGAJADoc::HISTO()
 				}
 			}
 		}	
+	}
+	UpdateAllViews(NULL);
+}
+
+
+void CMFCGAJADoc::HISTO_RGB()
+{
+	GRAY();
+	int MAX_R = 0, MAX_G = 0, MAX_B =0;
+	for(int i = 0 ; i <= 255 ; i++)
+	{
+		if(HISTO_R[i] > MAX_R)
+		{
+			MAX_R = HISTO_R[i];
+		}
+		if(HISTO_G[i] > MAX_G)
+		{
+			MAX_G = HISTO_G[i];
+		}
+		if(HISTO_B[i] > MAX_B)
+		{
+			MAX_B = HISTO_B[i];
+		}
+	}
+	HISTO_R_Img.Create(255, MAX_R, 24);
+	HISTO_G_Img.Create(255, MAX_G, 24);
+	HISTO_B_Img.Create(255, MAX_B, 24);
+
+	for(int x = 0 ; x < 255 ; x++)
+		{
+		for(int y = 0 ; y < MAX_R ; y++)
+		{
+			if(y < HISTO_R[x])
+			{
+				HISTO_R_Img.SetPixel(x,MAX_R-y-1,RGB(255,0,0));
+			}
+			else
+			{
+				HISTO_R_Img.SetPixel(x,MAX_R-y-1,RGB(255,255,255));
+			}
+		}
+		for(int y = 0 ; y < MAX_G ; y++)
+		{
+			if(y < HISTO_G[x])
+			{
+				HISTO_G_Img.SetPixel(x,MAX_G-y-1,RGB(0,255,0));
+			}
+			else
+			{
+				HISTO_G_Img.SetPixel(x,MAX_G-y-1,RGB(255,255,255));
+			}
+		}
+		for(int y = 0 ; y < MAX_B ; y++)
+		{
+			if(y < HISTO_B[x])
+			{
+				HISTO_B_Img.SetPixel(x,MAX_B-y-1,RGB(0,0,255));
+			}
+			else
+			{
+				HISTO_B_Img.SetPixel(x,MAX_B-y-1,RGB(255,255,255));
+			}
+		}
 	}
 	UpdateAllViews(NULL);
 }
