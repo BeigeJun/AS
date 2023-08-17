@@ -29,6 +29,8 @@ BEGIN_MESSAGE_MAP(CMFCGAJAView, CView)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CMFCGAJAView::OnFilePrintPreview)
 	ON_WM_CONTEXTMENU()
 	ON_WM_RBUTTONUP()
+	ON_WM_MOUSEMOVE()
+	ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
 // CMFCGAJAView 생성/소멸
@@ -55,6 +57,7 @@ BOOL CMFCGAJAView::PreCreateWindow(CREATESTRUCT& cs)
 
 void CMFCGAJAView::OnDraw(CDC* pDC)
 {
+
 	CMFCGAJADoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
@@ -63,15 +66,25 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 	pDC -> Rectangle(10, 30, 300, 350);		// 1 원본 사진
 	pDC -> Rectangle(310, 30, 600, 350);	// 2 필터 적용 사진
 	pDC -> Rectangle(610, 30, 900, 350);	// 3 가로 프로젝션
-	pDC -> Rectangle(10, 360, 300, 680);	// 4 히스토그램
-	pDC -> Rectangle(310, 360, 600, 680);	// 5 프로젝션
-	pDC -> Rectangle(610, 360, 900, 680);	// 6 확대 
+	pDC -> Rectangle(10, 370, 300, 690);	// 4 히스토그램
+	pDC -> Rectangle(310, 370, 600, 690);	// 5 세로 프로젝션
+	pDC -> Rectangle(610, 370, 900, 690);	// 6 확대 
 	pDC -> Rectangle(910, 30, 1200, 260);	// 7 R 
-	pDC -> Rectangle(910, 270, 1200, 500);	// 8 G 
-	pDC -> Rectangle(910, 510, 1200, 740);	// 9 B 
+	pDC -> Rectangle(910, 280, 1200, 500);	// 8 G 
+	pDC -> Rectangle(910, 520, 1200, 740);	// 9 B 
 
-	pDC->TextOutW(11, 680, _T("0"));
-	pDC->TextOutW(274, 680, _T("255"));
+	pDC->TextOutW(11, 690, _T("0"));
+	pDC->TextOutW(274, 690, _T("255"));
+	pDC->TextOutW(10, 10, _T("원본"));
+	pDC->TextOutW(310, 10, _T("필터적용"));
+	pDC->TextOutW(610, 10, _T("가로 프로젝션"));
+	pDC->TextOutW(311, 350, _T("세로 프포젝션"));
+	pDC->TextOutW(11, 350, _T("히스토그램"));
+	pDC->TextOutW(611, 350, _T("확대"));
+	pDC->TextOutW(910, 10, _T("R"));
+	pDC->TextOutW(910, 260, _T("G"));
+	pDC->TextOutW(910, 500, _T("B"));
+	pDC->TextOutW(300, 720, _T("백준의 발가락의 때가 될 수 있는 그날 까지"));
 	
 	if (!pDoc->m_Img.IsNull()){ // 원본 이미지 출력
 		SetStretchBltMode(pDC->m_hDC, HALFTONE); // m_hDC 소유 창의 디바이스 컨텍스트에 대한 핸들입니다.
@@ -91,11 +104,11 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 			}
 		if (!pDoc->Pro_h.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
-			pDoc->Pro_h.StretchBlt(pDC->m_hDC, 311, 361, 288, 318);
+			pDoc->Pro_h.StretchBlt(pDC->m_hDC, 311, 371, 288, 318);
 			}
 		if (!pDoc->HISTO_Img.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
-			pDoc->HISTO_Img.StretchBlt(pDC->m_hDC, 11, 361, 288, 318);
+			pDoc->HISTO_Img.StretchBlt(pDC->m_hDC, 11, 371, 288, 318);
 			}
 		if (!pDoc->HISTO_R_Img.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
@@ -103,11 +116,11 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 			}
 		if (!pDoc->HISTO_G_Img.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
-			pDoc->HISTO_G_Img.StretchBlt(pDC->m_hDC, 911, 271, 288, 218);
+			pDoc->HISTO_G_Img.StretchBlt(pDC->m_hDC, 911, 281, 288, 218);
 			}
 		if (!pDoc->HISTO_B_Img.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
-			pDoc->HISTO_B_Img.StretchBlt(pDC->m_hDC, 911, 511, 288, 218);
+			pDoc->HISTO_B_Img.StretchBlt(pDC->m_hDC, 911, 521, 288, 218);
 			}
 		}
 
@@ -116,6 +129,17 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 	// TODO: 여기에 원시 데이터에 대한 그리기 코드를 추가합니다.
 }
 
+
+void CMFCGAJAView::OnMOUSE(CDC* pDC)
+{
+	CMFCGAJADoc* pDoc = GetDocument();
+	ASSERT_VALID(pDoc);
+
+	CClientDC dc(this);
+	CString strPoint;
+	strPoint.Format(_T("마우스 좌표 (%4d, %4d)"), m_Pos.x,m_Pos.y);
+	dc.TextOutW(0,0,strPoint);
+}
 
 // CMFCGAJAView 인쇄
 
@@ -179,3 +203,22 @@ CMFCGAJADoc* CMFCGAJAView::GetDocument() const // 디버그되지 않은 버전�
 
 
 // CMFCGAJAView 메시지 처리기
+
+
+void CMFCGAJAView::OnMouseMove(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	m_Pos = point;
+	Invalidate();
+	CView::OnMouseMove(nFlags, point);
+}
+
+
+void CMFCGAJAView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	m_Pos = point;
+	CString strPoint;
+	strPoint.Format(_T("마우스 좌표 (%4d, %4d)"), m_Pos.x,m_Pos.y);
+	MessageBox(strPoint, _T("Warning !"), MB_ICONERROR);
+	CView::OnLButtonDown(nFlags, point);
+}
