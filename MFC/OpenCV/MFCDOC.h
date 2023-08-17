@@ -43,11 +43,17 @@ protected:
 public:
 	double average;
 	int HISTO_arr[256];
+	int HISTO_R[256];
+	int HISTO_G[256];
+	int HISTO_B[256];
 	CImage m_Img;
 	CImage Second_Img;
 	CImage Pro_w;
 	CImage Pro_h;
 	CImage HISTO_Img;
+	CImage HISTO_R_Img;
+	CImage HISTO_G_Img;
+	CImage HISTO_B_Img;
 	BYTE** GRAYIMG;
 	BYTE** BINARYIMG;
 	BYTE** SOBELIMG;
@@ -60,6 +66,7 @@ public:
 	void CMFCGAJADoc::Sobel();
 	void CMFCGAJADoc::PROJECTION(int select);
 	void CMFCGAJADoc::HISTO();
+	void CMFCGAJADoc::HISTO_RGB();
 #ifdef SHARED_HANDLERS
 	// 검색 처리기에 대한 검색 콘텐츠를 설정하는 도우미 함수
 	void SetSearchContent(const CString& value);
