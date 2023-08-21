@@ -192,23 +192,6 @@ void CMFCGAJADoc::OnFileOpen()
 	UpdateAllViews(NULL);// 뷰 갱신
 }
 
-void CMFCGAJADoc::DESTROY()
-{
-	
-	if(!Pro_w.IsNull())
-	{
-		Pro_w.Destroy();
-	}
-	if(!Pro_h.IsNull())
-	{
-		Pro_h.Destroy();
-	}
-//	if(!histo.IsNull())
-//	{
-//		histo.Destroy();
-//	}
-}
-
 void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image){
 
 	BYTE *p = (BYTE*)image->GetPixelAddress(x, y);					//포인터 사용하여서 주소 바꿔줌 -> 기존 라이브러리함수 setpixel보다 속도가 빠름
@@ -244,6 +227,22 @@ void CMFCGAJADoc::GRAY()
 		{
 			Pro_h.Destroy();
 		}
+		if(!HISTO_Img.IsNull())
+		{
+			HISTO_Img.Destroy();
+		}
+		if(!HISTO_R_Img.IsNull())
+		{
+			HISTO_R_Img.Destroy();
+		}
+		if(!HISTO_G_Img.IsNull())
+		{
+			HISTO_G_Img.Destroy();
+		}
+		if(!HISTO_B_Img.IsNull())
+		{
+			HISTO_B_Img.Destroy();
+		}
 
 		Second_Img.Create(m_Img.GetWidth(), m_Img.GetHeight(), 24); // 24비트 비트맵 생성
 		GRAYIMG = new BYTE*[m_Img.GetHeight()];
@@ -277,6 +276,7 @@ void CMFCGAJADoc::GRAY()
 		HISTO();
 		HISTO_RGB();
 		PROJECTION(0);
+
 /*	m_Img.BitBlt(Second_Img.GetDC(), 0, 0, m_Img.GetWidth(), m_Img.GetHeight(), 0, 0, SRCCOPY); // 원래 이미지를 복사함
 	Second_Img.ReleaseDC(); // dc 해제
 
@@ -298,14 +298,108 @@ void CMFCGAJADoc::GRAY()
 	UpdateAllViews(NULL);
 }
 
+void CMFCGAJADoc::MAKE_GRAY()
+{
+	COLORREF* color;
+	double r,g,b,new_color;
+	average = 0;
+
+	for( int i = 0 ; i <=255 ; i++)
+	{
+		HISTO_arr[i] = 0;
+		HISTO_R[i] = 0;
+		HISTO_G[i] = 0;
+		HISTO_B[i] = 0;
+	}
+
+	if(!m_Img.IsNull()){
+		if(!Second_Img.IsNull())
+		{
+			Second_Img.Destroy();
+		}
+		if(!Pro_w.IsNull())
+		{
+			Pro_w.Destroy();
+		}
+		if(!Pro_h.IsNull())
+		{
+			Pro_h.Destroy();
+		}
+		if(!HISTO_Img.IsNull())
+		{
+			HISTO_Img.Destroy();
+		}
+		if(!HISTO_R_Img.IsNull())
+		{
+			HISTO_R_Img.Destroy();
+		}
+		if(!HISTO_G_Img.IsNull())
+		{
+			HISTO_G_Img.Destroy();
+		}
+		if(!HISTO_B_Img.IsNull())
+		{
+			HISTO_B_Img.Destroy();
+		}
+
+		Second_Img.Create(m_Img.GetWidth(), m_Img.GetHeight(), 24); // 24비트 비트맵 생성
+		GRAYIMG = new BYTE*[m_Img.GetHeight()];
+
+		for(int i = 0; i < m_Img.GetHeight(); i++)
+		{
+			GRAYIMG[i] = new BYTE[m_Img.GetWidth()];
+		}
+		for(int y = 0; y < m_Img.GetHeight()-1;y++){
+			for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
+				color = (COLORREF*)m_Img.GetPixelAddress(x,y);
+
+				r = GetRValue(*color);
+				g = GetGValue(*color);
+				b = GetBValue(*color);
+
+				new_color = (r+b+g)/3;
+
+				HISTO_arr[(int)new_color] += 1;
+				HISTO_R[(int)r] += 1;
+				HISTO_G[(int)g] += 1;
+				HISTO_B[(int)b] += 1;
+
+				average += new_color;
+
+				GRAYIMG[y][x] = new_color;
+				SetPixel(x,y,GRAYIMG[y][x],&Second_Img);
+			}
+		}
+		average /= m_Img.GetHeight() * m_Img.GetWidth();
+		HISTO();
+		HISTO_RGB();
+/*	m_Img.BitBlt(Second_Img.GetDC(), 0, 0, m_Img.GetWidth(), m_Img.GetHeight(), 0, 0, SRCCOPY); // 원래 이미지를 복사함
+	Second_Img.ReleaseDC(); // dc 해제
+
+
+
+	for(int y = 0; y < Second_Img.GetHeight();y++){
+		for(int x = 0 ; x < Second_Img.GetWidth(); x++){
+			color = Second_Img.GetPixel(x,y);
+
+			int r = GetRValue(color);
+			int g = GetGValue(color);
+			int b = GetBValue(color);
+
+			int new_color = (r+g+b)/3;
+			Second_Img.SetPixel(x,y,RGB(new_color,new_color,new_color));
+		}
+	}
+*/  }
+	UpdateAllViews(NULL);
+}
 void CMFCGAJADoc::Binary()
 {
 	COLORREF* color;
 	double r,g,b,new_color;
 
 	if(!m_Img.IsNull()){
-		GRAY();
-		DESTROY();
+		MAKE_GRAY();
 
 		BINARYIMG = new BYTE*[m_Img.GetHeight()];
 
@@ -375,8 +469,8 @@ void CMFCGAJADoc::Binary()
 void CMFCGAJADoc::Sobel()
 {
 	if(!m_Img.IsNull()){
-		DESTROY();
-		GRAY();
+
+		MAKE_GRAY();
 
 		int x_filter[3][3]={{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
 		int y_filter[3][3]={{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
@@ -416,8 +510,8 @@ void CMFCGAJADoc::Sobel()
 
 void CMFCGAJADoc::PROJECTION(int select)
 {
-	Pro_w.Create(Second_Img.GetWidth(), Second_Img.GetHeight(), 24);
-	Pro_h.Create(Second_Img.GetWidth(), Second_Img.GetHeight(), 24);
+	Pro_w.Create(Second_Img.GetWidth()+1, Second_Img.GetHeight()+1, 24);
+	Pro_h.Create(Second_Img.GetWidth()+1, Second_Img.GetHeight()+1, 24);
 	int x_p_sum = 0;
 	int y_p_sum = 0;
 	switch(select)
@@ -465,9 +559,9 @@ void CMFCGAJADoc::PROJECTION(int select)
 		UpdateAllViews(NULL);
 		break;
 	case 1:
-		for(int y = 0 ; y < Second_Img.GetHeight() ; y++)
+		for(int y = 0 ; y < m_Img.GetHeight() ; y++)
 		{
-			for(int x = 0 ; x < Second_Img.GetWidth() ; x++)
+			for(int x = 0 ; x < m_Img.GetWidth() ; x++)
 			{
 				if(sld.SS  < GRAYIMG[y][x])
 				{
@@ -478,7 +572,7 @@ void CMFCGAJADoc::PROJECTION(int select)
 			{
 				SetPixel(xx,y,0,&Pro_w);
 			}
-			for(int xx = y_p_sum + 1 ; xx < Second_Img.GetWidth()-1 ; xx++)
+			for(int xx = y_p_sum + 1 ; xx < m_Img.GetWidth()-1 ; xx++)
 			{
 				SetPixel(xx,y,255,&Pro_w);
 			}
@@ -605,5 +699,5 @@ void CMFCGAJADoc::HISTO_RGB()
 
 void CMFCGAJADoc::ZOOM()
 {
-
+	ZOOM_flag = true;
 }
