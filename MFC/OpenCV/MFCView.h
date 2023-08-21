@@ -47,8 +47,12 @@ protected:
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	DECLARE_MESSAGE_MAP()
 public:
+	int what_filter;
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnBinary();
+	afx_msg void OnGray();
+	afx_msg void OnSobel();
 };
 
 #ifndef _DEBUG  // MFCGAJAView.cpp의 디버그 버전
