@@ -6,6 +6,7 @@
 #pragma once
 #include <atlimage.h>
 #include "SLD.h"
+
 class CMFCGAJADoc : public CDocument
 {
 protected: // serialization에서만 만들어집니다.
@@ -41,6 +42,7 @@ protected:
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
+	bool ZOOM_flag;
 	double average;
 	int HISTO_arr[256];
 	int HISTO_R[256];
@@ -59,8 +61,8 @@ public:
 	BYTE** SOBELIMG;
 	void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image);
 	void CMFCGAJADoc::OnFileOpen();
-	void CMFCGAJADoc::DESTROY();
 	void CMFCGAJADoc::GRAY();
+	void CMFCGAJADoc::MAKE_GRAY();
 	void CMFCGAJADoc::Binary();
 	void CMFCGAJADoc::Slider();
 	void CMFCGAJADoc::Sobel();
