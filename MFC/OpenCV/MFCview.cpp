@@ -57,7 +57,6 @@ BOOL CMFCGAJAView::PreCreateWindow(CREATESTRUCT& cs)
 
 void CMFCGAJAView::OnDraw(CDC* pDC)
 {
-
 	CMFCGAJADoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
@@ -222,3 +221,4 @@ void CMFCGAJAView::OnLButtonDown(UINT nFlags, CPoint point)
 	MessageBox(strPoint, _T("Warning !"), MB_ICONERROR);
 	CView::OnLButtonDown(nFlags, point);
 }
+
