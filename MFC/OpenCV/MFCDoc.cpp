@@ -30,8 +30,8 @@ BEGIN_MESSAGE_MAP(CMFCGAJADoc, CDocument)
 		ON_COMMAND(ID_SOBEL, &CMFCGAJADoc::Sobel)
 		ON_COMMAND(ID_RGB, &CMFCGAJADoc::HISTO_RGB)
 		ON_COMMAND(ID_ZOOM, &CMFCGAJADoc::ZOOM)
+		ON_COMMAND(ID_STRECHING, &CMFCGAJADoc::HISTO_streching)
 END_MESSAGE_MAP()
-
 
 // CMFCGAJADoc 생성/소멸
 
@@ -634,6 +634,45 @@ void CMFCGAJADoc::HISTO()
 	UpdateAllViews(NULL);
 }
 
+void CMFCGAJADoc::HISTO_streching()
+{
+	int MAX = 0;
+	int MIN = 255;
+	int MULT;
+
+	MAKE_GRAY();
+
+	for(int i = 0 ; i <= 255 ; i++)
+	{
+		if(HISTO_arr[i] > MAX)
+		{
+			MAX = HISTO_arr[i];
+		}
+		if(HISTO_arr[i] < MIN)
+		{
+			MIN = HISTO_arr[i];
+		}
+	}
+	MULT = 255 / (MAX - MIN);
+	if(!HISTO_Img.IsNull())
+	{
+		HISTO_Img.Destroy();
+	}
+//	if(HISTO_str_Img.Create(Second_Img.GetWidth(), Second_Img.GetHeight(), 24) != 0)
+//	{
+		for(int x = 0 ; x < Second_Img.GetWidth()-1 ; x++)
+		{
+			for(int y = 0 ; y < Second_Img.GetHeight()-1 ; y++)
+			{
+				
+
+
+			}
+		}	
+//	}
+	HISTO();
+	UpdateAllViews(NULL);
+}
 
 void CMFCGAJADoc::HISTO_RGB()
 {
