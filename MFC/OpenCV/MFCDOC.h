@@ -53,6 +53,7 @@ public:
 	CImage Pro_w;
 	CImage Pro_h;
 	CImage HISTO_Img;
+	CImage HISTO_str_Img;
 	CImage HISTO_R_Img;
 	CImage HISTO_G_Img;
 	CImage HISTO_B_Img;
@@ -68,6 +69,7 @@ public:
 	void CMFCGAJADoc::Sobel();
 	void CMFCGAJADoc::PROJECTION(int select);
 	void CMFCGAJADoc::HISTO();
+	void CMFCGAJADoc::HISTO_streching();
 	void CMFCGAJADoc::HISTO_RGB();
 	void CMFCGAJADoc::ZOOM();
 #ifdef SHARED_HANDLERS
