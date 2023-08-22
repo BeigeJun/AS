@@ -31,6 +31,7 @@ BEGIN_MESSAGE_MAP(CMFCGAJAView, CView)
 	ON_WM_RBUTTONUP()
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 // CMFCGAJAView 생성/소멸
@@ -109,6 +110,7 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
 			pDoc->HISTO_Img.StretchBlt(pDC->m_hDC, 11, 371, 288, 318);
 			}
+
 		if (!pDoc->HISTO_R_Img.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
 			pDoc->HISTO_R_Img.StretchBlt(pDC->m_hDC, 911, 31, 288, 218);
@@ -122,7 +124,11 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 			pDoc->HISTO_B_Img.StretchBlt(pDC->m_hDC, 911, 521, 288, 218);
 			}
 		}
-
+	if(Button_flag == true)
+	{
+		pDC -> SelectStockObject(NULL_BRUSH);
+		pDC -> Rectangle(Old_x_Pos,Old_y_Pos,x_Pos,y_Pos);
+	}
 
 	ReleaseDC(pDC);
 	// TODO: 여기에 원시 데이터에 대한 그리기 코드를 추가합니다.
@@ -207,8 +213,14 @@ CMFCGAJADoc* CMFCGAJAView::GetDocument() const // 디버그되지 않은 버전�
 void CMFCGAJAView::OnMouseMove(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
-	m_Pos = point;
-	Invalidate();
+	if(Button_flag == true)
+	{
+		m_Pos = point;
+		x_Pos = m_Pos.x;
+		y_Pos = m_Pos.y;
+
+		Invalidate();
+	}
 	CView::OnMouseMove(nFlags, point);
 }
 
@@ -216,9 +228,56 @@ void CMFCGAJAView::OnMouseMove(UINT nFlags, CPoint point)
 void CMFCGAJAView::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	m_Pos = point;
-	CString strPoint;
-	strPoint.Format(_T("마우스 좌표 (%4d, %4d)"), m_Pos.x,m_Pos.y);
-	MessageBox(strPoint, _T("Warning !"), MB_ICONERROR);
+	Button_flag = true;
+	Old_x_Pos = m_Pos.x;
+	Old_y_Pos = m_Pos.y;
+	
 	CView::OnLButtonDown(nFlags, point);
 }
 
+
+
+void CMFCGAJAView::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	if(Button_flag == true)
+	{
+		if(!ZOOM_Img.IsNull())
+		{
+			ZOOM_Img.Destroy();
+		}
+		CDC* pDC;
+		pDC = GetDC();
+		CMFCGAJADoc* pDoc = GetDocument();
+//		CString strPoint;
+//		strPoint.Format(_T("마우스 좌표 (Old :%4d, %4d  New : %4d, %4d)"), Old_x_Pos, Old_y_Pos, x_Pos, y_Pos);
+//		MessageBox(strPoint, _T("Warning !"), MB_ICONERROR);
+		Button_flag = false;
+		/*
+		ZOOM_Img.Create(x_Pos - Old_x_Pos, y_Pos - Old_y_Pos , 24);
+		double w = pDoc->m_Img.GetWidth() / 250;
+		double h = pDoc->m_Img.GetHeight() / 400;
+		x_Pos = (double)x_Pos * w;
+		y_Pos = (double)y_Pos * h;
+		Old_x_Pos = (double)Old_x_Pos * w;
+		Old_y_Pos = (double)Old_y_Pos * h;
+		pDoc->m_Img.BitBlt(ZOOM_Img.GetDC(),0,0,ZOOM_Img.GetWidth(),ZOOM_Img.GetHeight(),x_Pos+11,y_Pos+31,SRCCOPY);
+		ZOOM_Img.ReleaseDC();
+		*/
+		ZOOM_Img.Create(x_Pos - Old_x_Pos, y_Pos - Old_y_Pos , 24);
+		for(int x = Old_x_Pos ; x < x_Pos ; x++)
+		{
+			for(int y = Old_y_Pos ; y < y_Pos ; y++)
+			{
+				COLORREF p = pDC->GetPixel(x,y);
+				int r = GetRValue(p);
+				int g = GetGValue(p);
+				int b = GetBValue(p);
+				ZOOM_Img.SetPixel(x-Old_x_Pos,y-Old_y_Pos,RGB(r,g,b));
+			}
+		}
+		SetStretchBltMode(pDC->m_hDC, HALFTONE);
+		ZOOM_Img.StretchBlt(pDC->m_hDC, 611, 371, 288, 318);
+	}
+	CView::OnLButtonUp(nFlags, point);
+}
