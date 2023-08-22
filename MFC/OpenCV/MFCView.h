@@ -16,7 +16,12 @@ public:
 	CMFCGAJADoc* GetDocument() const;
 
 	CPoint m_Pos;
-
+	bool Button_flag;
+	int x_Pos;
+	int y_Pos;
+	int Old_x_Pos;
+	int Old_y_Pos;
+	CImage ZOOM_Img;
 // 작업입니다.
 public:
 
@@ -53,6 +58,7 @@ public:
 	afx_msg void OnBinary();
 	afx_msg void OnGray();
 	afx_msg void OnSobel();
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 };
 
 #ifndef _DEBUG  // MFCGAJAView.cpp의 디버그 버전
