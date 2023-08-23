@@ -13,7 +13,7 @@
 #include "MFCGAJADoc.h"
 
 #include <propkey.h>
-
+#include <algorithm>
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -183,10 +183,10 @@ void CMFCGAJADoc::OnFileOpen()
 
 
 		CFile file;
-		switch(fileDlg.m_ofn.nFilterIndex){
-		default:
+//		switch(fileDlg.m_ofn.nFilterIndex){
+//		default:
 			m_Img.Load(filePath);
-		}
+//		}
 	}
 
 	UpdateAllViews(NULL);// 뷰 갱신
@@ -202,79 +202,16 @@ void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image){
 
 void CMFCGAJADoc::GRAY()
 {
-	COLORREF* color;
-	double r,g,b,new_color;
-	average = 0;
-
-	for( int i = 0 ; i <=255 ; i++)
-	{
-		HISTO_arr[i] = 0;
-		HISTO_R[i] = 0;
-		HISTO_G[i] = 0;
-		HISTO_B[i] = 0;
-	}
+	MAKE_GRAY();
 
 	if(!m_Img.IsNull()){
-		if(!Second_Img.IsNull())
-		{
-			Second_Img.Destroy();
-		}
-		if(!Pro_w.IsNull())
-		{
-			Pro_w.Destroy();
-		}
-		if(!Pro_h.IsNull())
-		{
-			Pro_h.Destroy();
-		}
-		if(!HISTO_Img.IsNull())
-		{
-			HISTO_Img.Destroy();
-		}
-		if(!HISTO_R_Img.IsNull())
-		{
-			HISTO_R_Img.Destroy();
-		}
-		if(!HISTO_G_Img.IsNull())
-		{
-			HISTO_G_Img.Destroy();
-		}
-		if(!HISTO_B_Img.IsNull())
-		{
-			HISTO_B_Img.Destroy();
-		}
-
-		Second_Img.Create(m_Img.GetWidth(), m_Img.GetHeight(), 24); // 24비트 비트맵 생성
-		GRAYIMG = new BYTE*[m_Img.GetHeight()];
-
-		for(int i = 0; i < m_Img.GetHeight(); i++)
-		{
-			GRAYIMG[i] = new BYTE[m_Img.GetWidth()];
-		}
 		for(int y = 0; y < m_Img.GetHeight()-1;y++){
 			for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
-				color = (COLORREF*)m_Img.GetPixelAddress(x,y);
-
-				r = GetRValue(*color);
-				g = GetGValue(*color);
-				b = GetBValue(*color);
-
-				new_color = (r+b+g)/3;
-
-				HISTO_arr[(int)new_color] += 1;
-				HISTO_R[(int)r] += 1;
-				HISTO_G[(int)g] += 1;
-				HISTO_B[(int)b] += 1;
-
-				average += new_color;
-
-				GRAYIMG[y][x] = new_color;
 				SetPixel(x,y,GRAYIMG[y][x],&Second_Img);
 			}
 		}
-		average /= m_Img.GetHeight() * m_Img.GetWidth();
 		HISTO();
-		HISTO_RGB();
+//		HISTO_RGB();
 		PROJECTION(0);
 
 /*	m_Img.BitBlt(Second_Img.GetDC(), 0, 0, m_Img.GetWidth(), m_Img.GetHeight(), 0, 0, SRCCOPY); // 원래 이미지를 복사함
@@ -301,7 +238,7 @@ void CMFCGAJADoc::GRAY()
 void CMFCGAJADoc::MAKE_GRAY()
 {
 	COLORREF* color;
-	double r,g,b,new_color;
+	int r,g,b,new_color;
 	average = 0;
 
 	for( int i = 0 ; i <=255 ; i++)
@@ -343,12 +280,14 @@ void CMFCGAJADoc::MAKE_GRAY()
 		}
 
 		Second_Img.Create(m_Img.GetWidth(), m_Img.GetHeight(), 24); // 24비트 비트맵 생성
-		GRAYIMG = new BYTE*[m_Img.GetHeight()];
+
+		GRAYIMG = new int*[m_Img.GetHeight()];
 
 		for(int i = 0; i < m_Img.GetHeight(); i++)
 		{
-			GRAYIMG[i] = new BYTE[m_Img.GetWidth()];
+			GRAYIMG[i] = new int[m_Img.GetWidth()];
 		}
+
 		for(int y = 0; y < m_Img.GetHeight()-1;y++){
 			for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
 				color = (COLORREF*)m_Img.GetPixelAddress(x,y);
@@ -359,7 +298,7 @@ void CMFCGAJADoc::MAKE_GRAY()
 
 				new_color = (r+b+g)/3;
 
-				HISTO_arr[(int)new_color] += 1;
+//				HISTO_arr[(int)new_color] += 1;
 				HISTO_R[(int)r] += 1;
 				HISTO_G[(int)g] += 1;
 				HISTO_B[(int)b] += 1;
@@ -367,59 +306,30 @@ void CMFCGAJADoc::MAKE_GRAY()
 				average += new_color;
 
 				GRAYIMG[y][x] = new_color;
-				SetPixel(x,y,GRAYIMG[y][x],&Second_Img);
 			}
 		}
 		average /= m_Img.GetHeight() * m_Img.GetWidth();
-		HISTO();
-		HISTO_RGB();
-/*	m_Img.BitBlt(Second_Img.GetDC(), 0, 0, m_Img.GetWidth(), m_Img.GetHeight(), 0, 0, SRCCOPY); // 원래 이미지를 복사함
-	Second_Img.ReleaseDC(); // dc 해제
 
-
-
-	for(int y = 0; y < Second_Img.GetHeight();y++){
-		for(int x = 0 ; x < Second_Img.GetWidth(); x++){
-			color = Second_Img.GetPixel(x,y);
-
-			int r = GetRValue(color);
-			int g = GetGValue(color);
-			int b = GetBValue(color);
-
-			int new_color = (r+g+b)/3;
-			Second_Img.SetPixel(x,y,RGB(new_color,new_color,new_color));
-		}
-	}
-*/  }
+    }
 	UpdateAllViews(NULL);
 }
+
 void CMFCGAJADoc::Binary()
 {
-	COLORREF* color;
-	double r,g,b,new_color;
-
 	if(!m_Img.IsNull()){
 		MAKE_GRAY();
-
+/*
 		BINARYIMG = new BYTE*[m_Img.GetHeight()];
 
 		for(int i = 0; i < m_Img.GetHeight(); i++)
 		{
 			BINARYIMG[i] = new BYTE[m_Img.GetWidth()];
 		}
+		*/
 		for(int y = 0; y < m_Img.GetHeight();y++){
-			for(int x = 0 ; x < m_Img.GetWidth(); x++){
-
-				color = (COLORREF*)m_Img.GetPixelAddress(x,y);
-
-				r = GetRValue(*color);
-				g = GetGValue(*color);
-				b = GetBValue(*color);
-
-				new_color = (r+b+g)/3;
-
-				GRAYIMG[y][x] = new_color;
-				if(new_color > sld.SS)
+			for(int x = 0 ; x < m_Img.GetWidth(); x++)
+			{
+				if(GRAYIMG[y][x] > sld.SS)
 				{
 					SetPixel(x,y,0,&Second_Img);
 				}
@@ -462,6 +372,7 @@ void CMFCGAJADoc::Binary()
 		}
 	}
 	*/
+	HISTO();
 	PROJECTION(1);
 	UpdateAllViews(NULL);
 }
@@ -474,14 +385,14 @@ void CMFCGAJADoc::Sobel()
 
 		int x_filter[3][3]={{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
 		int y_filter[3][3]={{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
-
+/*
 		SOBELIMG = new BYTE*[m_Img.GetHeight()];
 
 		for(int i = 0; i < m_Img.GetHeight(); i++)
 		{
 			SOBELIMG[i] = new BYTE[m_Img.GetWidth()];
 		}
-
+		*/
 
 		for(int w = 1 ; w < m_Img.GetWidth() - 1 ; w++){
 			for(int h = 1; h < m_Img.GetHeight() -1 ; h++){
@@ -493,7 +404,7 @@ void CMFCGAJADoc::Sobel()
 						y_temp += GRAYIMG[h-1+a][w-1+b] * y_filter[a][b];
 					}
 				}
-				if(abs(x_temp + abs(y_temp)) > sld.SS)
+				if((abs(x_temp) + abs(y_temp)) > sld.SS)
 				{
 					SetPixel(w,h,255,&Second_Img);
 				}
@@ -606,6 +517,12 @@ void CMFCGAJADoc::PROJECTION(int select)
 void CMFCGAJADoc::HISTO()
 {
 	int MAX = 0;
+	for(int y = 0; y < m_Img.GetHeight()-1;y++){
+		for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
+			int num = GRAYIMG[y][x];
+			HISTO_arr[num]++;
+		}
+	}
 	for(int i = 0 ; i <= 255 ; i++)
 	{
 		if(HISTO_arr[i] > MAX)
@@ -642,30 +559,30 @@ void CMFCGAJADoc::HISTO_streching()
 
 	MAKE_GRAY();
 
-	for(int i = 0 ; i <= 255 ; i++)
+	for(int x = 0 ; x < Second_Img.GetWidth() -1; x++)
 	{
-		if(HISTO_arr[i] > MAX)
+		for(int y = 0 ; y < Second_Img.GetHeight() -1; y++)
 		{
-			MAX = HISTO_arr[i];
-		}
-		if(HISTO_arr[i] < MIN)
-		{
-			MIN = HISTO_arr[i];
+			MAX = max(GRAYIMG[y][x],MAX);
+			MIN = min(GRAYIMG[y][x],MIN);
 		}
 	}
+	
 	MULT = 255 / (MAX - MIN);
 	if(!HISTO_Img.IsNull())
 	{
 		HISTO_Img.Destroy();
 	}
+	COLORREF* color;
 //	if(HISTO_str_Img.Create(Second_Img.GetWidth(), Second_Img.GetHeight(), 24) != 0)
 //	{
 		for(int x = 0 ; x < Second_Img.GetWidth()-1 ; x++)
 		{
 			for(int y = 0 ; y < Second_Img.GetHeight()-1 ; y++)
 			{
-				
-
+				int new_color = (GRAYIMG[y][x]-MIN)*MULT;
+				GRAYIMG[y][x] = new_color;
+				Second_Img.SetPixel(x,y,RGB(new_color,new_color,new_color));
 
 			}
 		}	
@@ -674,8 +591,14 @@ void CMFCGAJADoc::HISTO_streching()
 	UpdateAllViews(NULL);
 }
 
+void CMFCGAJADoc::HISTO_equalization()
+{
+
+}
+
 void CMFCGAJADoc::HISTO_RGB()
 {
+	MAKE_GRAY();
 	int MAX_R = 0, MAX_G = 0, MAX_B =0;
 	for(int i = 0 ; i <= 255 ; i++)
 	{
@@ -734,7 +657,6 @@ void CMFCGAJADoc::HISTO_RGB()
 	}
 	UpdateAllViews(NULL);
 }
-
 
 void CMFCGAJADoc::ZOOM()
 {
