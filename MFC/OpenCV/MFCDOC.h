@@ -57,9 +57,7 @@ public:
 	CImage HISTO_R_Img;
 	CImage HISTO_G_Img;
 	CImage HISTO_B_Img;
-	BYTE** GRAYIMG;
-	BYTE** BINARYIMG;
-	BYTE** SOBELIMG;
+	int** GRAYIMG;
 	void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image);
 	void CMFCGAJADoc::OnFileOpen();
 	void CMFCGAJADoc::GRAY();
@@ -70,6 +68,7 @@ public:
 	void CMFCGAJADoc::PROJECTION(int select);
 	void CMFCGAJADoc::HISTO();
 	void CMFCGAJADoc::HISTO_streching();
+	void CMFCGAJADoc::HISTO_equalization();
 	void CMFCGAJADoc::HISTO_RGB();
 	void CMFCGAJADoc::ZOOM();
 #ifdef SHARED_HANDLERS
