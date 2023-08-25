@@ -31,6 +31,7 @@ BEGIN_MESSAGE_MAP(CMFCGAJADoc, CDocument)
 		ON_COMMAND(ID_RGB, &CMFCGAJADoc::HISTO_RGB)
 		ON_COMMAND(ID_ZOOM, &CMFCGAJADoc::ZOOM)
 		ON_COMMAND(ID_STRECHING, &CMFCGAJADoc::HISTO_streching)
+		ON_COMMAND(ID_EQUALIZATION, &CMFCGAJADoc::HISTO_equalization)
 END_MESSAGE_MAP()
 
 // CMFCGAJADoc 생성/소멸
@@ -573,7 +574,7 @@ void CMFCGAJADoc::HISTO_streching()
 	{
 		HISTO_Img.Destroy();
 	}
-	COLORREF* color;
+
 //	if(HISTO_str_Img.Create(Second_Img.GetWidth(), Second_Img.GetHeight(), 24) != 0)
 //	{
 		for(int x = 0 ; x < Second_Img.GetWidth()-1 ; x++)
@@ -593,7 +594,40 @@ void CMFCGAJADoc::HISTO_streching()
 
 void CMFCGAJADoc::HISTO_equalization()
 {
+	MAKE_GRAY();
+	int new_Img[256] = {0,};
+	for(int y = 0; y < m_Img.GetHeight()-1;y++){
+		for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
+			int num = GRAYIMG[y][x];
+			HISTO_arr[num]++;
+		}
+	}
+	int temp;
+	int color_sum = 0;
+	int total_pixel = m_Img.GetWidth() * m_Img.GetHeight();
+	//전체
 
+	for(int i = 0 ; i < 256 ; i++)
+	{
+		color_sum += HISTO_arr[i];
+		//누적 배열
+		new_Img[i] = (color_sum / (double)total_pixel)*255 +0.5;
+	}
+
+	for(int y = 0; y < m_Img.GetHeight()-1;y++){
+		for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
+			temp = GRAYIMG[y][x];
+			Second_Img.SetPixel(x,y,RGB(new_Img[temp],new_Img[temp],new_Img[temp]));
+		}
+	}
+	for(int y = 0; y < m_Img.GetHeight()-1;y++){
+		for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
+			temp = GRAYIMG[y][x];
+			Second_Img.SetPixel(x,y,RGB(new_Img[temp],new_Img[temp],new_Img[temp]));
+			GRAYIMG[y][x] = new_Img[temp];
+		}
+	}
+	HISTO();
 }
 
 void CMFCGAJADoc::HISTO_RGB()
