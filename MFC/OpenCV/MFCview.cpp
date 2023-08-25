@@ -78,7 +78,7 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 	pDC->TextOutW(10, 10, _T("원본"));
 	pDC->TextOutW(310, 10, _T("필터적용"));
 	pDC->TextOutW(610, 10, _T("가로 프로젝션"));
-	pDC->TextOutW(311, 350, _T("세로 프포젝션"));
+	pDC->TextOutW(311, 350, _T("세로 프로젝션"));
 	pDC->TextOutW(11, 350, _T("히스토그램"));
 	pDC->TextOutW(611, 350, _T("확대"));
 	pDC->TextOutW(910, 10, _T("R"));
@@ -127,7 +127,7 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 	if(Button_flag == true)
 	{
 		pDC -> SelectStockObject(NULL_BRUSH);
-		pDC -> Rectangle(Old_x_Pos,Old_y_Pos,x_Pos,y_Pos);
+		pDC -> Rectangle(Old_x_Pos-5,Old_y_Pos-5,x_Pos+5,y_Pos+5);
 	}
 
 	ReleaseDC(pDC);
