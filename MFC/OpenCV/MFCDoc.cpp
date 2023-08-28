@@ -212,10 +212,10 @@ void CMFCGAJADoc::GRAY()
 				SetPixel(x,y,GRAYIMG[y][x],&Second_Img);
 			}
 		}
+		mode = 0;
 		HISTO();
 //		HISTO_RGB();
 		PROJECTION(0);
-
 /*	m_Img.BitBlt(Second_Img.GetDC(), 0, 0, m_Img.GetWidth(), m_Img.GetHeight(), 0, 0, SRCCOPY); // 원래 이미지를 복사함
 	Second_Img.ReleaseDC(); // dc 해제
 
@@ -319,25 +319,26 @@ void CMFCGAJADoc::MAKE_GRAY()
 void CMFCGAJADoc::Binary()
 {
 	if(!m_Img.IsNull()){
-		MAKE_GRAY();
-/*
-		BINARYIMG = new BYTE*[m_Img.GetHeight()];
+		MAKE_GRAY();		
+		BINARYIMG = new int*[m_Img.GetHeight()];
 
 		for(int i = 0; i < m_Img.GetHeight(); i++)
 		{
-			BINARYIMG[i] = new BYTE[m_Img.GetWidth()];
+			BINARYIMG[i] = new int[m_Img.GetWidth()];
 		}
-		*/
-		for(int y = 0; y < m_Img.GetHeight();y++){
-			for(int x = 0 ; x < m_Img.GetWidth(); x++)
+		
+		for(int y = 0; y < m_Img.GetHeight()-1;y++){
+			for(int x = 0 ; x < m_Img.GetWidth()-1; x++)
 			{
 				if(GRAYIMG[y][x] > sld.SS)
 				{
 					SetPixel(x,y,0,&Second_Img);
+					BINARYIMG[y][x] = 0;
 				}
 				else
 				{
 					SetPixel(x,y,255,&Second_Img);
+					BINARYIMG[y][x] = 255;
 				}
 			}
 		}
@@ -374,6 +375,7 @@ void CMFCGAJADoc::Binary()
 		}
 	}
 	*/
+	mode = 1;
 	HISTO();
 	PROJECTION(1);
 	UpdateAllViews(NULL);
@@ -387,14 +389,14 @@ void CMFCGAJADoc::Sobel()
 
 		int x_filter[3][3]={{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
 		int y_filter[3][3]={{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
-/*
-		SOBELIMG = new BYTE*[m_Img.GetHeight()];
 
-		for(int i = 0; i < m_Img.GetHeight(); i++)
+		SOBELIMG = new int*[m_Img.GetHeight()];
+
+		for(int i = 0; i <  m_Img.GetHeight(); i++)
 		{
-			SOBELIMG[i] = new BYTE[m_Img.GetWidth()];
+			SOBELIMG[i] = new int[m_Img.GetWidth()];
 		}
-		*/
+		
 
 		for(int w = 1 ; w < m_Img.GetWidth() - 1 ; w++){
 			for(int h = 1; h < m_Img.GetHeight() -1 ; h++){
@@ -409,15 +411,19 @@ void CMFCGAJADoc::Sobel()
 				if((abs(x_temp) + abs(y_temp)) > sld.SS)
 				{
 					SetPixel(w,h,255,&Second_Img);
+					SOBELIMG[h][w] = 255; 
 				}
 				else
 				{
 					SetPixel(w,h,0,&Second_Img);
+					SOBELIMG[h][w] = 0;
 				}
 			}
 		}
 	}
-	PROJECTION(1);
+	mode = 2;
+	HISTO();
+	PROJECTION(2);
 	UpdateAllViews(NULL);
 }
 
@@ -430,42 +436,42 @@ void CMFCGAJADoc::PROJECTION(int select)
 	switch(select)
 	{
 	case 0:
-		for(int y = 0 ; y < Second_Img.GetHeight()-1 ; y++)
+		for(int y = Second_Img.GetHeight()-1 ; y > 0 ; y--)
 		{
-			for(int x = 0 ; x < Second_Img.GetWidth()-1 ; x++)
+			for(int x = Second_Img.GetWidth()-1 ; x > 0 ; x--)
 			{
 				if(average  < GRAYIMG[y][x])
 				{
 					y_p_sum++;
 				}
 			}
-			for(int xx = 0 ; xx <= y_p_sum ; xx++)
-			{
-				SetPixel(xx,y,255,&Pro_w);
-			}
-			for(int xx = y_p_sum + 1 ; xx < Second_Img.GetWidth()-1 ; xx++)
+			for(int xx = 0 ; xx <= Second_Img.GetWidth()-1 - y_p_sum ; xx++)
 			{
 				SetPixel(xx,y,0,&Pro_w);
+			}
+			for(int xx = Second_Img.GetWidth()-1 -(y_p_sum + 1) ; xx < Second_Img.GetWidth()-1 ; xx++)
+			{
+				SetPixel(xx,y,255,&Pro_w);
 			}
 			y_p_sum = 0;
 		}
 
-		for(int x = 0 ; x < Second_Img.GetWidth()-1 ; x++)
+		for(int x = Second_Img.GetWidth()-1 ; x > 0 ; x--)
 		{
-			for(int y = 0 ; y < Second_Img.GetHeight()-1; y++)
+			for(int y = Second_Img.GetHeight()-1 ; y > 0; y--)
 			{
 				if(average  < GRAYIMG[y][x])
 				{
 					x_p_sum++;
 				}
 			}
-			for(int yy = 0 ; yy <= x_p_sum ; yy++)
-			{
-				SetPixel(x,yy,255,&Pro_h);
-			}
-			for(int yy = x_p_sum + 1 ; yy < Second_Img.GetHeight()-1 ; yy++)
+			for(int yy = 0 ; yy <= Second_Img.GetHeight()-1 -x_p_sum ; yy++)
 			{
 				SetPixel(x,yy,0,&Pro_h);
+			}
+			for(int yy = Second_Img.GetHeight()-1 -(x_p_sum + 1) ; yy < Second_Img.GetHeight()-1 ; yy++)
+			{
+				SetPixel(x,yy,255,&Pro_h);
 			}
 			x_p_sum = 0;
 		}
@@ -476,7 +482,7 @@ void CMFCGAJADoc::PROJECTION(int select)
 		{
 			for(int x = 0 ; x < m_Img.GetWidth() ; x++)
 			{
-				if(sld.SS  < GRAYIMG[y][x])
+				if(sld.SS  < BINARYIMG[y][x])
 				{
 					y_p_sum++;
 				}
@@ -496,7 +502,48 @@ void CMFCGAJADoc::PROJECTION(int select)
 		{
 			for(int y = 0 ; y < Second_Img.GetHeight(); y++)
 			{
-				if(sld.SS  < GRAYIMG[y][x])
+				if(sld.SS  < BINARYIMG[y][x])
+				{
+					x_p_sum++;
+				}
+			}
+			for(int yy = 0 ; yy <= x_p_sum ; yy++)
+			{
+				SetPixel(x,yy,0,&Pro_h);
+			}
+			for(int yy = x_p_sum + 1 ; yy < Second_Img.GetHeight()-1 ; yy++)
+			{
+				SetPixel(x,yy,255,&Pro_h);
+			}
+			x_p_sum = 0;
+		}
+		break;
+		case 2:
+		for(int y = 0 ; y < m_Img.GetHeight() ; y++)
+		{
+			for(int x = 0 ; x < m_Img.GetWidth() ; x++)
+			{
+				if(sld.SS  < SOBELIMG[y][x])
+				{
+					y_p_sum++;
+				}
+			}
+			for(int xx = 0 ; xx <= y_p_sum ; xx++)
+			{
+				SetPixel(xx,y,0,&Pro_w);
+			}
+			for(int xx = y_p_sum + 1 ; xx < m_Img.GetWidth()-1 ; xx++)
+			{
+				SetPixel(xx,y,255,&Pro_w);
+			}
+			y_p_sum = 0;
+		}
+
+		for(int x = 0 ; x < Second_Img.GetWidth() ; x++)
+		{
+			for(int y = 0 ; y < Second_Img.GetHeight(); y++)
+			{
+				if(sld.SS  < SOBELIMG[y][x])
 				{
 					x_p_sum++;
 				}
@@ -519,36 +566,141 @@ void CMFCGAJADoc::PROJECTION(int select)
 void CMFCGAJADoc::HISTO()
 {
 	int MAX = 0;
-	for(int y = 0; y < m_Img.GetHeight()-1;y++){
-		for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
-			int num = GRAYIMG[y][x];
-			HISTO_arr[num]++;
-		}
-	}
-	for(int i = 0 ; i <= 255 ; i++)
+	switch(mode)
 	{
-		if(HISTO_arr[i] > MAX)
+		case 0:
 		{
-			MAX = HISTO_arr[i];
-		}
-	}
-
-	if(HISTO_Img.Create(255, MAX, 24) != 0)
-	{
-		for(int x = 0 ; x < 255 ; x++)
-		{
-			for(int y = 0 ; y < MAX ; y++)
-			{
-				if(y < HISTO_arr[x])
-				{
-					SetPixel(x,MAX-y-1,0,&HISTO_Img);
-				}
-				else
-				{
-					SetPixel(x,MAX-y-1,255,&HISTO_Img);
+			for(int y = 0; y < m_Img.GetHeight()-1;y++){
+				for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
+					int num = GRAYIMG[y][x];
+					HISTO_arr[num]++;
 				}
 			}
-		}	
+			for(int i = 0 ; i <= 255 ; i++)
+			{
+				if(HISTO_arr[i] > MAX)
+				{
+					MAX = HISTO_arr[i];
+				}
+			}
+
+			if(HISTO_Img.Create(255, MAX, 24) != 0)
+			{
+				for(int x = 0 ; x < 255 ; x++)
+				{
+					for(int y = 0 ; y < MAX ; y++)
+					{
+						if(y < HISTO_arr[x])
+						{
+							SetPixel(x,MAX-y-1,0,&HISTO_Img);
+						}
+						else
+						{
+							SetPixel(x,MAX-y-1,255,&HISTO_Img);
+						}
+					}
+				}	
+			}
+			break;
+		}
+
+		case 1:
+		{
+		for(int y = 0; y < m_Img.GetHeight()-1;y++){
+			for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
+				int num = BINARYIMG[y][x];
+				HISTO_arr[num]++;
+			}
+		}
+		for(int i = 0 ; i <= 255 ; i++)
+			{
+				if(HISTO_arr[i] > MAX)
+				{
+					MAX = HISTO_arr[i];
+				}
+			}
+
+		if(HISTO_Img.Create(255, MAX, 24) != 0)
+		{
+			for(int x = 0 ; x <= 5 ; x++)
+			{
+				for(int y = 0 ; y < MAX ; y++)
+				{
+					if(y < HISTO_arr[0])
+					{
+						SetPixel(x+1,MAX-y-1,255,&HISTO_Img);
+					}
+					else
+					{
+						SetPixel(x+1,MAX-y-1,0,&HISTO_Img);
+					}
+				}
+			}
+			for(int x = 250 ; x <= 255 ; x++)
+			{
+				for(int y = 0 ; y < MAX ; y++)
+				{
+					if(y < HISTO_arr[255])
+					{
+						SetPixel(x-2,MAX-y-1,255,&HISTO_Img);
+					}
+					else
+					{
+						SetPixel(x-2,MAX-y-1,0,&HISTO_Img);
+					}
+				}
+			}
+		}
+		break;
+		}
+		case 2:
+			{
+			for(int y = 1; y < m_Img.GetHeight()-1;y++){
+				for(int x = 1 ; x < m_Img.GetWidth()-1; x++){
+					int num = SOBELIMG[y][x];
+					HISTO_arr[num]++;
+				}
+			}
+			for(int i = 0 ; i <= 255 ; i++)
+			{
+				if(HISTO_arr[i] > MAX)
+				{
+					MAX = HISTO_arr[i];
+				}
+			}
+			if(HISTO_Img.Create(255, MAX, 24) != 0)
+			{
+			for(int x = 0 ; x <= 5 ; x++)
+			{
+				for(int y = 0 ; y < MAX ; y++)
+				{
+					if(y < HISTO_arr[0])
+					{
+						SetPixel(x+1,MAX-y-1,255,&HISTO_Img);
+					}
+					else
+					{
+						SetPixel(x+1,MAX-y-1,0,&HISTO_Img);
+					}
+				}
+			}
+			for(int x = 250 ; x <= 255 ; x++)
+			{
+				for(int y = 0 ; y < MAX ; y++)
+				{
+					if(y < HISTO_arr[255])
+					{
+						SetPixel(x-2,MAX-y-1,255,&HISTO_Img);
+					}
+					else
+					{
+						SetPixel(x-2,MAX-y-1,0,&HISTO_Img);
+					}
+				}
+			}
+		}
+			break;
+			}
 	}
 	UpdateAllViews(NULL);
 }
