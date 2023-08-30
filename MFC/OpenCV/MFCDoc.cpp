@@ -54,7 +54,7 @@ BOOL CMFCGAJADoc::OnNewDocument()
 
 	// TODO: 여기에 재초기화 코드를 추가합니다.
 	// SDI 문서는 이 문서를 다시 사용합니다.
-
+	money_flag = false;
 	return TRUE;
 }
 
@@ -433,6 +433,8 @@ void CMFCGAJADoc::PROJECTION(int select)
 	Pro_h.Create(Second_Img.GetWidth()+1, Second_Img.GetHeight()+1, 24);
 	int x_p_sum = 0;
 	int y_p_sum = 0;
+	start_x = 0, start_y = 0 , end_x = 0,end_y = 0 ;
+	int str_x = 0, str_y = 0 , ed_x = 0,ed_y = 0 ;
 	switch(select)
 	{
 	case 0:
@@ -521,42 +523,60 @@ void CMFCGAJADoc::PROJECTION(int select)
 		case 2:
 		for(int y = 0 ; y < m_Img.GetHeight() ; y++)
 		{
-			for(int x = 0 ; x < m_Img.GetWidth() ; x++)
-			{
-				if(sld.SS  < SOBELIMG[y][x])
-				{
-					y_p_sum++;
-				}
-			}
-			for(int xx = 0 ; xx <= y_p_sum ; xx++)
-			{
-				SetPixel(xx,y,0,&Pro_w);
-			}
-			for(int xx = y_p_sum + 1 ; xx < m_Img.GetWidth()-1 ; xx++)
-			{
-				SetPixel(xx,y,255,&Pro_w);
-			}
-			y_p_sum = 0;
-		}
-
-		for(int x = 0 ; x < Second_Img.GetWidth() ; x++)
-		{
-			for(int y = 0 ; y < Second_Img.GetHeight(); y++)
+			int x;
+			for(x = 0 ; x < m_Img.GetWidth() ; x++)
 			{
 				if(sld.SS  < SOBELIMG[y][x])
 				{
 					x_p_sum++;
 				}
 			}
-			for(int yy = 0 ; yy <= x_p_sum ; yy++)
+
+			if(str_x < x_p_sum)
+			{
+				start_x = x;
+				end_x = str_x;
+				str_x = x_p_sum;
+			}
+
+			for(int xx = 0 ; xx <= x_p_sum ; xx++)
+			{
+				SetPixel(xx,y,0,&Pro_w);
+			}
+			for(int xx = x_p_sum + 1 ; xx < m_Img.GetWidth()-1 ; xx++)
+			{
+				SetPixel(xx,y,255,&Pro_w);
+			}
+			x_p_sum = 0;
+		}
+
+		for(int x = 0 ; x < Second_Img.GetWidth() ; x++)
+		{
+			int y;
+			for(y = 0 ; y < Second_Img.GetHeight(); y++)
+			{
+				if(sld.SS  < SOBELIMG[y][x])
+				{
+					y_p_sum++;
+				}
+			}
+
+			if(str_y < y_p_sum)
+			{
+				start_y = y;
+				end_y = str_y;
+				str_y = y_p_sum;
+			}
+
+			for(int yy = 0 ; yy <= y_p_sum ; yy++)
 			{
 				SetPixel(x,yy,0,&Pro_h);
 			}
-			for(int yy = x_p_sum + 1 ; yy < Second_Img.GetHeight()-1 ; yy++)
+			for(int yy = y_p_sum + 1 ; yy < Second_Img.GetHeight()-1 ; yy++)
 			{
 				SetPixel(x,yy,255,&Pro_h);
 			}
-			x_p_sum = 0;
+			y_p_sum = 0;
 		}
 		UpdateAllViews(NULL);
 		break;
@@ -847,9 +867,34 @@ void CMFCGAJADoc::HISTO_RGB()
 
 void CMFCGAJADoc::ZOOM()
 {
-	ZOOM_flag = true;
+	ZOOM_flag = false;
 }
 
 void CMFCGAJADoc::FIND()
 {
+	Sobel();
+//	Rectangle(910, 520, 1200, 740);
+	if(start_x > end_x)
+	{
+		int temp = start_x;
+		start_x = end_x;
+		end_x = temp;
+	}
+	if(start_y > end_y)
+	{
+		int temp = start_y;
+		start_y = end_y;
+		end_y = temp;
+	}
+	MONEY.Create(end_x - start_x, end_y - start_y, 24);
+	money_flag = true;
+	for(int y =  start_y+1; y < end_y-1 ; y++)
+	{
+		for(int x = start_x+1 ; x < end_x-1; x++)
+		{
+			int a = SOBELIMG[y][x];
+			SetPixel(x-start_x+1,y-start_y+1,a,&MONEY);
+		}
+	}
+	UpdateAllViews(NULL);
 }
