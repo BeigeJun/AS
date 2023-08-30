@@ -30,6 +30,8 @@ BEGIN_MESSAGE_MAP(CMFCGAJAView, CView)
 	ON_WM_CONTEXTMENU()
 	ON_WM_RBUTTONUP()
 	ON_WM_MOUSEMOVE()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 // CMFCGAJAView 생성/소멸
@@ -64,11 +66,26 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 	pDC -> Rectangle(10, 30, 300, 350);		// 1 원본 사진
 	pDC -> Rectangle(310, 30, 600, 350);	// 2 필터 적용 사진
 	pDC -> Rectangle(610, 30, 900, 350);	// 3 가로 프로젝션
-	pDC -> Rectangle(10, 360, 300, 680);	// 4 히스토그램
-	pDC -> Rectangle(310, 360, 600, 680);	// 5 프로젝션
-	pDC -> Rectangle(610, 360, 900, 680);	// 6 확대 
+	pDC -> Rectangle(10, 370, 300, 690);	// 4 히스토그램
+	pDC -> Rectangle(310, 370, 600, 690);	// 5 세로 프로젝션
+	pDC -> Rectangle(610, 370, 900, 690);	// 6 확대 
+	pDC -> Rectangle(910, 30, 1200, 260);	// 7 R 
+	pDC -> Rectangle(910, 280, 1200, 500);	// 8 G 
+	pDC -> Rectangle(910, 520, 1200, 740);	// 9 B 
+	pDC -> Rectangle(10, 710, 210, 810);
 
-
+	pDC->TextOutW(11, 690, _T("0"));
+	pDC->TextOutW(274, 690, _T("255"));
+	pDC->TextOutW(10, 10, _T("원본"));
+	pDC->TextOutW(310, 10, _T("필터적용"));
+	pDC->TextOutW(610, 10, _T("가로 프로젝션"));
+	pDC->TextOutW(311, 350, _T("세로 프로젝션"));
+	pDC->TextOutW(11, 350, _T("히스토그램"));
+	pDC->TextOutW(611, 350, _T("확대"));
+	pDC->TextOutW(910, 10, _T("R"));
+	pDC->TextOutW(910, 260, _T("G"));
+	pDC->TextOutW(910, 500, _T("B"));
+	
 	
 	if (!pDoc->m_Img.IsNull()){ // 원본 이미지 출력
 		SetStretchBltMode(pDC->m_hDC, HALFTONE); // m_hDC 소유 창의 디바이스 컨텍스트에 대한 핸들입니다.
@@ -82,25 +99,63 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
 			pDoc->Second_Img.StretchBlt(pDC->m_hDC, 311, 31, 288, 318);
 			}
+		if (!pDoc->Pro_w.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->Pro_w.StretchBlt(pDC->m_hDC, 611, 31, 288, 318);
+			}
+		if (!pDoc->Pro_h.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->Pro_h.StretchBlt(pDC->m_hDC, 311, 371, 288, 318);
+			}
+		if (!pDoc->HISTO_Img.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->HISTO_Img.StretchBlt(pDC->m_hDC, 21, 371, 268, 318);
+			}
+
+		if (!pDoc->HISTO_R_Img.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->HISTO_R_Img.StretchBlt(pDC->m_hDC, 911, 31, 288, 218);
+			}
+		if (!pDoc->HISTO_G_Img.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->HISTO_G_Img.StretchBlt(pDC->m_hDC, 911, 281, 288, 218);
+			}
+		if (!pDoc->HISTO_B_Img.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->HISTO_B_Img.StretchBlt(pDC->m_hDC, 911, 521, 288, 218);
+			}
+		if (!pDoc->MONEY.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->MONEY.StretchBlt(pDC->m_hDC, 10, 710, 200, 100);
+			}
 		}
+	if(Button_flag == true)
+	{
+		pDC -> SelectStockObject(NULL_BRUSH);
+		pDC -> Rectangle(Old_x_Pos-5,Old_y_Pos-5,x_Pos+5,y_Pos+5);
+	}
+	if(pDoc->money_flag == true)
+	{
+//		pDC -> SelectStockObject(NULL_BRUSH);
+//		pDC -> Rectangle(pDoc->end_x,pDoc->end_y,pDoc->start_x,pDoc->start_y);
 
-
+		pDoc->money_flag = false;
+	}
 	ReleaseDC(pDC);
 	// TODO: 여기에 원시 데이터에 대한 그리기 코드를 추가합니다.
 }
 
-void CMFCGAJAView::MOUSE(CDC* pDC)
+
+void CMFCGAJAView::OnMOUSE(CDC* pDC)
 {
 	CMFCGAJADoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 
 	CClientDC dc(this);
 	CString strPoint;
-	strPoint.Format(_T("마우스 좌표 (%4d, %4d)"), m_Pos.x , m_Pos.y);
+	strPoint.Format(_T("마우스 좌표 (%4d, %4d)"), m_Pos.x,m_Pos.y);
 	dc.TextOutW(0,0,strPoint);
 }
-
-
 
 // CMFCGAJAView 인쇄
 
@@ -169,7 +224,71 @@ CMFCGAJADoc* CMFCGAJAView::GetDocument() const // 디버그되지 않은 버전�
 void CMFCGAJAView::OnMouseMove(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
-	m_Pos = point;
-	Invalidate();
+	if(Button_flag == true)
+	{
+		m_Pos = point;
+		x_Pos = m_Pos.x;
+		y_Pos = m_Pos.y;
+
+		Invalidate();
+	}
 	CView::OnMouseMove(nFlags, point);
+}
+
+
+void CMFCGAJAView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	m_Pos = point;
+	Button_flag = true;
+	Old_x_Pos = m_Pos.x;
+	Old_y_Pos = m_Pos.y;
+	
+	CView::OnLButtonDown(nFlags, point);
+}
+
+
+
+void CMFCGAJAView::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	if(Button_flag == true)
+	{
+		if(!ZOOM_Img.IsNull())
+		{
+			ZOOM_Img.Destroy();
+		}
+		CDC* pDC;
+		pDC = GetDC();
+		CMFCGAJADoc* pDoc = GetDocument();
+//		CString strPoint;
+//		strPoint.Format(_T("마우스 좌표 (Old :%4d, %4d  New : %4d, %4d)"), Old_x_Pos, Old_y_Pos, x_Pos, y_Pos);
+//		MessageBox(strPoint, _T("Warning !"), MB_ICONERROR);
+		Button_flag = false;
+		/*
+		ZOOM_Img.Create(x_Pos - Old_x_Pos, y_Pos - Old_y_Pos , 24);
+		double w = pDoc->m_Img.GetWidth() / 250;
+		double h = pDoc->m_Img.GetHeight() / 400;
+		x_Pos = (double)x_Pos * w;
+		y_Pos = (double)y_Pos * h;
+		Old_x_Pos = (double)Old_x_Pos * w;
+		Old_y_Pos = (double)Old_y_Pos * h;
+		pDoc->m_Img.BitBlt(ZOOM_Img.GetDC(),0,0,ZOOM_Img.GetWidth(),ZOOM_Img.GetHeight(),x_Pos+11,y_Pos+31,SRCCOPY);
+		ZOOM_Img.ReleaseDC();
+		*/
+		ZOOM_Img.Create(x_Pos - Old_x_Pos, y_Pos - Old_y_Pos , 24);
+		for(int x = Old_x_Pos ; x < x_Pos ; x++)
+		{
+			for(int y = Old_y_Pos ; y < y_Pos ; y++)
+			{
+				COLORREF p = pDC->GetPixel(x,y);
+				int r = GetRValue(p);
+				int g = GetGValue(p);
+				int b = GetBValue(p);
+				ZOOM_Img.SetPixel(x-Old_x_Pos,y-Old_y_Pos,RGB(r,g,b));
+			}
+		}
+		SetStretchBltMode(pDC->m_hDC, HALFTONE);
+		ZOOM_Img.StretchBlt(pDC->m_hDC, 611, 371, 288, 318);
+	}
+	CView::OnLButtonUp(nFlags, point);
 }
