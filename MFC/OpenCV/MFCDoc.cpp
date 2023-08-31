@@ -521,6 +521,10 @@ void CMFCGAJADoc::PROJECTION(int select)
 		}
 		break;
 		case 2:
+
+		HIGH_p = new int[m_Img.GetHeight()];
+		WIDTH_p = new int[m_Img.GetWidth()];
+
 		for(int y = 0 ; y < m_Img.GetHeight() ; y++)
 		{
 			int x;
@@ -531,14 +535,7 @@ void CMFCGAJADoc::PROJECTION(int select)
 					x_p_sum++;
 				}
 			}
-
-			if(str_x < x_p_sum)
-			{
-				start_x = x;
-				end_x = str_x;
-				str_x = x_p_sum;
-			}
-
+			HIGH_p[y] = x_p_sum;
 			for(int xx = 0 ; xx <= x_p_sum ; xx++)
 			{
 				SetPixel(xx,y,0,&Pro_w);
@@ -560,14 +557,7 @@ void CMFCGAJADoc::PROJECTION(int select)
 					y_p_sum++;
 				}
 			}
-
-			if(str_y < y_p_sum)
-			{
-				start_y = y;
-				end_y = str_y;
-				str_y = y_p_sum;
-			}
-
+			WIDTH_p[x] = y_p_sum;
 			for(int yy = 0 ; yy <= y_p_sum ; yy++)
 			{
 				SetPixel(x,yy,0,&Pro_h);
@@ -577,6 +567,48 @@ void CMFCGAJADoc::PROJECTION(int select)
 				SetPixel(x,yy,255,&Pro_h);
 			}
 			y_p_sum = 0;
+		}
+		str_y = HIGH_p[0];
+		for(int y = 1 ; y < Second_Img.GetHeight()-30 ; y++)
+		{
+			if(str_y < HIGH_p[y])
+			{
+				start_y = y;
+				str_y = HIGH_p[y];
+			}
+		}
+		str_y = HIGH_p[0];
+		for(int y = 1 ; y < Second_Img.GetHeight()-30 ; y++)
+		{
+			if(str_y < HIGH_p[y])
+			{//!((y < start_y+50) && (y > start_y-50))
+				if(!((y < start_y+50) && (y > start_y-50)))
+				{
+					end_y = y;
+					str_y = HIGH_p[y];
+				}
+			}
+		}
+		str_x = WIDTH_p[0];
+		for(int x = 1 ; x < Second_Img.GetWidth()-30 ; x++)
+		{
+			if(str_x < WIDTH_p[x])
+			{
+				start_x = x;
+				str_x = WIDTH_p[x];
+			}
+		}
+		str_x = WIDTH_p[0];
+		for(int x = 1 ; x < Second_Img.GetWidth()-30 ; x++)
+		{
+			if(str_x < WIDTH_p[x])
+			{//!((y < start_y+50) && (y > start_y-50))
+				if(!((x < start_x+50) && (x > start_x-50)))
+				{
+					end_x = x;
+					str_x = WIDTH_p[x];
+				}
+			}
 		}
 		UpdateAllViews(NULL);
 		break;
@@ -761,6 +793,7 @@ void CMFCGAJADoc::HISTO_streching()
 			}
 		}	
 //	}
+	mode = 0;
 	HISTO();
 	UpdateAllViews(NULL);
 }
@@ -800,6 +833,7 @@ void CMFCGAJADoc::HISTO_equalization()
 			GRAYIMG[y][x] = new_Img[temp];
 		}
 	}
+	mode = 0;
 	HISTO();
 }
 
@@ -873,7 +907,6 @@ void CMFCGAJADoc::ZOOM()
 void CMFCGAJADoc::FIND()
 {
 	Sobel();
-//	Rectangle(910, 520, 1200, 740);
 	if(start_x > end_x)
 	{
 		int temp = start_x;
