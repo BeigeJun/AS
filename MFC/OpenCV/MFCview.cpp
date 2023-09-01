@@ -73,6 +73,7 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 	pDC -> Rectangle(910, 280, 1200, 500);	// 8 G 
 	pDC -> Rectangle(910, 520, 1200, 740);	// 9 B 
 	pDC -> Rectangle(10, 710, 210, 810);
+	pDC -> Rectangle(220, 710, 320, 760);
 
 	pDC->TextOutW(11, 690, _T("0"));
 	pDC->TextOutW(274, 690, _T("255"));
@@ -127,6 +128,10 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 		if (!pDoc->MONEY.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
 			pDoc->MONEY.StretchBlt(pDC->m_hDC, 10, 710, 200, 100);
+		}
+		if (!pDoc->MONEY_Price.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->MONEY_Price.StretchBlt(pDC->m_hDC, 210, 710, 100, 50);
 			}
 		}
 	if(Button_flag == true)
