@@ -131,7 +131,15 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 		}
 		if (!pDoc->MONEY_Price.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
-			pDoc->MONEY_Price.StretchBlt(pDC->m_hDC, 210, 710, 100, 50);
+			pDoc->MONEY_Price.StretchBlt(pDC->m_hDC, 220, 710, 100, 50);
+			}
+		if (!pDoc->MONEY_BINARY.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->MONEY_BINARY.StretchBlt(pDC->m_hDC, 330, 710, 100, 50);
+			}
+		if (!pDoc->MONEY_Price_P.IsNull()){
+			SetStretchBltMode(pDC->m_hDC, HALFTONE);
+			pDoc->MONEY_Price_P.StretchBlt(pDC->m_hDC, 220, 770, 100, 50);
 			}
 		}
 	if(Button_flag == true)
