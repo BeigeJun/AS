@@ -569,7 +569,7 @@ void CMFCGAJADoc::PROJECTION(int select)
 			y_p_sum = 0;
 		}
 		str_y = HIGH_p[0];
-		for(int y = 1 ; y < Second_Img.GetHeight()-30 ; y++)
+		for(int y = 1 ; y < Second_Img.GetHeight()-2 ; y++)
 		{
 			if(str_y < HIGH_p[y])
 			{
@@ -578,7 +578,7 @@ void CMFCGAJADoc::PROJECTION(int select)
 			}
 		}
 		str_y = HIGH_p[0];
-		for(int y = 1 ; y < Second_Img.GetHeight()-30 ; y++)
+		for(int y = 1 ; y < Second_Img.GetHeight()-2 ; y++)
 		{
 			if(str_y < HIGH_p[y])
 			{//!((y < start_y+50) && (y > start_y-50))
@@ -590,7 +590,7 @@ void CMFCGAJADoc::PROJECTION(int select)
 			}
 		}
 		str_x = WIDTH_p[0];
-		for(int x = 1 ; x < Second_Img.GetWidth()-30 ; x++)
+		for(int x = 1 ; x < Second_Img.GetWidth()-2 ; x++)
 		{
 			if(str_x < WIDTH_p[x])
 			{
@@ -599,7 +599,7 @@ void CMFCGAJADoc::PROJECTION(int select)
 			}
 		}
 		str_x = WIDTH_p[0];
-		for(int x = 1 ; x < Second_Img.GetWidth()-30 ; x++)
+		for(int x = 1 ; x < Second_Img.GetWidth()-2 ; x++)
 		{
 			if(str_x < WIDTH_p[x])
 			{//!((y < start_y+50) && (y > start_y-50))
@@ -919,15 +919,108 @@ void CMFCGAJADoc::FIND()
 		start_y = end_y;
 		end_y = temp;
 	}
+
+	//소벨을 먹인다음 시작점과 끝점의 크기값을 비교하고 크면 바꾸기.
+
 	MONEY.Create(end_x - start_x, end_y - start_y, 24);
-	money_flag = true;
-	for(int y =  start_y+1; y < end_y-1 ; y++)
+
+	MONEYIMG = new int*[end_y - start_y];
+
+	for(int i = 0; i <  end_y - start_y; i++)
 	{
-		for(int x = start_x+1 ; x < end_x-1; x++)
+		MONEYIMG[i] = new int[end_x - start_x];
+	}
+	//머니 비트맵 만들고 머니 더블포인터 만들기
+	money_flag = true;
+	for(int y =  start_y; y < end_y-1 ; y++)
+	{
+		for(int x = start_x ; x < end_x-1; x++)
 		{
-			int a = SOBELIMG[y][x];
-			SetPixel(x-start_x+1,y-start_y+1,a,&MONEY);
+			int a = GRAYIMG[y][x];
+			SetPixel(x-start_x,y-start_y,a,&MONEY);
+			MONEYIMG[y-start_y][x-start_x] = a;
 		}
 	}
+	//따온 돈 사진 출력 MONEY, MONEYIMG
+	MONEY_Price.Create(MONEY.GetWidth()/3+1,MONEY.GetHeight()/3+1, 24);
+
+	MONEYPRICEIMG = new int*[MONEY.GetHeight()/3+1];
+
+	for(int i = 0; i <  MONEY.GetHeight()/3+1; i++)
+	{
+		MONEYPRICEIMG[i] = new int[MONEY.GetWidth()/3+1];
+	}
+
+	for(int y = MONEY.GetHeight()/3*2; y <MONEY.GetHeight()-1 ; y++)
+	{
+		for(int x = 0 ; x < MONEY.GetWidth()/3; x++)
+		{
+			int a = MONEYIMG[y][x];
+			MONEYPRICEIMG[y-(MONEY.GetHeight()/3*2)][x] = a;
+			SetPixel(x,y-(MONEY.GetHeight()/3*2),a,&MONEY_Price);
+		}
+	}
+	//따온 돈에서 숫자부분 빼오기 MONEY_Price, MONEYPRICEIMG
+	
+	MONEY_BINARY.Create(MONEY_Price.GetWidth(), MONEY_Price.GetHeight(), 24);
+
+	MONEY_BINARYIMG = new int*[MONEY_Price.GetHeight()];
+
+	for(int i = 0; i < MONEY_Price.GetHeight(); i++)
+		{
+			MONEY_BINARYIMG[i] = new int[MONEY_Price.GetWidth()];
+		}
+		
+		for(int y = 0; y < MONEY_Price.GetHeight()-1;y++){
+			for(int x = 0 ; x < MONEY_Price.GetWidth()-1; x++)
+			{
+				if(MONEYPRICEIMG[y][x] > sld.SS)
+				{
+					SetPixel(x,y,0,&MONEY_BINARY);
+					MONEY_BINARYIMG[y][x] = 0;
+				}
+				else
+				{
+					SetPixel(x,y,255,&MONEY_BINARY);
+					MONEY_BINARYIMG[y][x] = 255;
+				}
+			}
+		}
+
+	//바이러니화 하기
+
+	int x_p_sum = 0;
+
+	MONEY_Price_P.Create(MONEY_Price.GetWidth(), MONEY_Price.GetHeight(), 24);
+
+	MONEYIMG_P = new int*[ MONEY_Price.GetHeight()];
+
+	for(int i = 0; i <   MONEY_Price.GetHeight(); i++)
+	{
+		MONEYIMG_P[i] = new int[MONEY_Price.GetWidth()];
+	}
+
+
+	for(int x = MONEY_Price.GetWidth()-1 ; x > 0 ; x--)
+		{
+			for(int y = MONEY_Price.GetHeight()-1 ; y > 0; y--)
+			{
+				if(sld.SS < MONEY_BINARYIMG[y][x])
+				{
+					x_p_sum++;
+				}
+			}
+			for(int yy = 0 ; yy <= MONEY_Price.GetHeight()-1 -x_p_sum ; yy++)
+			{
+				SetPixel(x,yy,0,&MONEY_Price_P);
+				MONEYIMG_P[yy][x] = 0;
+			}
+			for(int yy = MONEY_Price.GetHeight()-1 -(x_p_sum + 1) ; yy < MONEY_Price.GetHeight()-1 ; yy++)
+			{
+				SetPixel(x,yy,255,&MONEY_Price_P);
+				MONEYIMG_P[yy][x] = 255;
+			}
+			x_p_sum = 0;
+		}
 	UpdateAllViews(NULL);
 }
