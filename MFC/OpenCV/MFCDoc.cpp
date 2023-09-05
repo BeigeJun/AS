@@ -942,22 +942,22 @@ void CMFCGAJADoc::FIND()
 		}
 	}
 	//따온 돈 사진 출력 MONEY, MONEYIMG
-	MONEY_Price.Create(MONEY.GetWidth()/3+1,MONEY.GetHeight()/3+1, 24);
+	MONEY_Price.Create(MONEY.GetWidth()/3+1,MONEY.GetHeight()/4+1, 24);
 
-	MONEYPRICEIMG = new int*[MONEY.GetHeight()/3+1];
+	MONEYPRICEIMG = new int*[MONEY.GetHeight()/4+1];
 
-	for(int i = 0; i <  MONEY.GetHeight()/3+1; i++)
+	for(int i = 0; i <  MONEY.GetHeight()/4+1; i++)
 	{
 		MONEYPRICEIMG[i] = new int[MONEY.GetWidth()/3+1];
 	}
 
-	for(int y = MONEY.GetHeight()/3*2; y <MONEY.GetHeight()-1 ; y++)
+	for(int y = MONEY.GetHeight()/4*3; y <MONEY.GetHeight()-1 ; y++)
 	{
 		for(int x = 0 ; x < MONEY.GetWidth()/3; x++)
 		{
 			int a = MONEYIMG[y][x];
-			MONEYPRICEIMG[y-(MONEY.GetHeight()/3*2)][x] = a;
-			SetPixel(x,y-(MONEY.GetHeight()/3*2),a,&MONEY_Price);
+			MONEYPRICEIMG[y-(MONEY.GetHeight()/4*3)][x] = a;
+			SetPixel(x,y-(MONEY.GetHeight()/4*3),a,&MONEY_Price);
 		}
 	}
 	//따온 돈에서 숫자부분 빼오기 MONEY_Price, MONEYPRICEIMG
@@ -974,7 +974,7 @@ void CMFCGAJADoc::FIND()
 		for(int y = 0; y < MONEY_Price.GetHeight()-1;y++){
 			for(int x = 0 ; x < MONEY_Price.GetWidth()-1; x++)
 			{
-				if(MONEYPRICEIMG[y][x] > sld.SS)
+				if(MONEYPRICEIMG[y][x] > 110) //140
 				{
 					SetPixel(x,y,0,&MONEY_BINARY);
 					MONEY_BINARYIMG[y][x] = 0;
@@ -999,17 +999,21 @@ void CMFCGAJADoc::FIND()
 	{
 		MONEYIMG_P[i] = new int[MONEY_Price.GetWidth()];
 	}
-
-
+	bool flag = false;
+	int start = 0;
+	int ax[300] = { 0,};
+	int bx[268] = {3,3,2,5,4,1,2,4,1,2,4,1,1,3,3,5,25,36,29,31,30,31,29,28,28,2831,37,32,35,24,8,0,0,0,0,0,0,0,0,0,0,21,20,23,28,25,24,27,30,30,25,41,30,40,27,23,14,9,13,11,11,11,10,10,12,9,11,12,9,10,9,16,12,15,22,28,41,32,28,31,34,24,26,24,24,17,21,17,12,8,0,0,0,0,0,0,0,2,18,18,21,18,25,24,26,27,27,21,30,29,32,32,20,13,12,9,10,11,8,8,6,8,8,8,7,7,9,11,9,16,18,21,48,30,38,35,33,30,26,31,27,26,23,26,16,10,8,0,0,0,0,0,0,0,25,23,27,22,25,24,31,24,19,29,26,24,30,25,15,16,11,11,10,11,11,11,12,10,14,10,12,9,11,9,10,14,18,26,40,33,29,35,30,22,33,34,25,27,24,17,15,15,0,0,0,0,0,0,0,16,25,20,28,29,27,36,34,31,32,40,35,36,38,30,20,21,17,17,17,20,25,23,24,21,20,25,23,22,24,29,37,51,61,57,55,57,58,55,50,57,51,51,47,44,33,29,8,0,0,1,0,1,37,37,46,39,47,48};
 	for(int x = MONEY_Price.GetWidth()-1 ; x > 0 ; x--)
 		{
+
 			for(int y = MONEY_Price.GetHeight()-1 ; y > 0; y--)
 			{
-				if(sld.SS < MONEY_BINARYIMG[y][x])
+				if(250 < MONEY_BINARYIMG[y][x])
 				{
 					x_p_sum++;
 				}
 			}
+			ax[x] = x_p_sum;
 			for(int yy = 0 ; yy <= MONEY_Price.GetHeight()-1 -x_p_sum ; yy++)
 			{
 				SetPixel(x,yy,0,&MONEY_Price_P);
@@ -1022,5 +1026,35 @@ void CMFCGAJADoc::FIND()
 			}
 			x_p_sum = 0;
 		}
+	//현금화한부분 프로젝션 만들기
+	for(int x = 0 ; x < MONEY_Price.GetWidth()-1 ; x++)
+	{
+		if(ax[x] == 0){start++;}
+		else{break;}
+	}
+	int count = 0, move = 0;
+	for(int x = 0 ; x < 268 ; x++)
+	{
+		if(ax[x+start+move]+3 > bx[x] && ax[x+start+move]-3 < bx[x])
+		{count++;}
+		else if(ax[x+start+move+1]+3 > bx[x] && ax[x+start+move+1]-3 < bx[x])
+		{
+			count=count+2;
+			move++;
+		}
+		else if(ax[x+start+move-1]+3 > bx[x] && ax[x+start+move-1]-3 < bx[x])
+		{
+			count=count+1;
+			move--;
+		}
+	}
+	if(count > 200)
+	{
+		MessageBox(NULL, _T("만원입니다"), _T("축하합니다!"), NULL);
+	}
+	else
+	{
+		MessageBox(NULL, _T("만원이 아닙니다"), _T("이런!"), NULL);
+	}
 	UpdateAllViews(NULL);
 }
