@@ -408,7 +408,7 @@ void CMFCGAJADoc::Sobel()
 						y_temp += GRAYIMG[h-1+a][w-1+b] * y_filter[a][b];
 					}
 				}
-				if((abs(x_temp) + abs(y_temp)) > sld.SS)
+				if((abs(y_temp)) > sld.SS)
 				{
 					SetPixel(w,h,255,&Second_Img);
 					SOBELIMG[h][w] = 255; 
