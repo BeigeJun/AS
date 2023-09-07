@@ -809,28 +809,42 @@ void CMFCGAJADoc::HISTO_equalization()
 		}
 	}
 	int temp;
-	int color_sum = 0;
+	int sum = HISTO_arr[0];
+	int color_sum[256] = {0,};
+	color_sum[0] = HISTO_arr[0];
 	int total_pixel = m_Img.GetWidth() * m_Img.GetHeight();
 	//전체
 
-	for(int i = 0 ; i < 256 ; i++)
+	for(int i = 1; i < 256 ; i++)
 	{
-		color_sum += HISTO_arr[i];
+		sum += HISTO_arr[i];
+		color_sum[i] = sum;
 		//누적 배열
-		new_Img[i] = (color_sum / (double)total_pixel)*255 +0.5;
 	}
 
-	for(int y = 0; y < m_Img.GetHeight()-1;y++){
-		for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
-			temp = GRAYIMG[y][x];
-			Second_Img.SetPixel(x,y,RGB(new_Img[temp],new_Img[temp],new_Img[temp]));
+	for(int i = 0 ; i < 256 ; i++)
+	{
+		new_Img[i] = ((float)color_sum[i] / total_pixel)*255;
+		int img = new_Img[i]*10;
+		if((img/5)%2 == 0)
+		{
+			img -= img%5;
+			img /= 10;
 		}
+		else
+		{
+			img += img%5;
+			img /= 10;
+		}
+		new_Img[i] = img;
 	}
+	memset(HISTO_arr, 0, 256 * sizeof(int));
 	for(int y = 0; y < m_Img.GetHeight()-1;y++){
 		for(int x = 0 ; x < m_Img.GetWidth()-1; x++){
 			temp = GRAYIMG[y][x];
 			Second_Img.SetPixel(x,y,RGB(new_Img[temp],new_Img[temp],new_Img[temp]));
 			GRAYIMG[y][x] = new_Img[temp];
+			HISTO_arr[GRAYIMG[y][x]]++;
 		}
 	}
 	mode = 0;
@@ -1048,7 +1062,7 @@ void CMFCGAJADoc::FIND()
 			move--;
 		}
 	}
-	if(count > 200)
+	if(count > 220)
 	{
 		MessageBox(NULL, _T("만원입니다"), _T("축하합니다!"), NULL);
 	}
