@@ -24,12 +24,12 @@ IMPLEMENT_DYNCREATE(CMFCGAJADoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CMFCGAJADoc, CDocument)
 		ON_COMMAND(ID_FILE_OPEN, &CMFCGAJADoc::OnFileOpen)
+		ON_COMMAND(ID_FILE_SAVE, &CMFCGAJADoc::OnFileSave)
 		ON_COMMAND(ID_GRAY, &CMFCGAJADoc::GRAY)
 		ON_COMMAND(ID_Binary, &CMFCGAJADoc::Binary)
 		ON_COMMAND(ID_SLIDER, &CMFCGAJADoc::Slider)
 		ON_COMMAND(ID_SOBEL, &CMFCGAJADoc::Sobel)
 		ON_COMMAND(ID_RGB, &CMFCGAJADoc::HISTO_RGB)
-		ON_COMMAND(ID_ZOOM, &CMFCGAJADoc::ZOOM)
 		ON_COMMAND(ID_STRECHING, &CMFCGAJADoc::HISTO_streching)
 		ON_COMMAND(ID_EQUALIZATION, &CMFCGAJADoc::HISTO_equalization)
 		ON_COMMAND(ID_FIND, &CMFCGAJADoc::FIND)
@@ -194,6 +194,39 @@ void CMFCGAJADoc::OnFileOpen()
 	UpdateAllViews(NULL);// 뷰 갱신
 }
 
+void CMFCGAJADoc::OnFileSave(){
+	TCHAR Filtering[] = TEXT("비트맵 파일(*.bmp)|*.bmp|Jpg 이미지|*.jpg|Png 이미지|*.png|");
+		CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY, Filtering);	//TRUE 읽기, FALSE 저장, 읽기 전용파일은 보이지 않음
+
+		if(IDOK == Dlg.DoModal())
+		{
+			TCHAR img_path[300];
+			lstrcpy(img_path, Dlg.GetPathName());	// 파일의 경로를 img_path에 저장
+
+			switch(Dlg.m_ofn.nFilterIndex)
+			{
+			case 1://bmp
+				{
+					lstrcat(img_path, TEXT(".bmp"));
+					Second_Img.Save(img_path, Gdiplus::ImageFormatBMP);
+					break;
+				}
+			case 2://jpg
+				{
+					lstrcat(img_path, TEXT(".jpg"));
+					Second_Img.Save(img_path, Gdiplus::ImageFormatJPEG);
+					break;
+				}
+			case 3://png
+				{
+					lstrcat(img_path, TEXT(".png"));
+					Second_Img.Save(img_path, Gdiplus::ImageFormatPNG);
+					break;
+				}
+			}
+		}
+}
+
 void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image){
 
 	BYTE *p = (BYTE*)image->GetPixelAddress(x, y);					//포인터 사용하여서 주소 바꿔줌 -> 기존 라이브러리함수 setpixel보다 속도가 빠름
@@ -280,7 +313,22 @@ void CMFCGAJADoc::MAKE_GRAY()
 		{
 			HISTO_B_Img.Destroy();
 		}
-
+		if(!MONEY.IsNull())
+		{
+			MONEY.Destroy();
+		}
+		if(!MONEY_Price.IsNull())
+		{
+			MONEY_Price.Destroy();
+		}
+		if(!MONEY_Price_P.IsNull())
+		{
+			MONEY_Price_P.Destroy();
+		}
+		if(!MONEY_BINARY.IsNull())
+		{
+			MONEY_BINARY.Destroy();
+		}
 		Second_Img.Create(m_Img.GetWidth(), m_Img.GetHeight(), 24); // 24비트 비트맵 생성
 
 		GRAYIMG = new int*[m_Img.GetHeight()];
@@ -870,52 +918,47 @@ void CMFCGAJADoc::HISTO_RGB()
 			MAX_B = HISTO_B[i];
 		}
 	}
-	HISTO_R_Img.Create(255, MAX_R, 24);
-	HISTO_G_Img.Create(255, MAX_G, 24);
-	HISTO_B_Img.Create(255, MAX_B, 24);
+	HISTO_R_Img.Create(256, MAX_R, 24);
+	HISTO_G_Img.Create(256, MAX_G, 24);
+	HISTO_B_Img.Create(256, MAX_B, 24);
 
-	for(int x = 0 ; x < 255 ; x++)
+	for(int x = 0 ; x < 256 ; x++)
 		{
 		for(int y = 0 ; y < MAX_R ; y++)
 		{
 			if(y < HISTO_R[x])
 			{
-				HISTO_R_Img.SetPixel(x,MAX_R-y-1,RGB(255,0,0));
+				SetPixel(x,MAX_R-y-1,0,&HISTO_R_Img);
 			}
 			else
 			{
-				HISTO_R_Img.SetPixel(x,MAX_R-y-1,RGB(255,255,255));
+				SetPixel(x,MAX_R-y-1,255,&HISTO_R_Img);
 			}
 		}
 		for(int y = 0 ; y < MAX_G ; y++)
 		{
 			if(y < HISTO_G[x])
 			{
-				HISTO_G_Img.SetPixel(x,MAX_G-y-1,RGB(0,255,0));
+				SetPixel(x,MAX_G-y-1,0,&HISTO_G_Img);
 			}
 			else
 			{
-				HISTO_G_Img.SetPixel(x,MAX_G-y-1,RGB(255,255,255));
+				SetPixel(x,MAX_G-y-1,255,&HISTO_G_Img);
 			}
 		}
 		for(int y = 0 ; y < MAX_B ; y++)
 		{
 			if(y < HISTO_B[x])
 			{
-				HISTO_B_Img.SetPixel(x,MAX_B-y-1,RGB(0,0,255));
+				SetPixel(x,MAX_B-y-1,0,&HISTO_B_Img);
 			}
 			else
 			{
-				HISTO_B_Img.SetPixel(x,MAX_B-y-1,RGB(255,255,255));
+				SetPixel(x,MAX_B-y-1,255,&HISTO_B_Img);
 			}
 		}
 	}
 	UpdateAllViews(NULL);
-}
-
-void CMFCGAJADoc::ZOOM()
-{
-	ZOOM_flag = false;
 }
 
 void CMFCGAJADoc::FIND()
