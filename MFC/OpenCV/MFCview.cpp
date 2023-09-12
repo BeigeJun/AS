@@ -113,17 +113,17 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 			pDoc->HISTO_Img.StretchBlt(pDC->m_hDC, 21, 371, 268, 318);
 			}
 
-		if (!pDoc->HISTO_R_Img.IsNull()){
+		if (!pDoc->HISTO_B_Img.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
-			pDoc->HISTO_R_Img.StretchBlt(pDC->m_hDC, 911, 31, 288, 218);
+			pDoc->HISTO_B_Img.StretchBlt(pDC->m_hDC, 911, 31, 288, 218);
 			}
 		if (!pDoc->HISTO_G_Img.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
 			pDoc->HISTO_G_Img.StretchBlt(pDC->m_hDC, 911, 281, 288, 218);
 			}
-		if (!pDoc->HISTO_B_Img.IsNull()){
+		if (!pDoc->HISTO_R_Img.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
-			pDoc->HISTO_B_Img.StretchBlt(pDC->m_hDC, 911, 521, 288, 218);
+			pDoc->HISTO_R_Img.StretchBlt(pDC->m_hDC, 911, 521, 288, 218);
 			}
 		if (!pDoc->MONEY.IsNull()){
 			SetStretchBltMode(pDC->m_hDC, HALFTONE);
@@ -147,13 +147,7 @@ void CMFCGAJAView::OnDraw(CDC* pDC)
 		pDC -> SelectStockObject(NULL_BRUSH);
 		pDC -> Rectangle(Old_x_Pos-5,Old_y_Pos-5,x_Pos+5,y_Pos+5);
 	}
-	if(pDoc->money_flag == true)
-	{
-//		pDC -> SelectStockObject(NULL_BRUSH);
-//		pDC -> Rectangle(pDoc->end_x,pDoc->end_y,pDoc->start_x,pDoc->start_y);
 
-		pDoc->money_flag = false;
-	}
 	ReleaseDC(pDC);
 	// TODO: 여기에 원시 데이터에 대한 그리기 코드를 추가합니다.
 }
