@@ -14,14 +14,21 @@ protected: // serialization에서만 만들어집니다.
 // 특성입니다.
 public:
 	CMFCGAJADoc* GetDocument() const;
+
 	CPoint m_Pos;
+	bool Button_flag;
+	int x_Pos;
+	int y_Pos;
+	int Old_x_Pos;
+	int Old_y_Pos;
+	CImage ZOOM_Img;
 // 작업입니다.
 public:
 
 // 재정의입니다.
 public:
 	virtual void OnDraw(CDC* pDC);  // 이 뷰를 그리기 위해 재정의되었습니다.
-	void MOUSE(CDC* pDC);
+	virtual void OnMOUSE(CDC* pDC);
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 protected:
 	virtual BOOL OnPreparePrinting(CPrintInfo* pInfo);
@@ -45,7 +52,13 @@ protected:
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	DECLARE_MESSAGE_MAP()
 public:
+	int what_filter;
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnBinary();
+	afx_msg void OnGray();
+	afx_msg void OnSobel();
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 };
 
 #ifndef _DEBUG  // MFCGAJAView.cpp의 디버그 버전
