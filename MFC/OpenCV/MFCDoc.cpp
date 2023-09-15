@@ -380,13 +380,13 @@ void CMFCGAJADoc::Binary()
 			{
 				if(GRAYIMG[y][x] > sld.SS)
 				{
-					SetPixel(x,y,0,&Second_Img);
-					BINARYIMG[y][x] = 0;
+					SetPixel(x,y,255,&Second_Img);
+					BINARYIMG[y][x] = 255;
 				}
 				else
 				{
-					SetPixel(x,y,255,&Second_Img);
-					BINARYIMG[y][x] = 255;
+					SetPixel(x,y,0,&Second_Img);
+					BINARYIMG[y][x] = 0;
 				}
 			}
 		}
@@ -508,7 +508,7 @@ void CMFCGAJADoc::PROJECTION(int select)
 
 		for(int x = Second_Img.GetWidth()-1 ; x > 0 ; x--)
 		{
-			for(int y = Second_Img.GetHeight()-1 ; y > 0; y--)
+			for(int y = Second_Img.GetHeight()-1 ; y > 0 ; y--)
 			{
 				if(average  < GRAYIMG[y][x])
 				{
