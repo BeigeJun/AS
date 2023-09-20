@@ -8,6 +8,7 @@
 #ifndef SHARED_HANDLERS
 #include "MFCGAJA.h"
 #include "SLD.h"
+#include "SLD2.h"
 #endif
 
 #include "MFCGAJADoc.h"
@@ -33,6 +34,7 @@ BEGIN_MESSAGE_MAP(CMFCGAJADoc, CDocument)
 		ON_COMMAND(ID_STRECHING, &CMFCGAJADoc::HISTO_streching)
 		ON_COMMAND(ID_EQUALIZATION, &CMFCGAJADoc::HISTO_equalization)
 		ON_COMMAND(ID_FIND, &CMFCGAJADoc::FIND)
+		ON_COMMAND(ID_BRIGHT, &CMFCGAJADoc::Bright)
 END_MESSAGE_MAP()
 
 // CMFCGAJADoc 생성/소멸
@@ -145,11 +147,70 @@ void CMFCGAJADoc::Dump(CDumpContext& dc) const
 // CMFCGAJADoc 명령
 
 SLD sld;
+SLD2 sld1;
 
 void CMFCGAJADoc::Slider()
 {
 	sld.SS =128;
 	sld.DoModal();
+}
+
+void CMFCGAJADoc::Bright()
+{
+	sld1.SS1 =128;
+	sld1.DoModal();
+	int bright = sld1.SS1;
+
+		for(int i = 0; i < m_Img.GetWidth(); i++){
+			int sum=0;
+			for(int j = 0; j < m_Img.GetHeight(); j++){
+				int rgb[3];
+				COLORREF pix_data;
+				memcpy(&pix_data, m_Img.GetPixelAddress(i, j), 3);
+				rgb[0] = GetRValue(pix_data);
+				rgb[1] = GetGValue(pix_data);
+				rgb[2] = GetBValue(pix_data);
+				for(int k = 0; k < 3 ; k++){
+					rgb[k] += bright;
+					if(rgb[k] > 255) rgb[k] = 255;
+					else if (rgb[k] < 0) rgb[k] = 0;
+				}
+				pix_data = RGB(rgb[0], rgb[1], rgb[2]);
+				memcpy(m_Img.GetPixelAddress(i, j), &pix_data, 3);
+			}
+		}
+	/*for(int a = 0 ; m_Img.GetHeight()-1 > a ; a++)
+	{
+		for(int b = 0 ; m_Img.GetWidth()-1 > b; b++)
+		{
+			int red, green, blue;
+			COLORREF* color;
+			color = (COLORREF*)m_Img.GetPixelAddress(a,b);
+
+			red = GetRValue(*color);
+			green = GetGValue(*color);
+			blue = GetBValue(*color);
+
+			red += sld1.SS1;
+			green += sld1.SS1;
+			blue += sld1.SS1;
+			if(red > 255)
+			{red=255;}
+			if(green > 255)
+			{green=255;}
+			if(blue > 255)
+			{blue=255;}
+			if(red<0)
+			{red=0;}
+			if(blue<0)
+			{blue=0;}
+			if(green<0)
+			{green=0;}
+			m_Img.SetPixel(a,b,RGB(red,green,blue));
+		}
+	}
+	*/
+	UpdateAllViews(NULL);
 }
 
 void CMFCGAJADoc::OnFileOpen()
