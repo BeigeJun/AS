@@ -215,26 +215,9 @@ void CMFCGAJADoc::Bright()
 
 void CMFCGAJADoc::OnFileOpen()
 {
-	// 파일 오픈!
-	TCHAR strFilter[] = _T("JPEG 이미지|*.jpg|PNG 이미지|*.png|Bitmap 이미지");
+	TCHAR strFilter[] = _T("JPEG 이미지|*.jpg|PNG 이미지|*.png|Bitmap 이미지|*.bmp|Raw 이미지|*.raw|Raw3 이미지|*.raw3|");
 	CFileDialog fileDlg(TRUE, NULL, NULL, OFN_HIDEREADONLY| OFN_FILEMUSTEXIST|OFN_ALLOWMULTISELECT, strFilter);//TRUE 읽기
-	//파일선택 다이로그
-	/*
-	CFileDialog   ( BOOL bOpenFileDialog,
-                    LPCTSTR lpszDefExt = NULL,
-                    LPCTSTR lpszFileName = NULL,
-                    DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-                    LPCTSTR lpszFilter = NULL,
-                    CWnd* pParentWnd = NULL );
 
-	인자값 설명
-	bOpenFileDialog    TRUE면 파일열기, false 면 파일 저장
-	lpszDefExt		   파일 확장자로 선언이 되면 해당하는 확장자를 가진 파일만 나온다.
-	lpszFileName       파일명 에디트 박스에 초기화될 파일명
-	dwFlags(*1)        dialog box 기본 FLAG, m_ofn.Flags에 등록된다
-	lpszFilter         연속된 문자열으로 파일 확장자를 원하는 타입으로 나오게 할수 있다
-	pParentWnd         다이얼로그 소유 윈도우 포인터
-*/
 	//파일열기 대화상자
 	if(IDOK == fileDlg.DoModal())
 	{
@@ -244,48 +227,119 @@ void CMFCGAJADoc::OnFileOpen()
 			m_Img.Destroy();
 		}
 
-
 		CFile file;
-//		switch(fileDlg.m_ofn.nFilterIndex){
-//		default:
-			m_Img.Load(filePath);
-//		}
-	}
+		switch(fileDlg.m_ofn.nFilterIndex){
+		case 4:
+			{
+				int w, h, i, j;
+				BYTE value=0;
+				COLORREF pix_data;
+				file.Open(filePath, CFile::modeRead, NULL);
+				file.Read(&w, 4);
+				file.Read(&h, 4);
+				m_Img.Create(w, h, 24);
 
+				for(i = 0; i < h; i++){
+					for(j = 0; j < w; j++){
+						file.Read(&value, 1);
+						pix_data = RGB(value, value, value);
+						memcpy(m_Img.GetPixelAddress(j, i), &pix_data, 3);
+					}
+				}
+				break;
+				file.Close();
+			}
+		case 5: // raw 컬러 이미지
+			{
+				int w, h, i, j;
+				//BYTE r, g, b;
+				COLORREF pix_data=0;
+				file.Open(filePath, CFile::modeRead, NULL);
+				file.Read(&w, 4);
+				file.Read(&h, 4);
+				m_Img.Create(w, h, 24);
+
+				for(i = 0; i < h; i++){
+					for(j = 0; j < w; j++){
+						file.Read(&pix_data, 3);
+						memcpy(m_Img.GetPixelAddress(j, i), &pix_data, 3);
+					}
+				}
+				break;
+			}
+			file.Close();
+		default:
+			m_Img.Load(filePath);
+		}
+	}
 	UpdateAllViews(NULL);// 뷰 갱신
 }
 
 void CMFCGAJADoc::OnFileSave(){
-	TCHAR Filtering[] = TEXT("비트맵 파일(*.bmp)|*.bmp|Jpg 이미지|*.jpg|Png 이미지|*.png|");
-		CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY, Filtering);	//TRUE 읽기, FALSE 저장, 읽기 전용파일은 보이지 않음
+	if (!m_Img.IsNull()){
+		TCHAR strFilter[] = _T("JPEG 이미지|*.jpg|PNG 이미지|*.png|Bitmap 이미지|*.bmp|Raw 이미지|*.raw|Raw3 이미지|*.raw3|");
+		CFileDialog fileDlg(FALSE, NULL, NULL, OFN_HIDEREADONLY, strFilter);
+		CString filePath;
 
-		if(IDOK == Dlg.DoModal())
-		{
-			TCHAR img_path[300];
-			lstrcpy(img_path, Dlg.GetPathName());	// 파일의 경로를 img_path에 저장
-
-			switch(Dlg.m_ofn.nFilterIndex)
+		if(fileDlg.DoModal() == IDOK)
+		{	
+			filePath = fileDlg.GetPathName();
+			switch(fileDlg.m_ofn.nFilterIndex)
 			{
-			case 1://bmp
+			case 1:
+				filePath += _T(".jpg");
+				m_Img.Save(filePath, Gdiplus::ImageFormatJPEG);
+				break;
+			case 2:
+				filePath += _T(".png");
+				m_Img.Save(fileDlg.GetPathName(), Gdiplus::ImageFormatPNG);
+				break;
+			case 3:
+				filePath += _T(".bmp");
+				m_Img.Save(fileDlg.GetPathName(), Gdiplus::ImageFormatBMP);
+				break;
+			case 4: // raw파일 저장할거야
 				{
-					lstrcat(img_path, TEXT(".bmp"));
-					Second_Img.Save(img_path, Gdiplus::ImageFormatBMP);
+					filePath += _T(".raw");
+					CFile file;
+					int w = m_Img.GetWidth();
+					int h = m_Img.GetHeight();
+					MAKE_GRAY();
+					file.Open(filePath,CFile::modeCreate | CFile::modeWrite, NULL);
+					file.Write(&w, 4);
+					file.Write(&h, 4);
+					for(int i = 0; i < h; i++){
+						for(int j = 0; j < w ; j++){
+							BYTE pix_temp = GRAYIMG[i][j];
+							file.Write(&pix_temp, 1);
+						}
+					}
+					file.Close();
 					break;
 				}
-			case 2://jpg
+			case 5:
 				{
-					lstrcat(img_path, TEXT(".jpg"));
-					Second_Img.Save(img_path, Gdiplus::ImageFormatJPEG);
-					break;
-				}
-			case 3://png
-				{
-					lstrcat(img_path, TEXT(".png"));
-					Second_Img.Save(img_path, Gdiplus::ImageFormatPNG);
+					filePath += _T(".raw3");
+					CFile file;
+					int w = m_Img.GetWidth();
+					int h = m_Img.GetHeight();
+
+					file.Open(filePath,CFile::modeCreate | CFile::modeWrite, NULL);
+					file.Write(&w, 4);
+					file.Write(&h, 4);
+					for(int i = 0; i < h; i++){
+						for(int j = 0; j < w; j++){
+							COLORREF pix_data;
+							memcpy(&pix_data, m_Img.GetPixelAddress(j, i), 3);
+							file.Write(&pix_data, 3);
+						}
+					}
+					file.Close();
 					break;
 				}
 			}
-		}
+		}	
+	}
 }
 
 void CMFCGAJADoc::SetPixel(int x, int y, BYTE color, CImage * image){
