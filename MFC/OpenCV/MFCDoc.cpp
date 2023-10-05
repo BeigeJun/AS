@@ -972,13 +972,6 @@ void CMFCGAJADoc::HISTO_equalization()
 		}
 	}
 	int eq_Max = 0;
-	for(int i = 0; i <256 ; i++)
-	{
-		if(eq_Max < HISTO_arr[i])
-		{
-			eq_Max = HISTO_arr[i];
-		}
-	}
 	int temp;
 	int sum = HISTO_arr[0];
 	int color_sum[256] = {0,};
