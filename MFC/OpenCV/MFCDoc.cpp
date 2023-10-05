@@ -971,14 +971,6 @@ void CMFCGAJADoc::HISTO_equalization()
 			HISTO_arr[num]++;
 		}
 	}
-	int eq_Max = 0;
-	for(int i = 0; i <256 ; i++)
-	{
-		if(eq_Max < HISTO_arr[i])
-		{
-			eq_Max = HISTO_arr[i];
-		}
-	}
 	int temp;
 	int sum = HISTO_arr[0];
 	int color_sum[256] = {0,};
@@ -995,7 +987,7 @@ void CMFCGAJADoc::HISTO_equalization()
 
 	for(int i = 0 ; i < 256 ; i++)
 	{
-		new_Img[i] = ((float)color_sum[i] / total_pixel)*eq_Max;
+		new_Img[i] = ((float)color_sum[i] / total_pixel)*255;
 		int img = new_Img[i]*10;
 		if((img/5)%2 == 0)
 		{
