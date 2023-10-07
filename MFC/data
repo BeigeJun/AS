@@ -17,19 +17,3 @@ https://songminkee.github.io/studyblog/computer%20vision/2020/05/25/hisotogram_e
 https://bkshin.tistory.com/entry/OpenCV-25-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EB%A7%A4%EC%B9%AD-%ED%8F%89%EA%B7%A0-%ED%95%B4%EC%8B%9C-%EB%A7%A4%EC%B9%AD-%ED%85%9C%ED%94%8C%EB%A6%BF-%EB%A7%A4%EC%B9%AD <이미지 매칭>
 https://btw-e-m.tistory.com/2 <숫자 인식>
 https://jeak.tistory.com/entry/MFC-%EC%9D%B4%EB%AF%B8%EC%A7%80-%ED%9A%8C%EC%A0%84%EC%8B%9C%ED%82%A4%EA%B8%B0%EA%B0%81%EB%8F%84-%EC%A1%B0%EC%A0%88 <사진회전>
-raw파일 저장방법
-void saveImageAsRaw(const unsigned char* imageData, int width, int height, const char* filePath) {
-    FILE* file = fopen(filePath, "wb");
-    if (file == NULL) {
-        perror("Failed to open file");
-        return;
-    }
-
-    // Calculate the number of bytes needed to store the image data
-    int dataSize = (width * height) / 8; // For 1-bit per pixel
-
-    // Write image data to the RAW file
-    fwrite(imageData, 1, dataSize, file);
-
-    fclose(file);
-}
