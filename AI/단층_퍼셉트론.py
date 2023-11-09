@@ -1,64 +1,43 @@
 import numpy as np
-num = 10
-tall = [150,156,163,165,168,170,182,183,187,189]
-weight = [35,45,50,54,70,63,75,77,85,90]
-for i in range(10):
-    tall[i] = tall[i]/200
-    weight[i] = weight[i]/100
-Y = np.array(tall)
-X = np.array(weight)
-print(X)
-print(Y)
-w1,w2,b = 0,0,0
-def setwb(wt1,wt2,bt):
-    global w1,w2,b
-    w1,w2,b = wt1,wt2,bt
+import matplotlib.pyplot as plt
 
-def discriminate(x1,x2):
-    if(w1*x1+w2*x2+b<=0):
-        return 0
-    else:
-        return 1
+tall = np.array([150, 156, 163, 165, 168, 170, 182, 183, 187, 189])
+weight = np.array([35, 45, 50, 54, 70, 63, 75, 77, 85, 90])
 
-def test(ds,wt1,wt2,bt):
-    setwb(wt1,wt2,bt)
-    ok,total=0,0
-    for x1,x2,y in ds:
-        if(discriminate(x1,x2)==y):
-            ok+=1
-        total+=1
-        print(total)
-    return ok/total
+data = np.array([
+    [1, 150, 35],
+    [1, 156, 45],
+    [1, 163, 50],
+    [1, 165, 54],
+    [1, 168, 70],
+    [1, 170, 63],
+    [1, 182, 75],
+    [1, 183, 77],
+    [1, 187, 85],
+    [1, 189, 90]
+])
 
-def myr(s,e,st):   #range와 같은 목적, step이 실수
-    r=s
-    while(r<e):
-        yield r
-        r+=st
-def find_wb(ds): #기계 학습
-    for wt1 in myr(0,1,0.1):
-        for wt2 in myr(0,1,0.1):
-            for bt in myr(-1,1,0.1):
-                if(test(ds,wt1,wt2,bt)==1.0):
-                    return True
-    return False
+target_output = np.array([0, 0, 0, 0, 1, 0, 1, 1, 1, 1])
 
-ds_and = [[0,0,0],[0,1,0],[1,0,0],[1,1,1]]
-ds_or = [[0,0,0],[0,1,1],[1,0,0],[1,1,1]]
-ds_xor = [[0,0,0],[0,1,1],[1,0,0],[1,1,0]]
+weights = np.random.rand(3)
+learning_rate = 0.1
+epochs = 1000000
 
+for epoch in range(epochs):
+    output = data.dot(weights)
+    predicted_output = np.where(output <= 0, 0, 1)
+    error = target_output - predicted_output
+    weights += learning_rate * data.T.dot(error)
 
-if find_wb(ds_and):
-    print("w1:{0:.1f} w2:{1:.1f} b:{2:.1f} ## and".format(w1,w2,b))
-else:
-    print("not founded ## and")
+x_values = np.linspace(140, 200, 100)
+y_values = (-weights[1] / weights[2]) * x_values - weights[0] / weights[2]
 
-if find_wb(ds_or):
-    print("w1:{0:.1f} w2:{1:.1f} b:{2:.1f} ## or".format(w1,w2,b))
-else:
-    print("not founded ## or")
+plt.scatter(tall, weight)
 
-if find_wb(ds_xor):
-    print("w1:{0:.1f} w2:{1:.1f} b:{2:.1f} ## xor".format(w1,w2,b))
-else:
-    print("not founded ## xor")
+plt.plot(x_values, y_values, color='red', label='Decision Boundary')
+
+plt.xlabel('Tall')
+plt.ylabel('Weight')
+plt.title('Perceptron Decision Boundary')
+plt.legend()
+plt.show()
