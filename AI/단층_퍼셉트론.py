@@ -1,43 +1,45 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
-tall = np.array([150, 156, 163, 165, 168, 170, 182, 183, 187, 189])
-weight = np.array([35, 45, 50, 54, 70, 63, 75, 77, 85, 90])
+tall = [150,156,163,165,168,170,182,183,187,189]
+weight = [35,45,50,54,70,63,75,77,85,90]
+tall_new = [0,0,0,0,0,0,0,0,0,0]
+weight_new = [0,0,0,0,0,0,0,0,0,0]
+for i in range(10):
+    tall_new[i] = tall[i]/200
+    weight_new[i] = weight[i]/100
+Y = np.array(tall_new)
+X = np.array(weight_new)
 
-data = np.array([
-    [1, 150, 35],
-    [1, 156, 45],
-    [1, 163, 50],
-    [1, 165, 54],
-    [1, 168, 70],
-    [1, 170, 63],
-    [1, 182, 75],
-    [1, 183, 77],
-    [1, 187, 85],
-    [1, 189, 90]
-])
+learning_rate = 0.01
+epochs = 10000
 
-target_output = np.array([0, 0, 0, 0, 1, 0, 1, 1, 1, 1])
-
-weights = np.random.rand(3)
-learning_rate = 0.1
-epochs = 1000000
+weights = np.random.rand(1)
+bias = np.random.rand(1)
 
 for epoch in range(epochs):
-    output = data.dot(weights)
-    predicted_output = np.where(output <= 0, 0, 1)
-    error = target_output - predicted_output
-    weights += learning_rate * data.T.dot(error)
+    for i in range(len(Y)):
+        # 순전파
+        predicted_weight = Y[i] * weights + bias
 
-x_values = np.linspace(140, 200, 100)
-y_values = (-weights[1] / weights[2]) * x_values - weights[0] / weights[2]
+        # 오차 계산
+        error = X[i] - predicted_weight
 
-plt.scatter(tall, weight)
+        # 역전파
+        weights += learning_rate * error * Y[i]
+        bias += learning_rate * error
 
-plt.plot(x_values, y_values, color='red', label='Decision Boundary')
-
-plt.xlabel('Tall')
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(figsize=(5,10))
+plt.scatter(tall, weight, label='Data')
+plt.plot(tall, (Y * weights + bias)*100, color='red')
+plt.xlabel('Height')
 plt.ylabel('Weight')
-plt.title('Perceptron Decision Boundary')
 plt.legend()
 plt.show()
+
+input_height = int(input("예측:"))
+input_height_new = input_height / 200
+output = input_height_new * weights + bias
+predicted_weight = output * 100
+
+print(f"입력한 키 {input_height}에 대한 예측 몸무게: {predicted_weight[0]}")
