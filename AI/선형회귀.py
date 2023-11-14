@@ -17,7 +17,7 @@ Y_mean = Y.mean() #넘파이 평균구하기
 print(X_mean)
 print(Y_mean)
 Plus_all_up = 0
-Plus_all_down = 0;
+Plus_all_down = 0
 for i in range(num):
     Plus_all_up += (int(X[i])-int(X_mean))*(int(Y[i])-int(Y_mean))
     Plus_all_down += (X[i]-X_mean)**2
