@@ -5,8 +5,8 @@ num = 10
 #X = np.random.randint(50,100,size = num)
 tall = [150,156,163,165,168,170,182,183,187,189]
 weight = [35,45,50,54,70,63,75,77,85,90]
-Y = np.array(tall)
-X = np.array(weight)
+X = np.array(tall)
+Y = np.array(weight)
 
 from matplotlib.patches import Polygon
 from pylab import plt,mpl
@@ -30,12 +30,10 @@ fig, ax = plt.subplots(figsize=(5,10))
 plt.scatter(X,Y) #산점도 생성(점그림)
 y = Inc*X+B_julpeun
 plt.plot(X, y, label=f'y = {Inc}x + {B_julpeun}', color='blue')
-plt.ylim(bottom=0) #y축 하단을 0으로 설정해서 그 이하는 출력 못하게 하는것
-plt.xlim(left=0)
-plt.xticks(np.arange(0,100,10))
-plt.yticks(np.arange(0,200,10))
+plt.yticks(np.arange(30,100,10))
+plt.xticks(np.arange(150,200,10))
 plt.show()
 
-Tall = int(input("몸무게 : "))
+Tall = int(input("키 : "))
 y = Inc*Tall+B_julpeun
 print(y)
