@@ -40,7 +40,7 @@ def learn(w1, w2, b):
 
         print(current_error,prev_error)
 
-        if current_error >= prev_error:
+        if current_error >= prev_error - 0.0000000001:
             print(epoch)
             break
 
