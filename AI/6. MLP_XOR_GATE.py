@@ -41,17 +41,17 @@ def learn():
             output[i] = sigmoid(output[i]) #간 다음 각 시그모이드 씌우기
             error = target[i] - output[i]
             total_error += math.pow(error, 2)  # 에러 제곱 합 구하기 (에너지)
-
+            # 시그모이드 미분을 이용하여 출력층과 은닉층 사이의 에러값을 찾음
             delta[2] = error * output[i] * (1 - output[i])  # 가로가 시그모이드 도함수
-
-            for k in range(2):  # 히든 델타 에러 값
-                 delta_error[k] = delta[2] * weight[2][k]
+            #다시한번 시그모이드 도함수를 이용하여 입력층과 은닉층 사이의 에러값을 찾아냄
             for k in range(2): # 히든 델타 값
-                 delta[k] = delta_error[k] * hiddenLayer[k] * (1 - hiddenLayer[k])
+                 delta[k] = delta[2] * weight[2][k] * hiddenLayer[k] * (1 - hiddenLayer[k])
+            
+            #업!데!이!트!
             weight[0][0] += lrate * delta[0] * x1[i]
             weight[0][1] += lrate * delta[0] * x2[i]
-            weight[0][2] += lrate * delta[0]             #change bias
-
+            weight[0][2] += lrate * delta[0]
+            
             weight[1][0] += lrate * delta[1] * x1[i]
             weight[1][1] += lrate * delta[1] * x2[i]
             weight[1][2] += lrate * delta[1]
@@ -59,7 +59,7 @@ def learn():
             weight[2][0] += lrate * delta[2] * hiddenLayer[0]
             weight[2][1] += lrate * delta[2] * hiddenLayer[1]
             weight[2][2] += lrate * delta[2]
-
+        #학습수가 10000의 배수일때만 출력하자~ 눈 아프다
         if(epoch % 10000 == 0):
             print("step : %4d    Error : %7.4f " % (epoch, total_error))
 learn()
@@ -86,15 +86,21 @@ def generate_surface(weight):
 
     return X, Y, Z
 
+# 3D 서피스 생성
 X, Y, Z = generate_surface(weight)
 
+# 3D 그래프 생성
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
+# 서피스 플로팅
 ax.plot_surface(X, Y, Z, cmap='viridis')
 
+# 라벨 및 타이틀 추가
 ax.set_xlabel('X1')
 ax.set_ylabel('X2')
 ax.set_zlabel('Output')
+ax.set_title('I want to go home')
 
+# 그래프 표시
 plt.show()
