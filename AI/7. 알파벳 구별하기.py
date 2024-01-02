@@ -28,19 +28,17 @@ weight_hid1_to_hid2 = np.random.rand(7, 15)
 weight_in_to_hid1 = np.random.rand(15, 25)
 neurons_in_layers = [25, 15, 7, 3]
 biases = [np.random.rand(neurons, 1) for neurons in neurons_in_layers[1:]]
-
+#가중치 초기화 할 때는 -0.5 ~ 0.5로하자
 target = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
 output = [0.0, 0.0, 0.0]
 bias = 1.0
 error = 0.0
 total_error = 0.0
-lrate = 0.1
+lrate = 0.08
 epochs = 100000
 
 
 def Forward_pass(data, w1, w2, w3, b):
-    out_1 = [0.0] * 15  # 초기화
-    out_2 = [0.0] * 7  # 초기화
 
     for i in range(len(w1)):  # 15개의 델타값을 만들어야하니까 15번
         for number in range(len(w1[i])):  # 가중치랑 인풋값 곱학기 25번
@@ -109,18 +107,12 @@ def train(input_data, target_data, w1, w2, w3, b, delta_1, delta_2, lrate, epoch
         if (epoch % 100 == 0):
             print("step : %4d    Error : %7.4f " % (epoch, total_error))
 
-# 가중치 초기화
-weight_in_to_hid1 = np.random.rand(15, 25)
-weight_hid1_to_hid2 = np.random.rand(7, 15)
-weight_hid2_to_out = np.random.rand(3, 7)
-biases = [np.random.rand(neurons, 1) for neurons in neurons_in_layers[1:]]
-
 # 예시 호출
 train(input_data, target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases, out_1, out_2, lrate, epochs)
 
 i = [1.0, 1.0, 1.0, 1.0, 1.0,
-     0.1, 0.1, 1.0, 0.1, 0.1,
-     0.1, 0.1, 1.0, 0.1, 0.1,  # T
+     0.1, 0.1, 1.0, 0.1, 1.0,
+     0.1, 0.1, 1.0, 0.1, 1.0,  # T
      0.1, 0.1, 1.0, 0.1, 0.1,
      0.1, 0.1, 1.0, 0.1, 0.1]
 Forward_pass(i, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases)
