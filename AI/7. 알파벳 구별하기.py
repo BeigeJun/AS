@@ -23,9 +23,9 @@ input_data = [[1.0, 1.0, 1.0, 1.0, 1.0,
 
 out_1 = [0.0] * 15  # 은닉층 1번째 15개
 out_2 = [0.0] * 7  # 은닉층 2번째 7개
-weight_hid2_to_out = np.random.rand(3, 7)
-weight_hid1_to_hid2 = np.random.rand(7, 15)
-weight_in_to_hid1 = np.random.rand(15, 25)
+weight_hid2_to_out = np.random.uniform(low=-0.5, high=0.5, size=(3, 7))
+weight_hid1_to_hid2 = np.random.uniform(low=-0.5, high=0.5, size=(7, 15))
+weight_in_to_hid1 = np.random.uniform(low=-0.5, high=0.5, size=(15, 25))
 neurons_in_layers = [25, 15, 7, 3]
 biases = [np.random.rand(neurons, 1) for neurons in neurons_in_layers[1:]]
 #가중치 초기화 할 때는 -0.5 ~ 0.5로하자
@@ -34,9 +34,25 @@ output = [0.0, 0.0, 0.0]
 bias = 1.0
 error = 0.0
 total_error = 0.0
-lrate = 0.08
-epochs = 100000
+lrate = 0.05
+epochs = 20000
 
+def weight_write(epoch,total_error, w1, w2, w3):
+    f = open("C:/Users/wns20/PycharmProjects/pythonProject10/weight.txt", 'w')
+    write = "epoch : %d, error : %f \n w1 : " % (epoch, total_error)
+    for i in range(len(w1)):
+        for j in range(len(w1[i])):
+            write += "%.1f " % w1[i][j]
+    write += "\n w2 : "
+    for i in range(len(w2)):
+        for j in range(len(w2[i])):
+            write += "%.1f " % w2[i][j]
+    write += "\n w3 : "
+    for i in range(len(w3)):
+        for j in range(len(w3[i])):
+            write += "%.1f " % w3[i][j]
+    f.write(write)
+    f.close()
 
 def Forward_pass(data, w1, w2, w3, b):
 
@@ -106,14 +122,14 @@ def train(input_data, target_data, w1, w2, w3, b, delta_1, delta_2, lrate, epoch
         #학습수가 10000의 배수일때만 출력하자~ 눈 아프다
         if (epoch % 100 == 0):
             print("step : %4d    Error : %7.4f " % (epoch, total_error))
-
+            weight_write(epoch,total_error, w1, w2, w3)
 # 예시 호출
 train(input_data, target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases, out_1, out_2, lrate, epochs)
 
-i = [1.0, 1.0, 1.0, 1.0, 1.0,
-     0.1, 0.1, 1.0, 0.1, 1.0,
-     0.1, 0.1, 1.0, 0.1, 1.0,  # T
-     0.1, 0.1, 1.0, 0.1, 0.1,
-     0.1, 0.1, 1.0, 0.1, 0.1]
+i = [1.0, 0.1, 0.1, 0.1, 1.0,
+      1.0, 0.1, 0.1, 0.1, 1.0,
+      1.0, 1.0, 1.0, 1.0, 1.0,  # H
+      1.0, 0.1, 1.0, 0.1, 0.1,
+      1.0, 0.1, 1.0, 0.1, 1.0]
 Forward_pass(i, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases)
 print(output)
