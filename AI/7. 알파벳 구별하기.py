@@ -79,21 +79,27 @@ def Backward_pass(data, target, w1, w2, w3, b, out_1, out_2, output, lrate):
     first_error = 0
     second_error = 0
     third_error = 0
+    # --------------출력층에서 에러 구하고 그 밑 은닉층_2을 이어주는 가중치 업데이트-----------------
     for i in range(len(w3)): #3번 반복
         first_error = target[i] - output[i] #출력층 에러 구하기
         delta_1[i] = first_error * output[i] * (1 - output[i]) #델타값 구하기
+
         for j in range(len(w3[i])): #7번 반복
             w3[i][j] += lrate * delta_1[i] * out_2[j]
+
         b[2][i] += lrate * delta_1[i]
-    #--------------출력층에서 에러 구하고 그 밑 은닉층_2을 이어주는 가중치 업데이트-----------------
+    # ----------------------은닉층_2 -> 은닉층_1 로 가는 가중치 없데이트 -----------------------
     for i in range(len(w2)): #7번
         for j in range(len(w3)): #3번
             second_error += delta_1[j] * w3[j][i]
+
         delta_2[i] = second_error * out_2[i] * (1 - out_2[i])
+
         for number in range(len(w2[i])):
             w2[i][number] += lrate * delta_2[i] * out_1[number]
-        b[1][i] += lrate * delta_2[i]
 
+        b[1][i] += lrate * delta_2[i]
+    # ---------------------은닉층_1 -> 입력층 가중치 업데이트---------------------------------
     for i in range(len(w1)):
         for j in range(len(w2)):
             third_error += delta_2[j] * w2[j][i]
@@ -102,32 +108,36 @@ def Backward_pass(data, target, w1, w2, w3, b, out_1, out_2, output, lrate):
 
         for number in range(len(w1[i])):
             w1[i][number] += lrate * delta_3[i] * data[number]
-        b[0][i] += lrate * delta_3[i]
 
-def train(input_data, target_data, w1, w2, w3, b, delta_1, delta_2, lrate, epochs):
+        b[0][i] += lrate * delta_3[i]
+def train(input_data, target_data, w1, w2, w3, b, lrate, epochs):
+    minimun_error = 10.0
+    comparison_error = 10.0
     for epoch in range(epochs):
         total_error = 0.0
         for i in range(len(input_data)):
             #순전파
             Forward_pass(input_data[i], w1, w2, w3, b)
-
             #에너지 구하기
             error = 0.0
             for j in range(len(target_data[i])):
                 error += 0.5 * (target_data[i][j] - output[j]) ** 2
             total_error += error
-
+            comparison_error = total_error
             #역전파
             Backward_pass(input_data[i], target_data[i], w1, w2, w3, b, out_1, out_2, output, lrate)
         #학습수가 10000의 배수일때만 출력하자~ 눈 아프다
         if (epoch % 100 == 0):
             print("step : %4d    Error : %7.4f " % (epoch, total_error))
+        #에러가 전에 나온 에러보다 제일 작을 때만 텍스트 파일에 저장하기
+        if(minimun_error > comparison_error):
+            minimun_error = comparison_error
             weight_write(epoch,total_error, w1, w2, w3)
 # 예시 호출
-train(input_data, target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases, out_1, out_2, lrate, epochs)
+train(input_data, target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases, lrate, epochs)
 
-i = [1.0, 0.1, 0.1, 0.1, 1.0,
-      1.0, 0.1, 0.1, 0.1, 1.0,
+i = [1.0, 0.1, 1.0, 0.1, 1.0,
+      1.0, 0.1, 1.0, 0.1, 1.0,
       1.0, 1.0, 1.0, 1.0, 1.0,  # H
       1.0, 0.1, 1.0, 0.1, 0.1,
       1.0, 0.1, 1.0, 0.1, 1.0]
