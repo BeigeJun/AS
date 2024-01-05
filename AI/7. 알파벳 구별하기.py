@@ -39,7 +39,7 @@ epochs = 20000
 
 def weight_write(epoch,total_error, w1, w2, w3):
     f = open("C:/Users/wns20/PycharmProjects/pythonProject10/weight.txt", 'w')
-    write = "epoch : %d, error : %f \n w1 : " % (epoch, total_error)
+    write = "error : %f \n w1 : " % total_error
     for i in range(len(w1)):
         for j in range(len(w1[i])):
             write += "%.1f " % w1[i][j]
@@ -133,13 +133,4 @@ def train(input_data, target_data, w1, w2, w3, b, lrate, epochs):
         if(minimun_error > comparison_error):
             minimun_error = comparison_error
             weight_write(epoch,total_error, w1, w2, w3)
-# 예시 호출
 train(input_data, target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases, lrate, epochs)
-
-i = [1.0, 0.1, 1.0, 0.1, 1.0,
-      1.0, 0.1, 1.0, 0.1, 1.0,
-      1.0, 1.0, 1.0, 1.0, 1.0,  # H
-      1.0, 0.1, 1.0, 0.1, 0.1,
-      1.0, 0.1, 1.0, 0.1, 1.0]
-Forward_pass(i, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases)
-print(output)
