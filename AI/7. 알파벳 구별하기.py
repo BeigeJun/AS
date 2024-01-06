@@ -27,7 +27,7 @@ weight_hid2_to_out = np.random.uniform(low=-0.5, high=0.5, size=(3, 7))
 weight_hid1_to_hid2 = np.random.uniform(low=-0.5, high=0.5, size=(7, 15))
 weight_in_to_hid1 = np.random.uniform(low=-0.5, high=0.5, size=(15, 25))
 neurons_in_layers = [25, 15, 7, 3]
-biases = [np.random.rand(neurons, 1) for neurons in neurons_in_layers[1:]]
+biases = [2 * np.random.rand(neurons, 1) - 1 for neurons in neurons_in_layers[1:]]
 #가중치 초기화 할 때는 -0.5 ~ 0.5로하자
 target = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
 output = [0.0, 0.0, 0.0]
@@ -37,7 +37,7 @@ total_error = 0.0
 lrate = 0.05
 epochs = 20000
 
-def weight_write(epoch,total_error, w1, w2, w3):
+def weight_write(epoch,total_error, w1, w2, w3, b):
     f = open("C:/Users/wns20/PycharmProjects/pythonProject10/weight.txt", 'w')
     write = "error : %f \n w1 : " % total_error
     for i in range(len(w1)):
@@ -51,6 +51,10 @@ def weight_write(epoch,total_error, w1, w2, w3):
     for i in range(len(w3)):
         for j in range(len(w3[i])):
             write += "%.1f " % w3[i][j]
+    write += "\n biases : "
+    for i in range(len(biases)):
+        for j in range(len(biases[i])):
+            write += "%.1f " % biases[i][j]
     f.write(write)
     f.close()
 
@@ -132,5 +136,6 @@ def train(input_data, target_data, w1, w2, w3, b, lrate, epochs):
         #에러가 전에 나온 에러보다 제일 작을 때만 텍스트 파일에 저장하기
         if(minimun_error > comparison_error):
             minimun_error = comparison_error
-            weight_write(epoch,total_error, w1, w2, w3)
+            weight_write(epoch,total_error, w1, w2, w3, b)
+# 예시 호출
 train(input_data, target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases, lrate, epochs)
