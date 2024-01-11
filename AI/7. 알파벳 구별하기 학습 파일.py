@@ -34,7 +34,7 @@ target = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
 bias = 1.0
 error = 0.0
 total_error = 0.0
-lrate = 0.01
+lrate = 0.05
 epochs = 100000
 
 def weight_write(epoch,total_error, w1, w2, w3, b):
@@ -67,13 +67,20 @@ def Forward_pass(data, w1, w2, w3, b):
     forward_pass(data, w2, b, 1, out_2)
     forward_pass(data, w3, b, 2, output)
     return out_1 , out_2 , output
+def delta_rule(weight1,weight2,b,b_num,delta_1,delta_2,lrate,out_1,out_2):
+    error = 0
+    for i in range(len(weight1)):
+        for j in range(len(weight2)):
+            error += delta_1[j] * weight2[j][i]
+        delta_2[i] = error * out_2[i] * (1 - out_2[i])
+        for number in range(len(weight1[i])):
+            weight1[i][number] += lrate * delta_2[i] * out_1[number]
+        b[b_num][i] += lrate * delta_2[i]
+
 def Backward_pass(data, target, w1, w2, w3, b, out_1, out_2, output, lrate):
     delta_1 = np.zeros(len(w3))
     delta_2 = np.zeros(len(w2))
     delta_3 = np.zeros(len(w1))
-    first_error = 0
-    second_error = 0
-    third_error = 0
     # --------------출력층에서 에러 구하고 그 밑 은닉층_2을 이어주는 가중치 업데이트-----------------
     for i in range(len(w3)): #3번 반복
         first_error = target[i] - output[i] #출력층 에러 구하기
@@ -84,28 +91,10 @@ def Backward_pass(data, target, w1, w2, w3, b, out_1, out_2, output, lrate):
 
         b[2][i] += lrate * delta_1[i]
     # ----------------------은닉층_2 -> 은닉층_1 로 가는 가중치 없데이트 -----------------------
-    for i in range(len(w2)): #7번
-        for j in range(len(w3)): #3번
-            second_error += delta_1[j] * w3[j][i]
-
-        delta_2[i] = second_error * out_2[i] * (1 - out_2[i])
-
-        for number in range(len(w2[i])):
-            w2[i][number] += lrate * delta_2[i] * out_1[number]
-
-        b[1][i] += lrate * delta_2[i]
+    delta_rule(w2, w3, b, 1, delta_1, delta_2,lrate,out_1,out_2)
     # ---------------------은닉층_1 -> 입력층 가중치 업데이트---------------------------------
-    for i in range(len(w1)):
-        for j in range(len(w2)):
-            third_error += delta_2[j] * w2[j][i]
+    delta_rule(w1, w2, b, 0, delta_2, delta_3, lrate, data, out_1)
 
-        delta_3[i] = third_error * out_1[i] * (1 - out_1[i])
-
-        for number in range(len(w1[i])):
-            w1[i][number] += lrate * delta_3[i] * data[number]
-
-        b[0][i] += lrate * delta_3[i]
-        return w1,w2,w3,b
 def train(input_data, target_data, w1, w2, w3, b, lrate, epochs):
     minimun_error = 10.0
     comparison_error = 10.0
