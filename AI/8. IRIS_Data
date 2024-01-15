@@ -1,20 +1,35 @@
 import numpy as np
 from sklearn.datasets import load_iris
+import pandas as pd
 def sigmoid(data):
     return 1.0 / (1.0 + np.exp(-data))
 
-target = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+Iris = load_iris()
+Iris_Data = pd.DataFrame(data=Iris['data'], columns= Iris['feature_names'])
+Iris_Target = pd.DataFrame(data=Iris['target'],columns = ['target'])
+Iris_Target.replace([0,1,2],Iris['target_names'],inplace=True)
 
-out_1 = [0.0] * 3
-out_2 = [0.0] * 3
-output = [0.0, 0.0, 0.0]
+Target = np.array([])
+
+for i in range(len(Iris_Target)):
+    if(Iris_Target['target'].iloc[i] == 'setosa'):
+        Target = np.vstack([Target, [1.0, 0.0, 0.0]]) if Target.size else np.array([[1.0, 0.0, 0.0]])
+    elif(Iris_Target['target'].iloc[i] == 'versicolor'):
+        Target = np.vstack([Target, [0.0, 1.0, 0.0]]) if Target.size else np.array([[0.0, 1.0, 0.0]])
+    elif(Iris_Target['target'].iloc[i] == 'virginica'):
+        Target = np.vstack([Target, [0.0, 0.0, 1.0]]) if Target.size else np.array([[0.0, 0.0, 1.0]])
+
+
+
+out_1 = np.array([0.0] * 3)
+out_2 = np.array([0.0] * 3)
+output = np.array([0.0, 0.0, 0.0])
 weight_hid2_to_out = np.random.uniform(low=-0.5, high=0.5, size=(3, 3))
 weight_hid1_to_hid2 = np.random.uniform(low=-0.5, high=0.5, size=(3, 3))
 weight_in_to_hid1 = np.random.uniform(low=-0.5, high=0.5, size=(3, 4))
 neurons_in_layers = [25, 15, 7, 3]
 biases = [2 * np.random.rand(neurons, 1) - 1 for neurons in neurons_in_layers[1:]]
 #가중치 초기화 할 때는 -0.5 ~ 0.5로하자
-target = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
 bias = 1.0
 error = 0.0
 total_error = 0.0
@@ -62,19 +77,19 @@ def train(input_data, target_data, w1, w2, w3, b, lrate, epochs):
     for epoch in range(epochs):
         total_error = 0.0
         for i in range(len(input_data)):
-            #순전파
-            out_1, out_2, output = Forward_pass(input_data[i], w1, w2, w3, b)
-            #에너지 구하기
+            # 순전파
+            out_1, out_2, output = Forward_pass(input_data.iloc[i].values, w1, w2, w3, b)  # DataFrame을 NumPy 배열로 변환
+            # 에너지 구하기
             error = 0.0
             for j in range(len(target_data[i])):
                 error += 0.5 * (target_data[i][j] - output[j]) ** 2
             total_error += error
             comparison_error = total_error
-            #역전파
-            Backward_pass(input_data[i], target_data[i], w1, w2, w3, b, out_1, out_2, output, lrate)
-        #학습수가 10000의 배수일때만 출력하자~ 눈 아프다
+            # 역전파
+            Backward_pass(input_data.iloc[i].values, target_data[i], w1, w2, w3, b, out_1, out_2, output, lrate)
+        # 학습 수가 10000의 배수일 때만 출력하자
         if (epoch % 100 == 0):
             print("step : %4d    Error : %7.4f " % (epoch, total_error))
-        #에러가 전에 나온 에러보다 제일 작을 때만 텍스트 파일에 저장하기
+        # 에러가 전에 나온 에러보다 제일 작을 때만 텍스트 파일에 저장하기
 
-train(input_data, target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases, lrate, epochs)
+train(Iris_Data, Target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases, lrate, epochs)
