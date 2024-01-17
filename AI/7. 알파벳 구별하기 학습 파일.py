@@ -32,9 +32,11 @@ error = 0.0
 total_error = 0.0
 lrate = 0.1
 epochs = 100000
-
+out_1 = [0.0] * 15  # 은닉층 1번째 15개
+out_2 = [0.0] * 7  # 은닉층 2번째 7개
+output = [0.0, 0.0, 0.0]
 def weight_write(total_error, w1, w2, w3):
-    f = open("C:/Users/wns20/PycharmProjects/pythonProject10/weight.txt", 'w')
+    f = open("C:/Users/SeoJun/PycharmProjects/pythonProject2/weight.txt", 'w')
     write = "error : %f \n w1 : " % total_error
     for i in range(len(w1)):
         for j in range(len(w1[i])):
@@ -62,8 +64,8 @@ def forward_pass(data, w, b, bias_num, out):
 
 def Forward_pass(data, w1, w2, w3, b):
     out_1 = forward_pass(data, w1, b, 0, [0.0] * 15)
-    out_2 = forward_pass(data, w2, b, 1, [0.0] * 7)
-    output = forward_pass(data, w3, b, 2, [0.0, 0.0, 0.0])
+    out_2 = forward_pass(out_1, w2, b, 1, [0.0] * 7)
+    output = forward_pass(out_2, w3, b, 2, [0.0, 0.0, 0.0])
     return out_1, out_2, output
 
 def delta_rule(weight1, weight2, b, b_num, delta_1, delta_2, lrate, out_1, out_2):
@@ -93,7 +95,7 @@ def Backward_pass(data, target, w1, w2, w3, b, out1, out2, out_put, lrate):
     delta_1, w3 = first_delta_rule(w3, b, 2, delta_1, target, out_put, out2)
     delta_2, w2 = delta_rule(w2, w3, b, 1, delta_1, delta_2, lrate, out1, out2)
     delta_3, w1 = delta_rule(w1, w2, b, 0, delta_2, delta_3, lrate, data, out1)
-    return delta_1, delta_2, delta_3, w1, w2, w3
+    return w1, w2, w3
 
 def train(input_data, target_data, w1, w2, w3, b, lrate, epochs):
     minimum_error = 10.0
@@ -107,7 +109,7 @@ def train(input_data, target_data, w1, w2, w3, b, lrate, epochs):
                 error += 0.5 * (target_data[i][j] - output[j]) ** 2
             total_error += error
             comparison_error = total_error
-            delta_1, delta_2, delta_3, w1, w2, w3 = Backward_pass(input_data[i], target_data[i], w1, w2, w3, b, out_1, out_2, output, lrate)
+            w1, w2, w3 = Backward_pass(input_data[i], target_data[i], w1, w2, w3, b, out_1, out_2, output, lrate)
         if epoch % 100 == 0:
             print("step : %4d    Error : %7.4f " % (epoch, total_error))
         if minimum_error > comparison_error:
