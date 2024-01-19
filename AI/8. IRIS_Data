@@ -1,37 +1,36 @@
 import numpy as np
 from sklearn.datasets import load_iris
 import pandas as pd
+
 def sigmoid(data):
     return 1.0 / (1.0 + np.exp(-data))
 
-file = "C:/Users/SeoJun/PycharmProjects/pythonProject2/DataSet.csv"
-df = pd.read_csv(file)
-selected_columns = df.iloc[:, 1:-1]  # 1부터 마지막 열까지 선택
-Data = pd.DataFrame(selected_columns)
-selected_columns = df.iloc[:, -1:]
-Iris_Target = pd.DataFrame(selected_columns)
+Iris = load_iris()
+
+Iris_Data = pd.DataFrame(data=Iris['data'], columns=Iris['feature_names'])
+Iris_Target = pd.DataFrame(data=Iris['target'], columns=['target'])
+Iris_Target.replace({0: 'setosa', 1: 'versicolor', 2: 'virginica'}, inplace=True)
+
 Target = np.array([])
 for i in range(len(Iris_Target)):
-    if(Iris_Target['Species'].iloc[i] == 'setosa'):
+    if(Iris_Target['target'].iloc[i] == 'setosa'):
         Target = np.vstack([Target, [1.0, 0.0, 0.0]]) if Target.size else np.array([[1.0, 0.0, 0.0]])
-    elif(Iris_Target['Species'].iloc[i] == 'versicolor'):
+    elif Iris_Target['target'].iloc[i] == 'versicolor':
         Target = np.vstack([Target, [0.0, 1.0, 0.0]]) if Target.size else np.array([[0.0, 1.0, 0.0]])
-    elif(Iris_Target['Species'].iloc[i] == 'virginica'):
+    elif Iris_Target['target'].iloc[i] == 'virginica':
         Target = np.vstack([Target, [0.0, 0.0, 1.0]]) if Target.size else np.array([[0.0, 0.0, 1.0]])
-print(Target)
-weight_hid2_to_out = np.random.uniform(low=-5.0, high=5.0, size=(3, 4))
-weight_hid1_to_hid2 = np.random.uniform(low=-5.0, high=5.0, size=(4, 4))
-weight_in_to_hid1 = np.random.uniform(low=-5.0, high=5.0, size=(4, 4))
-neurons_in_layers = [4, 4, 4, 3]
+
+weight_hid3_to_out = np.random.uniform(low=-5.0, high=5.0, size=(3, 5))
+weight_hid2_to_hid3 = np.random.uniform(low=-5.0, high=5.0, size=(5, 7))
+weight_hid1_to_hid2 = np.random.uniform(low=-5.0, high=5.0, size=(7, 10))
+weight_in_to_hid1 = np.random.uniform(low=-5.0, high=5.0, size=(10, 4))
+neurons_in_layers = [4, 10, 7, 5, 3]
 biases = [2 * np.random.rand(neurons, 1) - 1 for neurons in neurons_in_layers[1:]]
 bias = 1.0
 error = 0.0
 total_error = 0.0
 lrate = 0.1
 epochs = 20000
-out_1 = [0.0] * 4  # 은닉층 1번째 15개
-out_2 = [0.0] * 4  # 은닉층 2번째 7개
-output = [0.0, 0.0, 0.0]
 
 def forward_pass(data, w, b, bias_num, out):
     for i in range(len(w)):
@@ -40,11 +39,12 @@ def forward_pass(data, w, b, bias_num, out):
         out[i] = sigmoid(out[i] + b[bias_num][i])
     return out
 
-def Forward_pass(data, w1, w2, w3, b):
-    out_1 = forward_pass(data, w1, b, 0, [0.0] * 4)
-    out_2 = forward_pass(out_1, w2, b, 1, [0.0] * 4)
-    output = forward_pass(out_2, w3, b, 2, [0.0, 0.0, 0.0])
-    return out_1, out_2, output
+def Forward_pass(data, w1, w2, w3,w4, b):
+    out_1 = forward_pass(data, w1, b, 0, [0.0] * 10)
+    out_2 = forward_pass(out_1, w2, b, 1, [0.0] * 7)
+    out_3 = forward_pass(out_2, w3, b, 2, [0.0] * 5)
+    output = forward_pass(out_3, w4, b, 3, [0.0, 0.0, 0.0])
+    return out_1, out_2, out_3, output
 
 
 def delta_rule(weight1, weight2, b, b_num, delta_1, delta_2, lrate, out_1, out_2):
@@ -69,26 +69,28 @@ def first_delta_rule(weight, b, b_num, delta, target, output, out_2):
     return delta, weight
 
 
-def Backward_pass(data, target, w1, w2, w3, b, out1, out2, out_put, lrate):
-    delta_1 = np.zeros(len(w3))
-    delta_2 = np.zeros(len(w2))
-    delta_3 = np.zeros(len(w1))
-    delta_1, w3 = first_delta_rule(w3, b, 2, delta_1, target, out_put, out2)
-    delta_2, w2 = delta_rule(w2, w3, b, 1, delta_1, delta_2, lrate, out1, out2)
-    delta_3, w1 = delta_rule(w1, w2, b, 0, delta_2, delta_3, lrate, data, out1)
-    return w1, w2, w3
+def Backward_pass(data, target, w1, w2, w3, w4, b, out1, out2, out3, out_put, lrate):
+    delta_1 = np.zeros(len(w4))
+    delta_2 = np.zeros(len(w3))
+    delta_3 = np.zeros(len(w2))
+    delta_4 = np.zeros(len(w1))
+    delta_1, w4 = first_delta_rule(w4, b, 3, delta_1, target, out_put, out3)
+    delta_2, w3 = delta_rule(w3, w4, b, 2, delta_1, delta_2, lrate, out2, out3)
+    delta_3, w2 = delta_rule(w2, w3, b, 1, delta_2, delta_3, lrate, out1, out2)
+    delta_4, w1 = delta_rule(w1, w2, b, 0, delta_3, delta_4, lrate, data, out1)
+    return w1, w2, w3, w4
 
-def train(input_data, target_data, w1, w2, w3, b, lrate, epochs):
+def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
     for epoch in range(epochs):
         total_error = 0.0
         for i in range(len(input_data)):
-            out_1, out_2, output = Forward_pass(input_data.iloc[i].values, w1, w2, w3, b)
+            out_1, out_2, out_3, output = Forward_pass(input_data.iloc[i].values, w1, w2, w3,w4, b)
             error = 0.0
             for j in range(len(target_data[i])):
                 error += 0.5 * (target_data[i][j] - output[j]) ** 2
             total_error += error
-            w1, w2, w3 = Backward_pass(input_data.iloc[i].values, target_data[i], w1, w2, w3, b, out_1, out_2, output, lrate)
+            w1, w2, w3, w4 = Backward_pass(input_data.iloc[i].values, target_data[i], w1, w2, w3, w4, b, out_1, out_2, out_3, output, lrate)
         if epoch % 100 == 0:
             print("step : %4d    Error : %7.4f " % (epoch, total_error))
 
-train(Data, Target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases, lrate, epochs)
+train(Iris_Data, Target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
