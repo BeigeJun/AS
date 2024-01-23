@@ -19,11 +19,16 @@ input_data = [[1.0, 1.0, 1.0, 1.0, 1.0,
                1.0, 1.0, 1.0, 1.0, 1.0,  # H
                1.0, 0.1, 0.1, 0.1, 0.1,
                1.0, 0.1, 0.1, 0.1, 1.0]]
+input_num = 25
+out1_num = 15
+out2_num = 7
+out_num = 3
 
-weight_hid2_to_out = np.random.uniform(low=-5.0, high=5.0, size=(3, 7))
-weight_hid1_to_hid2 = np.random.uniform(low=-5.0, high=5.0, size=(7, 15))
-weight_in_to_hid1 = np.random.uniform(low=-5.0, high=5.0, size=(15, 25))
-neurons_in_layers = [25, 15, 7, 3]
+
+weight_hid2_to_out = np.random.uniform(low=-5.0, high=5.0, size=(out_num, out2_num))
+weight_hid1_to_hid2 = np.random.uniform(low=-5.0, high=5.0, size=(out2_num, out1_num))
+weight_in_to_hid1 = np.random.uniform(low=-5.0, high=5.0, size=(out1_num, input_num))
+neurons_in_layers = [input_num, out1_num, out2_num, out_num]
 biases = [2 * np.random.rand(neurons, 1) - 1 for neurons in neurons_in_layers[1:]]
 #가중치 초기화 할 때는 -0.5 ~ 0.5로하자
 target = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
@@ -31,12 +36,12 @@ bias = 1.0
 error = 0.0
 total_error = 0.0
 lrate = 0.1
-epochs = 20000
-out_1 = [0.0] * 15  # 은닉층 1번째 15개
-out_2 = [0.0] * 7  # 은닉층 2번째 7개
-output = [0.0, 0.0, 0.0]
+epochs = 100000
+out_1 = [0.0] * out1_num  # 은닉층 1번째 15개
+out_2 = [0.0] * out2_num  # 은닉층 2번째 7개
+output = [0.0] * out_num
 def weight_write(total_error, w1, w2, w3,b):
-    f = open("C:/Users/SeoJun/PycharmProjects/pythonProject2/weight.txt", 'w')
+    f = open("C:/Users/SeoJun/PycharmProjects/pythonProject3/weight.txt", 'w')
     write = "error : %f \n w1 : " % total_error
     for i in range(len(w1)):
         for j in range(len(w1[i])):
@@ -63,9 +68,9 @@ def forward_pass(data, w, b, bias_num, out):
     return out
 
 def Forward_pass(data, w1, w2, w3, b):
-    out_1 = forward_pass(data, w1, b, 0, [0.0] * 15)
-    out_2 = forward_pass(out_1, w2, b, 1, [0.0] * 7)
-    output = forward_pass(out_2, w3, b, 2, [0.0, 0.0, 0.0])
+    out_1 = forward_pass(data, w1, b, 0, [0.0] * out1_num)
+    out_2 = forward_pass(out_1, w2, b, 1, [0.0] * out2_num)
+    output = forward_pass(out_2, w3, b, 2, [0.0] * out_num)
     return out_1, out_2, output
 
 def delta_rule(weight1, weight2, b, b_num, delta_1, delta_2, lrate, out_1, out_2):
@@ -108,47 +113,13 @@ def train(input_data, target_data, w1, w2, w3, b, lrate, epochs):
             for j in range(len(target_data[i])):
                 error += 0.5 * (target_data[i][j] - output[j]) ** 2
             total_error += error
+            total_error = total_error / 3
             comparison_error = total_error
             w1, w2, w3 = Backward_pass(input_data[i], target_data[i], w1, w2, w3, b, out_1, out_2, output, lrate)
         if epoch % 100 == 0:
-            print("step : %4d    Error : %7.4f " % (epoch, total_error))
+            print("step : %4d    Error : %7.10f " % (epoch, total_error))
         if minimum_error > comparison_error:
             minimum_error = comparison_error
             weight_write(total_error, w1, w2, w3,b)
 
 train(input_data, target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases, lrate, epochs)
-input_data = [[1.0, 1.0, 1.0, 1.0, 1.0,
-               1.0, 0.1, 1.0, 1.0, 0.1,
-               1.0, 0.1, 1.0, 0.1, 0.1,  # T
-               0.1, 0.1, 1.0, 0.1, 0.1,
-               0.1, 0.1, 1.0, 0.1, 0.1],
-              [1.0, 1.0, 1.0, 1.0, 1.0,
-               1.0, 0.1, 1.0, 0.1, 0.1,
-               0.1, 0.1, 1.0, 0.1, 0.1,  # T
-               0.1, 0.1, 1.0, 0.1, 0.1,
-               0.1, 0.1, 1.0, 0.1, 0.1],
-              [1.0, 1.0, 1.0, 1.0, 1.0,
-               0.1, 0.1, 0.1, 0.1, 0.1,
-               1.0, 1.0, 1.0, 1.0, 1.0,  # E
-               1.0, 0.1, 0.1, 0.1, 0.1,
-               1.0, 1.0, 1.0, 1.0, 1.0],
-              [1.0, 1.0, 1.0, 1.0, 1.0,
-               1.0, 0.1, 0.1, 0.1, 0.1,
-               1.0, 1.0, 1.0, 1.0, 0.1,  # E
-               1.0, 0.1, 0.1, 0.1, 0.1,
-               1.0, 1.0, 1.0, 1.0, 1.0],
-              [1.0, 0.1, 0.1, 0.1, 1.0,
-               1.0, 0.1, 0.1, 0.1, 1.0,
-               1.0, 1.0, 1.0, 1.0, 1.0,  # H
-               1.0, 0.1, 0.1, 0.1, 0.1,
-               1.0, 0.1, 0.1, 1.0, 1.0],
-              [1.0, 1.0, 1.0, 1.0, 1.0,
-               1.0, 1.0, 1.0, 1.0, 1.0,
-               1.0, 1.0, 1.0, 1.0, 1.0,  # H
-               1.0, 1.0, 1.0, 1.0, 1.0,
-               1.0, 1.0, 1.0, 1.0, 1.0]
-              ]
-while True:
-    i = int(input("실험할 데이터 선택 : "))
-    a,b,c = Forward_pass(input_data[i-1], weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_out, biases)
-    print(c)
