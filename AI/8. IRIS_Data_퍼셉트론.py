@@ -11,6 +11,19 @@ Iris_Data = pd.DataFrame(data=Iris['data'], columns=Iris['feature_names'])
 Iris_Target = pd.DataFrame(data=Iris['target'], columns=['target'])
 Iris_Target.replace({0: 'setosa', 1: 'versicolor', 2: 'virginica'}, inplace=True)
 
+test = []
+test.append(Iris_Data)
+Test = np.array(test)
+Test = Test.reshape(150,4)
+
+iris_data = np.array([])
+iris_data_slices = []
+iris_data_slices.append(Iris_Data.iloc[:40])
+iris_data_slices.append(Iris_Data.iloc[50:90])
+iris_data_slices.append(Iris_Data.iloc[100:140])
+iris_data = np.concatenate(iris_data_slices)
+iris_data = iris_data.reshape(120, 4)
+
 Target = np.array([])
 for i in range(len(Iris_Target)):
     if(Iris_Target['target'].iloc[i] == 'setosa'):
@@ -20,11 +33,23 @@ for i in range(len(Iris_Target)):
     elif Iris_Target['target'].iloc[i] == 'virginica':
         Target = np.vstack([Target, [0.0, 0.0, 1.0]]) if Target.size else np.array([[0.0, 0.0, 1.0]])
 
-weight_hid3_to_out = np.random.uniform(low=-5.0, high=5.0, size=(3, 5))
-weight_hid2_to_hid3 = np.random.uniform(low=-5.0, high=5.0, size=(5, 7))
-weight_hid1_to_hid2 = np.random.uniform(low=-5.0, high=5.0, size=(7, 10))
-weight_in_to_hid1 = np.random.uniform(low=-5.0, high=5.0, size=(10, 4))
-neurons_in_layers = [4, 10, 7, 5, 3]
+target = np.array([])
+target_slices = []
+target_slices.append(Target[:40])
+target_slices.append(Target[50:90])
+target_slices.append(Target[100:140])
+target = np.concatenate(target_slices)
+target = target.reshape(120, 3)
+
+out1 = 4
+out2 = 4
+out3 = 4
+out_put = 3
+weight_hid3_to_out = np.random.uniform(low=-5.0, high=5.0, size=(out_put, out3))
+weight_hid2_to_hid3 = np.random.uniform(low=-5.0, high=5.0, size=(out3, out2))
+weight_hid1_to_hid2 = np.random.uniform(low=-5.0, high=5.0, size=(out2, out1))
+weight_in_to_hid1 = np.random.uniform(low=-5.0, high=5.0, size=(out1, 4))
+neurons_in_layers = [4, out1, out2, out3, out_put]
 biases = [2 * np.random.rand(neurons, 1) - 1 for neurons in neurons_in_layers[1:]]
 bias = 1.0
 error = 0.0
@@ -39,11 +64,11 @@ def forward_pass(data, w, b, bias_num, out):
         out[i] = sigmoid(out[i] + b[bias_num][i])
     return out
 
-def Forward_pass(data, w1, w2, w3,w4, b):
-    out_1 = forward_pass(data, w1, b, 0, [0.0] * 10)
-    out_2 = forward_pass(out_1, w2, b, 1, [0.0] * 7)
-    out_3 = forward_pass(out_2, w3, b, 2, [0.0] * 5)
-    output = forward_pass(out_3, w4, b, 3, [0.0, 0.0, 0.0])
+def Forward_pass(data, w1, w2, w3, w4, b):
+    out_1 = forward_pass(data, w1, b, 0, [0.0] * out1)
+    out_2 = forward_pass(out_1, w2, b, 1, [0.0] * out2)
+    out_3 = forward_pass(out_2, w3, b, 2, [0.0] * out3)
+    output = forward_pass(out_3, w4, b, 3, [0.0] * out_put)
     return out_1, out_2, out_3, output
 
 
@@ -84,22 +109,38 @@ def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
     for epoch in range(epochs):
         total_error = 0.0
         for i in range(len(input_data)):
-            out_1, out_2, out_3, output = Forward_pass(input_data.iloc[i].values, w1, w2, w3,w4, b)
+            out_1, out_2, out_3, output = Forward_pass(input_data[i], w1, w2, w3,w4, b)
             error = 0.0
             for j in range(len(target_data[i])):
                 error += 0.5 * (target_data[i][j] - output[j]) ** 2
             total_error += error
-            total_error = total_error/150
-            w1, w2, w3, w4 = Backward_pass(input_data.iloc[i].values, target_data[i], w1, w2, w3, w4, b, out_1, out_2, out_3, output, lrate)
+            w1, w2, w3, w4 = Backward_pass(input_data[i], target_data[i], w1, w2, w3, w4, b, out_1, out_2, out_3, output, lrate)
         if epoch % 100 == 0:
+            total_error = total_error / 150
             print("step : %4d    Error : %7.10f " % (epoch, total_error))
 
-train(Iris_Data, Target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
+train(iris_data, target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
 
 while True:
-    inputdata = [[5.1,3.5,1.4,0.2],[4.9,3.2,1.3,0.2]]
-    i = int(input("데이터 고르기 : "))
-    print(i)
-    a,b,c,d = Forward_pass(Iris_Data.iloc[i].values, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases)
-    print(Iris_Data.iloc[i].values)
+    #직접입력
+    # i = [0.0,0.0,0.0,0.0]
+    # a = input("데이터 입력 : ")
+    # i = a.split(' ')
+    # data = list(map(float, i))
+    # print(data)
+
+    i = int(input("번호 선택 :"))
+    a, b, c, d = Forward_pass(Test[i], weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases)
+    Max = d[0]
+    Max_num = 0
+    for j in range(len(d)-1):
+        if(Max < d[j+1]):
+            Max = d[j+1]
+            Max_num = j+1
+    if(Max_num == 0):
+        print("setosa")
+    elif(Max_num == 1):
+        print("versicolor")
+    elif(Max_num == 2):
+        print("virginica")
     print(d)
