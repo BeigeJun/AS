@@ -14,15 +14,54 @@ Iris_Target.replace({0: 'setosa', 1: 'versicolor', 2: 'virginica'}, inplace=True
 test = []
 test.append(Iris_Data)
 Test = np.array(test)
-Test = Test.reshape(150,4)
+Test = Test.reshape(150, 4)
 
 iris_data = np.array([])
-iris_data_slices = []
-iris_data_slices.append(Iris_Data.iloc[:40])
-iris_data_slices.append(Iris_Data.iloc[50:90])
-iris_data_slices.append(Iris_Data.iloc[100:140])
-iris_data = np.concatenate(iris_data_slices)
-iris_data = iris_data.reshape(120, 4)
+iris_data_slices1 = []
+iris_data_slices2 = []
+iris_data_slices3 = []
+iris_data_slices4 = []
+iris_data_slices5 = []
+iris_data_slices1.append(Iris_Data.iloc[:40])
+iris_data_slices1.append(Iris_Data.iloc[50:90])
+iris_data_slices1.append(Iris_Data.iloc[100:140])
+
+iris_data_slices2.append(Iris_Data.iloc[:30])
+iris_data_slices2.append(Iris_Data.iloc[40:50])
+iris_data_slices2.append(Iris_Data.iloc[50:80])
+iris_data_slices2.append(Iris_Data.iloc[90:100])
+iris_data_slices2.append(Iris_Data.iloc[100:130])
+iris_data_slices2.append(Iris_Data.iloc[140:150])
+
+iris_data_slices3.append(Iris_Data.iloc[:20])
+iris_data_slices3.append(Iris_Data.iloc[30:50])
+iris_data_slices3.append(Iris_Data.iloc[50:70])
+iris_data_slices3.append(Iris_Data.iloc[80:100])
+iris_data_slices3.append(Iris_Data.iloc[100:120])
+iris_data_slices3.append(Iris_Data.iloc[130:150])
+
+iris_data_slices4.append(Iris_Data.iloc[:10])
+iris_data_slices4.append(Iris_Data.iloc[20:50])
+iris_data_slices4.append(Iris_Data.iloc[50:60])
+iris_data_slices4.append(Iris_Data.iloc[70:100])
+iris_data_slices4.append(Iris_Data.iloc[100:110])
+iris_data_slices4.append(Iris_Data.iloc[120:150])
+
+iris_data_slices5.append(Iris_Data.iloc[10:50])
+iris_data_slices5.append(Iris_Data.iloc[60:100])
+iris_data_slices5.append(Iris_Data.iloc[110:150])
+
+iris_data1 = np.concatenate(iris_data_slices1)
+iris_data2 = np.concatenate(iris_data_slices2)
+iris_data3 = np.concatenate(iris_data_slices3)
+iris_data4 = np.concatenate(iris_data_slices4)
+iris_data5 = np.concatenate(iris_data_slices5)
+
+iris_data1 = iris_data1.reshape(120, 4)
+iris_data2 = iris_data2.reshape(120, 4)
+iris_data3 = iris_data3.reshape(120, 4)
+iris_data4 = iris_data4.reshape(120, 4)
+iris_data5 = iris_data5.reshape(120, 4)
 
 Target = np.array([])
 for i in range(len(Iris_Target)):
@@ -33,17 +72,62 @@ for i in range(len(Iris_Target)):
     elif Iris_Target['target'].iloc[i] == 'virginica':
         Target = np.vstack([Target, [0.0, 0.0, 1.0]]) if Target.size else np.array([[0.0, 0.0, 1.0]])
 
-target = np.array([])
-target_slices = []
-target_slices.append(Target[:40])
-target_slices.append(Target[50:90])
-target_slices.append(Target[100:140])
-target = np.concatenate(target_slices)
-target = target.reshape(120, 3)
+target1 = np.array([])
+target2 = np.array([])
+target3 = np.array([])
+target4 = np.array([])
+target5 = np.array([])
 
-out1 = 4
-out2 = 4
-out3 = 4
+target_slices1 = []
+target_slices2 = []
+target_slices3 = []
+target_slices4 = []
+target_slices5 = []
+
+target_slices1.append(Target[:40])
+target_slices1.append(Target[50:90])
+target_slices1.append(Target[100:140])
+
+target_slices2.append(Target[:30])
+target_slices2.append(Target[40:50])
+target_slices2.append(Target[50:80])
+target_slices2.append(Target[90:100])
+target_slices2.append(Target[100:130])
+target_slices2.append(Target[140:150])
+
+target_slices3.append(Target[:20])
+target_slices3.append(Target[30:50])
+target_slices3.append(Target[50:70])
+target_slices3.append(Target[80:100])
+target_slices3.append(Target[100:120])
+target_slices3.append(Target[130:150])
+
+target_slices4.append(Target[:10])
+target_slices4.append(Target[20:50])
+target_slices4.append(Target[50:60])
+target_slices4.append(Target[70:100])
+target_slices4.append(Target[100:110])
+target_slices4.append(Target[120:150])
+
+target_slices5.append(Target[10:50])
+target_slices5.append(Target[60:100])
+target_slices5.append(Target[110:150])
+
+target1 = np.concatenate(target_slices1)
+target2 = np.concatenate(target_slices2)
+target3 = np.concatenate(target_slices3)
+target4 = np.concatenate(target_slices4)
+target5 = np.concatenate(target_slices5)
+
+target1 = target1.reshape(120, 3)
+target2 = target2.reshape(120, 3)
+target3 = target3.reshape(120, 3)
+target4 = target4.reshape(120, 3)
+target5 = target5.reshape(120, 3)
+
+out1 = 10
+out2 = 7
+out3 = 5
 out_put = 3
 weight_hid3_to_out = np.random.uniform(low=-5.0, high=5.0, size=(out_put, out3))
 weight_hid2_to_hid3 = np.random.uniform(low=-5.0, high=5.0, size=(out3, out2))
@@ -119,7 +203,7 @@ def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
             total_error = total_error / 150
             print("step : %4d    Error : %7.10f " % (epoch, total_error))
 
-train(iris_data, target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
+train(iris_data3, target3, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
 
 while True:
     #직접입력
@@ -130,6 +214,8 @@ while True:
     # print(data)
 
     i = int(input("번호 선택 :"))
+    if i < 0 and i > 150:
+        continue
     a, b, c, d = Forward_pass(Test[i], weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases)
     Max = d[0]
     Max_num = 0
