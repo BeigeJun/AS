@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from copy import deepcopy
 
-
-Iris_csv = pd.read_csv('C:/Users/wns20/PycharmProjects/pythonProject10/DataSet.csv')
+Iris_csv = pd.read_csv('C:/Users/SeoJun/PycharmProjects/pythonProject3/DataSet.csv')
 SepalLength = Iris_csv.SepalLength.tolist()
 SepalWidth = Iris_csv.SepalWidth.tolist()
 PetalLength = Iris_csv.PetalLength.tolist()
@@ -50,10 +50,45 @@ while True:
     Centroids_x = np.random.uniform(min(x), max(x), k_clusters)
     Centroids_y = np.random.uniform(min(y), max(y), k_clusters)
     if(Choose_num == '1'):
-        Centroids = list(zip(Centroids_x, Centroids_y))
-
-        plt.scatter(x, y, alpha=0.5)
+        Centroids = np.array(list(zip(Centroids_x, Centroids_y)))
+        Centroids_Old = np.zeros(Centroids.shape)
+        Error = np.zeros(k)
+        Lables = np.zeros(150)
+        Input_data_xy = np.array(list(zip(x,y)))
+        
+        for i in range(k):
+            Error[i] = Euclidean_distance(Centroids_Old, Centroids)
+            print(Centroids[i])
+        Trun = 0
+        while(Error.all != 0):
+            Distance = np.zeros(k)
+            for j in range(k):
+                Distance[j] = Euclidean_distance(Input_data_xy[i], Centroids[j])
+            Cluster = Distance.argmin()
+            Lables[i] = Cluster
+        Centroids_Old = deepcopy(Centroids)
+        
+        for i in range(k):
+            Points = [Input_data_xy[j] for j in range(len(Input_data_xy)) if Lables[j] == i]
+            Centroids[i] = np.mean(Points, axis=0)
+        
+        
+        plt.scatter(Centroids_x, Centroids_y, s = 50, c = 'red')
+        #랜덤위치 3개 찍기
+        plt.scatter(x, y , alpha=0.5, s = 50)
+        #데이터 찍기
         plt.show()
+
+
+
+
+
+
+
+
+
+
+
     elif(Choose_num == '2'):
         z = Iris[int(property_3) - 1]
         Centroids_z = np.random.uniform(min(z), max(z), k_clusters)
