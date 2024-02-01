@@ -50,34 +50,50 @@ while True:
     Centroids_x = np.random.uniform(min(x), max(x), k_clusters)
     Centroids_y = np.random.uniform(min(y), max(y), k_clusters)
     if(Choose_num == '1'):
-        Centroids = np.array(list(zip(Centroids_x, Centroids_y)))
+        Centroids = list(zip(Centroids_x, Centroids_y))
+        Centroids = np.array(Centroids)
         Centroids_Old = np.zeros(Centroids.shape)
-        Error = np.zeros(k)
+        Error = np.zeros(k_clusters)
         Lables = np.zeros(150)
         Input_data_xy = np.array(list(zip(x,y)))
-        
-        for i in range(k):
-            Error[i] = Euclidean_distance(Centroids_Old, Centroids)
+
+        for i in range(k_clusters):
+            Error[i] = Euclidean_distance(Centroids_Old[i], Centroids[i])
             print(Centroids[i])
-        Trun = 0
+        Turn = 0
         while(Error.all != 0):
-            Distance = np.zeros(k)
-            for j in range(k):
-                Distance[j] = Euclidean_distance(Input_data_xy[i], Centroids[j])
-            Cluster = Distance.argmin()
-            Lables[i] = Cluster
-        Centroids_Old = deepcopy(Centroids)
-        
-        for i in range(k):
-            Points = [Input_data_xy[j] for j in range(len(Input_data_xy)) if Lables[j] == i]
-            Centroids[i] = np.mean(Points, axis=0)
-        
-        
-        plt.scatter(Centroids_x, Centroids_y, s = 50, c = 'red')
-        #랜덤위치 3개 찍기
-        plt.scatter(x, y , alpha=0.5, s = 50)
-        #데이터 찍기
+            Turn += 1
+            for i in range(k_clusters):
+                Distance = np.zeros(k_clusters)
+                for j in range(k_clusters):
+                    Distance[j] = Euclidean_distance(Input_data_xy[i], Centroids[j])
+                Cluster = Distance.argmin()
+                Lables[i] = Cluster
+            Centroids_Old = deepcopy(Centroids)
+
+            for i in range(k_clusters):
+                Points = [Input_data_xy[j] for j in range(len(Input_data_xy)) if Lables[j] == i]
+                Centroids[i] = np.mean(Points, axis=0)
+            print(Turn, "번째 군집")
+            for i in range(k_clusters):
+                Error[i] = Euclidean_distance(Centroids_Old[i], Centroids[i])
+            plt.scatter(x, y, c=Lables, alpha=0.5)
+            plt.scatter(Centroids_Old[:, 0], Centroids_Old[:, 1], c='blue')
+            plt.scatter(Centroids[:, 0], Centroids[:, 1], c='red')
+            plt.show()
+        colors = ['r', 'g', 'b']
+        for i in range(k_clusters):
+            Points = np.array([Input_data_xy[j] for j in range(len(Input_data_xy)) if Lables[j] == i])
+            plt.scatter(Points[:, 0], Points[:, 1], c=colors[i], alpha=0.5)
+            print(colors[i], "의 개수는", len(Points[:, 1]))
+        plt.scatter(Centroids[:, 0], Centroids[:, 1], marker='D', s=150)
         plt.show()
+        #
+        # plt.scatter(Centroids_x, Centroids_y, s = 50, c = 'red')
+        # #랜덤위치 3개 찍기
+        # plt.scatter(x, y , alpha=0.5, s = 50)
+        # #데이터 찍기
+        # plt.show()
 
 
 
