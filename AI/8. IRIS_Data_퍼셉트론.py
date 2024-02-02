@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.datasets import load_iris
 import pandas as pd
-
+from copy import deepcopy
 def sigmoid(data):
     return 1.0 / (1.0 + np.exp(-data))
 
@@ -62,6 +62,7 @@ iris_data2 = iris_data2.reshape(120, 4)
 iris_data3 = iris_data3.reshape(120, 4)
 iris_data4 = iris_data4.reshape(120, 4)
 iris_data5 = iris_data5.reshape(120, 4)
+
 
 Target = np.array([])
 for i in range(len(Iris_Target)):
@@ -125,47 +126,38 @@ target3 = target3.reshape(120, 3)
 target4 = target4.reshape(120, 3)
 target5 = target5.reshape(120, 3)
 
-in_put = 4
-out1 = 9
+out1 = 10
 out2 = 7
 out3 = 5
 out_put = 3
 weight_hid3_to_out = np.random.uniform(low=-5.0, high=5.0, size=(out_put, out3))
 weight_hid2_to_hid3 = np.random.uniform(low=-5.0, high=5.0, size=(out3, out2))
 weight_hid1_to_hid2 = np.random.uniform(low=-5.0, high=5.0, size=(out2, out1))
-weight_in_to_hid1 = np.random.uniform(low=-5.0, high=5.0, size=(out1, in_put))
-neurons_in_layers = [in_put, out1, out2, out3, out_put]
+weight_in_to_hid1 = np.random.uniform(low=-5.0, high=5.0, size=(out1, 4))
+neurons_in_layers = [4, out1, out2, out3, out_put]
 biases = [2 * np.random.rand(neurons, 1) - 1 for neurons in neurons_in_layers[1:]]
 bias = 1.0
 error = 0.0
 total_error = 0.0
 lrate = 0.1
-epochs = 3000
-
-def weight_write(total_error, w1, w2, w3, w4, b):
-    f = open("C:/Users/wns20/PycharmProjects/pythonProject12/weight.txt", 'w')
-    write = "error : %f \n w1 : " % total_error
-    for i in range(len(w1)):
-        for j in range(len(w1[i])):
-            write += "%.1f " % w1[i][j]
-    write += "\n w2 : "
-    for i in range(len(w2)):
-        for j in range(len(w2[i])):
-            write += "%.1f " % w2[i][j]
-    write += "\n w3 : "
-    for i in range(len(w3)):
-        for j in range(len(w3[i])):
-            write += "%.1f " % w3[i][j]
-    write += "\n w4 : "
-    for i in range(len(w4)):
-        for j in range(len(w4[i])):
-            write += "%.1f " % w4[i][j]
-    write += "\n biases : "
-    for i in range(len(biases)):
-        for j in range(len(biases[i])):
-            write += "%.1f " % b[i][j]
-    f.write(write)
-    f.close()
+epochs = 1000
+def normalization():
+    choose = int(input("학습 데이터 선택 : "))
+    choose_iris = globals()["iris_data" + str(choose)]
+    choose_target = globals()["target" + str(choose)]
+    Max = 0.0
+    Min = 10.0
+    for i in range(120):
+        compare_Max = max(choose_iris[i])
+        compare_Min = min(choose_iris[i])
+        if compare_Max > Max:
+            Max = compare_Max
+        if compare_Min < Min:
+            Min = compare_Min
+    for i in range(120):
+        for j in range(4):
+            choose_iris[i][j] = (choose_iris[i][j] - Min) / (Max - Min)
+    return choose_iris, choose_target
 
 def forward_pass(data, w, b, bias_num, out):
     for i in range(len(w)):
@@ -191,7 +183,7 @@ def delta_rule(weight1, weight2, b, b_num, delta_1, delta_2, lrate, out_1, out_2
         for number in range(len(weight1[i])):
             weight1[i][number] += lrate * delta_2[i] * out_1[number]
         b[b_num][i] += lrate * delta_2[i]
-    return delta_2, weight1
+    return delta_2, weight1, b
 
 
 def first_delta_rule(weight, b, b_num, delta, target, output, out_2):
@@ -201,7 +193,7 @@ def first_delta_rule(weight, b, b_num, delta, target, output, out_2):
         for j in range(len(weight[i])):
             weight[i][j] += lrate * delta[i] * out_2[j]
         b[b_num][i] += lrate * delta[i]
-    return delta, weight
+    return delta, weight, b
 
 
 def Backward_pass(data, target, w1, w2, w3, w4, b, out1, out2, out3, out_put, lrate):
@@ -209,15 +201,16 @@ def Backward_pass(data, target, w1, w2, w3, w4, b, out1, out2, out3, out_put, lr
     delta_2 = np.zeros(len(w3))
     delta_3 = np.zeros(len(w2))
     delta_4 = np.zeros(len(w1))
-    delta_1, w4 = first_delta_rule(w4, b, 3, delta_1, target, out_put, out3)
-    delta_2, w3 = delta_rule(w3, w4, b, 2, delta_1, delta_2, lrate, out2, out3)
-    delta_3, w2 = delta_rule(w2, w3, b, 1, delta_2, delta_3, lrate, out1, out2)
-    delta_4, w1 = delta_rule(w1, w2, b, 0, delta_3, delta_4, lrate, data, out1)
-    return w1, w2, w3, w4
+    delta_1, w4, b = first_delta_rule(w4, b, 3, delta_1, target, out_put, out3)
+    delta_2, w3, b = delta_rule(w3, w4, b, 2, delta_1, delta_2, lrate, out2, out3)
+    delta_3, w2, b = delta_rule(w2, w3, b, 1, delta_2, delta_3, lrate, out1, out2)
+    delta_4, w1, b = delta_rule(w1, w2, b, 0, delta_3, delta_4, lrate, data, out1)
+    return w1, w2, w3, w4, b
 
 def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
     minimum_error = 10.0
     comparison_error = 10.0
+    Lowerror = []
     for epoch in range(epochs):
         total_error = 0.0
         for i in range(len(input_data)):
@@ -226,99 +219,80 @@ def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
             for j in range(len(target_data[i])):
                 error += 0.5 * (target_data[i][j] - output[j]) ** 2
             total_error += error
-            w1, w2, w3, w4 = Backward_pass(input_data[i], target_data[i], w1, w2, w3, w4, b, out_1, out_2, out_3, output, lrate)
+            comparison_error = total_error
+            w1, w2, w3, w4, b = Backward_pass(input_data[i], target_data[i], w1, w2, w3, w4, b, out_1, out_2, out_3, output, lrate)
         total_error = total_error / 150
-        comparison_error = total_error
         if epoch % 100 == 0:
             print("step : %4d    Error : %7.10f " % (epoch, total_error))
-        if minimum_error > comparison_error:
-            minimum_error = comparison_error
-            weight_write(total_error, w1, w2, w3, w4, b)
+    #     if minimum_error > comparison_error:
+    #         minimum_error = comparison_error
+    #         Use_w1 = np.zeros(len(w1))
+    #         Use_w1 = deepcopy((w1))
+    #         Use_w2 = np.zeros(len(w2))
+    #         Use_w2 = deepcopy((w2))
+    #         Use_w3 = np.zeros(len(w3))
+    #         Use_w3 = deepcopy((w3))
+    #         Use_w4 = np.zeros(len(w4))
+    #         Use_w4 = deepcopy((w4))
+    #         Use_bias = np.zeros(len(b))
+    #         Use_bias = deepcopy((b))
+    #         print("Saved weight's Error : ", minimum_error)
+    return w1, w2, w3, w4, b
 
-train(iris_data5, target5, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
+choose_iris, choose_target = normalization()
+# Use_w1, Use_w2, Use_w3, Use_w4, Use_bias =
+a, b, c, d, e = train(choose_iris, choose_target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
+# print(Use_w1)
+# print(Use_w2)
+# print(Use_w3)
+# print(Use_w4)
+# print(Use_bias)
+    #직접입력
+    # i = [0.0,0.0,0.0,0.0]
+    # a = input("데이터 입력 : ")
+    # i = a.split(' ')
+    # data = list(map(float, i))
+    # print(data)
 
-# while True:
-#     #직접입력
-#     # i = [0.0,0.0,0.0,0.0]
-#     # a = input("데이터 입력 : ")
-#     # i = a.split(' ')
-#     # data = list(map(float, i))
-#     # print(data)
-#
-#
-#     i = int(input("번호 선택 :"))
-#     if i < 0 and i > 150:
-#         continue
-#     a, b, c, d = Forward_pass(Test[i], weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases)
-#     Max = d[0]
-#     Max_num = 0
-#     for j in range(len(d)-1):
-#         if(Max < d[j+1]):
-#             Max = d[j+1]
-#             Max_num = j+1
-#     if(Max_num == 0):
-#         print("setosa")
-#     elif(Max_num == 1):
-#         print("versicolor")
-#     elif(Max_num == 2):
-#         print("virginica")
-#     print(d)
-
-
-f = open("C:/Users/wns20/PycharmProjects/pythonProject12/weight.txt", 'r')
-a = f.readline()
-a = f.readline()
-weight_in_to_hid1 = np.array(a.split(" ")[3:-1])
-weight_in_to_hid1 = weight_in_to_hid1.reshape(out1,in_put)
-a = f.readline()
-weight_hid1_to_hid2 = np.array(a.split(" ")[3:-1])
-weight_hid1_to_hid2 = weight_hid1_to_hid2.reshape(out2,out1)
-a = f.readline()
-weight_hid2_to_hid3 = np.array(a.split(" ")[3:-1])
-weight_hid2_to_hid3 = weight_hid2_to_hid3.reshape(out3,out2)
-a = f.readline()
-weight_hid3_to_out = np.array(a.split(" ")[3:-1])
-weight_hid3_to_out = weight_hid3_to_out.reshape(out_put,out3)
-a = f.readline()
-bias_1 = np.array(a.split(" ")[3:out1+3])
-bias_2 = np.array(a.split(" ")[out1+3:out1+out2+3])
-bias_3 = np.array(a.split(" ")[out1+out2+3:out1+out2+out3+3])
-bias_4 = np.array(a.split(" ")[out1+out2+out3+3:out1+out2+out3+out_put+3])
-f.close()
-def forward_pass_(data, w, b, out):
-    for i in range(len(w)):
-        for number in range(len(w[i])):
-            out[i] += float(w[i][number]) * data[number]
-        out[i] = sigmoid(out[i] + float(b[i]))
-    return out
-def Forward_pass_(data, w1, w2, w3,w4, b1,b2,b3,b4):
-    out_1 = forward_pass_(data, w1, b1, [0.0] * out1)
-    out_2 = forward_pass_(out_1, w2, b2, [0.0] * out2)
-    out_3 = forward_pass_(out_2, w3, b3, [0.0] * out3)
-    output = forward_pass_(out_3, w4, b4, [0.0]*out_put)
-    return output
+    # i = int(input("번호 선택 :"))
+    # if i < 0 and i > 150:
+    #     continue
+    # a, b, c, d = Forward_pass(Test[i], Use_w1, Use_w2, Use_w3, Use_w4, Use_bias)
+    # Max = d[0]
+    # Max_num = 0
+    # for j in range(len(d)-1):
+    #     if(Max < d[j+1]):
+    #         Max = d[j+1]
+    #         Max_num = j+1
+    # if(Max_num == 0):
+    #     print("setosa")
+    # elif(Max_num == 1):
+    #     print("versicolor")
+    # elif(Max_num == 2):
+    #     print("virginica")
+    # print(d)
 Correct = 0
 for i in range(150):
-    d = Forward_pass_(Test[i], weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, bias_1, bias_2, bias_3, bias_4)
+    a,b,c,d = Forward_pass(Test[i],  a, b, c, d, e)
     Max = d[0]
     Max_num = 0
-    for j in range(len(d)-1):
-        if(Max < d[j+1]):
-            Max = d[j+1]
-            Max_num = j+1
+    for j in range(len(d) - 1):
+        if (Max < d[j + 1]):
+            Max = d[j + 1]
+            Max_num = j + 1
     if i < 50:
-        if Max_num == 0 :
+        if Max_num == 0:
             Correct += 1
         else:
-            print("적중 실패 :",i)
+            print("적중 실패 :", i)
     elif i > 49 and i < 100:
-        if Max_num == 1 :
-            Correct += 1
+        if Max_num == 1:
+           Correct += 1
         else:
-            print("적중 실패 :",i)
+            print("적중 실패 :", i)
     elif i > 99 and i < 150:
-        if Max_num == 2 :
-            Correct += 1
+        if Max_num == 2:
+           Correct += 1
         else:
-            print("적중 실패 :",i)
+            print("적중 실패 :", i)
 print("적중한 횟수 :", Correct)
