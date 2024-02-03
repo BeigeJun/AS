@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.datasets import load_iris
 import pandas as pd
-from copy import deepcopy
+
 def sigmoid(data):
     return 1.0 / (1.0 + np.exp(-data))
 
@@ -62,7 +62,6 @@ iris_data2 = iris_data2.reshape(120, 4)
 iris_data3 = iris_data3.reshape(120, 4)
 iris_data4 = iris_data4.reshape(120, 4)
 iris_data5 = iris_data5.reshape(120, 4)
-
 
 Target = np.array([])
 for i in range(len(Iris_Target)):
@@ -126,21 +125,23 @@ target3 = target3.reshape(120, 3)
 target4 = target4.reshape(120, 3)
 target5 = target5.reshape(120, 3)
 
-out1 = 10
+in_put = 4
+out1 = 9
 out2 = 7
 out3 = 5
 out_put = 3
 weight_hid3_to_out = np.random.uniform(low=-5.0, high=5.0, size=(out_put, out3))
 weight_hid2_to_hid3 = np.random.uniform(low=-5.0, high=5.0, size=(out3, out2))
 weight_hid1_to_hid2 = np.random.uniform(low=-5.0, high=5.0, size=(out2, out1))
-weight_in_to_hid1 = np.random.uniform(low=-5.0, high=5.0, size=(out1, 4))
-neurons_in_layers = [4, out1, out2, out3, out_put]
+weight_in_to_hid1 = np.random.uniform(low=-5.0, high=5.0, size=(out1, in_put))
+neurons_in_layers = [in_put, out1, out2, out3, out_put]
 biases = [2 * np.random.rand(neurons, 1) - 1 for neurons in neurons_in_layers[1:]]
 bias = 1.0
 error = 0.0
 total_error = 0.0
-lrate = 0.1
-epochs = 1000
+lrate = 0.05
+epochs = 3000
+
 def normalization():
     choose = int(input("학습 데이터 선택 : "))
     choose_iris = globals()["iris_data" + str(choose)]
@@ -157,8 +158,66 @@ def normalization():
     for i in range(120):
         for j in range(4):
             choose_iris[i][j] = (choose_iris[i][j] - Min) / (Max - Min)
-    return choose_iris, choose_target
 
+    Max1 = 0.0
+    Min1 = 10.0
+    for i in range(150):
+        compare_Max1 = max(Test[i])
+        compare_Min1 = min(Test[i])
+        if compare_Max1 > Max1:
+            Max1 = compare_Max1
+        if compare_Min1 < Min1:
+            Min1 = compare_Min1
+    for i in range(150):
+        for j in range(4):
+            Test[i][j] = (Test[i][j] - Min1) / (Max1 - Min1)
+    return choose_iris, choose_target, Test
+def weight_write(total_error, w1, w2, w3, w4, b):
+    f = open("C:/Users/SeoJun/PycharmProjects/pythonProject3/weight.txt", 'w')
+    write = "error : %f \n w1 : " % total_error
+    for i in range(len(w1)):
+        for j in range(len(w1[i])):
+            write += "%.1f " % w1[i][j]
+    write += "\n w2 : "
+    for i in range(len(w2)):
+        for j in range(len(w2[i])):
+            write += "%.1f " % w2[i][j]
+    write += "\n w3 : "
+    for i in range(len(w3)):
+        for j in range(len(w3[i])):
+            write += "%.1f " % w3[i][j]
+    write += "\n w4 : "
+    for i in range(len(w4)):
+        for j in range(len(w4[i])):
+            write += "%.1f " % w4[i][j]
+    write += "\n biases : "
+    for i in range(len(biases)):
+        for j in range(len(biases[i])):
+            write += "%.1f " % b[i][j]
+    f.write(write)
+    f.close()
+def weight_read():
+    f = open("C:/Users/SeoJun/PycharmProjects/pythonProject3/weight.txt", 'r')
+    a = f.readline()
+    a = f.readline()
+    w1 = np.array(a.split(" ")[3:-1])
+    w1 = w1.reshape(out1, in_put)
+    a = f.readline()
+    w2 = np.array(a.split(" ")[3:-1])
+    w2 = w2.reshape(out2, out1)
+    a = f.readline()
+    w3 = np.array(a.split(" ")[3:-1])
+    w3 = w3.reshape(out3, out2)
+    a = f.readline()
+    w4 = np.array(a.split(" ")[3:-1])
+    w4 = w4.reshape(out_put, out3)
+    a = f.readline()
+    b1 = np.array(a.split(" ")[3:out1 + 3])
+    b2 = np.array(a.split(" ")[out1 + 3:out1 + out2 + 3])
+    b3 = np.array(a.split(" ")[out1 + out2 + 3:out1 + out2 + out3 + 3])
+    b4 = np.array(a.split(" ")[out1 + out2 + out3 + 3:out1 + out2 + out3 + out_put + 3])
+    f.close()
+    return w1, w2, w3, w4, b1, b2, b3, b4
 def forward_pass(data, w, b, bias_num, out):
     for i in range(len(w)):
         for number in range(len(w[i])):
@@ -210,7 +269,6 @@ def Backward_pass(data, target, w1, w2, w3, w4, b, out1, out2, out3, out_put, lr
 def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
     minimum_error = 10.0
     comparison_error = 10.0
-    Lowerror = []
     for epoch in range(epochs):
         total_error = 0.0
         for i in range(len(input_data)):
@@ -219,80 +277,58 @@ def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
             for j in range(len(target_data[i])):
                 error += 0.5 * (target_data[i][j] - output[j]) ** 2
             total_error += error
-            comparison_error = total_error
             w1, w2, w3, w4, b = Backward_pass(input_data[i], target_data[i], w1, w2, w3, w4, b, out_1, out_2, out_3, output, lrate)
         total_error = total_error / 150
+        comparison_error = total_error
         if epoch % 100 == 0:
             print("step : %4d    Error : %7.10f " % (epoch, total_error))
-    #     if minimum_error > comparison_error:
-    #         minimum_error = comparison_error
-    #         Use_w1 = np.zeros(len(w1))
-    #         Use_w1 = deepcopy((w1))
-    #         Use_w2 = np.zeros(len(w2))
-    #         Use_w2 = deepcopy((w2))
-    #         Use_w3 = np.zeros(len(w3))
-    #         Use_w3 = deepcopy((w3))
-    #         Use_w4 = np.zeros(len(w4))
-    #         Use_w4 = deepcopy((w4))
-    #         Use_bias = np.zeros(len(b))
-    #         Use_bias = deepcopy((b))
-    #         print("Saved weight's Error : ", minimum_error)
-    return w1, w2, w3, w4, b
+        if minimum_error > comparison_error:
+            minimum_error = comparison_error
+            weight_write(total_error, w1, w2, w3, w4, b)
+            print(minimum_error)
+choose_iris, choose_target, Test = normalization()
+train(choose_iris, choose_target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
 
-choose_iris, choose_target = normalization()
-# Use_w1, Use_w2, Use_w3, Use_w4, Use_bias =
-a, b, c, d, e = train(choose_iris, choose_target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
-# print(Use_w1)
-# print(Use_w2)
-# print(Use_w3)
-# print(Use_w4)
-# print(Use_bias)
-    #직접입력
-    # i = [0.0,0.0,0.0,0.0]
-    # a = input("데이터 입력 : ")
-    # i = a.split(' ')
-    # data = list(map(float, i))
-    # print(data)
+w1, w2, w3, w4, b1, b2, b3, b4 = weight_read()
+def forward_pass_(data, w, b, out):
+    for i in range(len(w)):
+        for number in range(len(w[i])):
+            out[i] += float(w[i][number]) * data[number]
+        out[i] = sigmoid(out[i] + float(b[i]))
+    return out
+def Forward_pass_(data, w1, w2, w3,w4, b1,b2,b3,b4):
+    out_1 = forward_pass_(data, w1, b1, [0.0] * out1)
+    out_2 = forward_pass_(out_1, w2, b2, [0.0] * out2)
+    out_3 = forward_pass_(out_2, w3, b3, [0.0] * out3)
+    output = forward_pass_(out_3, w4, b4, [0.0] * out_put)
+    return output
 
-    # i = int(input("번호 선택 :"))
-    # if i < 0 and i > 150:
-    #     continue
-    # a, b, c, d = Forward_pass(Test[i], Use_w1, Use_w2, Use_w3, Use_w4, Use_bias)
-    # Max = d[0]
-    # Max_num = 0
-    # for j in range(len(d)-1):
-    #     if(Max < d[j+1]):
-    #         Max = d[j+1]
-    #         Max_num = j+1
-    # if(Max_num == 0):
-    #     print("setosa")
-    # elif(Max_num == 1):
-    #     print("versicolor")
-    # elif(Max_num == 2):
-    #     print("virginica")
-    # print(d)
 Correct = 0
+Failed_to_hit_the_Target = 0
 for i in range(150):
-    a,b,c,d = Forward_pass(Test[i],  a, b, c, d, e)
+    d = Forward_pass_(Test[i], w1, w2, w3, w4, b1, b2, b3, b4)
     Max = d[0]
     Max_num = 0
-    for j in range(len(d) - 1):
-        if (Max < d[j + 1]):
-            Max = d[j + 1]
-            Max_num = j + 1
+    for j in range(len(d)-1):
+        if(Max < d[j+1]):
+            Max = d[j+1]
+            Max_num = j+1
     if i < 50:
-        if Max_num == 0:
+        if Max_num == 0 :
             Correct += 1
         else:
-            print("적중 실패 :", i)
+            print("적중 실패 :",i)
+            Failed_to_hit_the_Target += 1
     elif i > 49 and i < 100:
-        if Max_num == 1:
-           Correct += 1
+        if Max_num == 1 :
+            Correct += 1
         else:
-            print("적중 실패 :", i)
+            print("적중 실패 :",i)
+            Failed_to_hit_the_Target += 1
     elif i > 99 and i < 150:
-        if Max_num == 2:
-           Correct += 1
+        if Max_num == 2 :
+            Correct += 1
         else:
-            print("적중 실패 :", i)
-print("적중한 횟수 :", Correct)
+            print("적중 실패 :",i)
+x = (150 - Failed_to_hit_the_Target)/150 * 100
+print("적중한 횟수 :", Correct, "성공 확률 :", x)
