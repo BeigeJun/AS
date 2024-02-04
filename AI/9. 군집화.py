@@ -87,6 +87,7 @@ while True:
                 #     if Lables[j] == i:
                 #         Points.append(Input_data_xy[j])
                 Centroids[i] = np.mean(Points, axis=0)
+                #배정받은 데이터들의 중심점 계산
 
             plt.scatter(x, y, c=Lables, alpha=0.5)
             plt.scatter(Centroids_Old[:, 0], Centroids_Old[:, 1], c='blue')
@@ -109,12 +110,46 @@ while True:
     elif(Choose_num == '2'):
         z = Iris[int(property_3) - 1]
         Centroids_z = np.random.uniform(min(z), max(z), k_clusters)
-        print(z)
-        print(x)
-        print(y)
         Centroids = list(zip(Centroids_x, Centroids_y, Centroids_z))
+        Centroids = np.array(Centroids)
+        Centroids_Old = np.zeros(Centroids.shape)
+        Error = np.ones(k_clusters)
+        Lables = np.zeros(150)
+        Input_data_xyz = list(zip(x, y, z))
 
         fig = plt.figure()
-        ax = fig.add_subplot(111,projection='3d')
+        ax = fig.add_subplot(projection='3d')
         ax.scatter(x, y, z, alpha=0.5)
+        ax.scatter(Centroids_x, Centroids_y, Centroids_z, alpha=0.5, color="red")
+        plt.show()
+
+        while(Error.all() != 0):
+            for i in range(150):
+                Distance = np.zeros(k_clusters)
+                for j in range(k_clusters):
+                    Distance[j] = Euclidean_distance(Input_data_xyz[i], Centroids[j])
+                Lables[i] = Distance.argmin()
+            Centroids_Old = deepcopy(Centroids)
+            for i in range(k_clusters):
+                Points = [Input_data_xyz[j] for j in range(len(Input_data_xyz)) if Lables[j] == i]
+                Centroids[i] = np.mean(Points, axis=0)
+            fig = plt.figure()
+            ax = fig.add_subplot(projection='3d')
+            ax.scatter(x, y, z, c=Lables, alpha=0.5)
+            ax.scatter(Centroids_Old[:, 0], Centroids_Old[:, 1], Centroids_Old[:, 2], c='blue')
+            ax.scatter(Centroids[:, 0], Centroids[:, 1], Centroids[:, 2], c='red')
+            plt.show()
+
+            for i in range(k_clusters):
+                Error[i] = Euclidean_distance(Centroids_Old[i],Centroids[i])
+
+        colors = ['r', 'g', 'b']
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+        for i in range(k_clusters):
+            Points = np.array([Input_data_xyz[j] for j in range(len(Input_data_xyz)) if Lables[j] == i])
+            ax.scatter(Points[:, 0], Points[:, 1], Points[:, 2], c=colors[i], alpha=0.5)
+            print(colors[i], "의 개수는", len(Points[:, 1]))
+        # 끝이나면 r,g,b의 개수를 출력
+        ax.scatter(Centroids[:, 0], Centroids[:, 1],Centroids[:, 2], marker='D', s=150)
         plt.show()
