@@ -23,10 +23,28 @@ def Euclidean_distance(a,b):
     return sum([(Point_1 - Point_2) ** 2 for Point_1, Point_2 in zip(a, b)]) ** 0.5
 #유클리드 거리 구하는 함수
 
+def normalization(Test):
+    Max = 0.0
+    Min = 10.0
+    for i in range(4):
+        for j in range(150):
+            compare_Max = max(Test[i])
+            compare_Min = min(Test[i])
+            if compare_Max > Max:
+                Max = compare_Max
+            if compare_Min < Min:
+                Min = compare_Min
+        for j in range(150):
+            Test[i][j] = (Test[i][j] - Min) / (Max - Min)
+    return Test
+#정규화
+Iris = normalization(Iris)
+
 while True:
     print("1. 2개 속성")
     print("2. 3개 속성")
-    print("3. 종료")
+    print("3. 4개 속성")
+    print("4. 종료")
     Choose_num = input("옵션 선택 : ")
     print("1.SepalLength")
     print("2.SepalWidth")
@@ -40,6 +58,11 @@ while True:
         property_2 = input("두번째 속성 선택 : ")
         property_3 = input("세번째 속성 선택 : ")
     elif(Choose_num == '3'):
+        property_1 = input("첫번째 속성 선택 : ")
+        property_2 = input("두번째 속성 선택 : ")
+        property_3 = input("세번째 속성 선택 : ")
+        property_4 = input("네번째 속성 선택 : ")
+    elif(Choose_num == '4'):
         exit()
     else:
         print("잘못된 입력 재입력 하시오")
@@ -153,3 +176,35 @@ while True:
         # 끝이나면 r,g,b의 개수를 출력
         ax.scatter(Centroids[:, 0], Centroids[:, 1],Centroids[:, 2], marker='D', s=150)
         plt.show()
+
+    elif (Choose_num == '3'):
+        z = Iris[int(property_3) - 1]
+        s = Iris[int(property_4) - 1]
+        Centroids_z = np.random.uniform(min(z), max(z), k_clusters)
+        Centroids_s = np.random.uniform(min(s), max(s), k_clusters)
+        Centroids = list(zip(Centroids_x, Centroids_y, Centroids_z, Centroids_s))
+        Centroids = np.array(Centroids)
+        Centroids_Old = np.zeros(Centroids.shape)
+        Error = np.ones(k_clusters)
+        Lables = np.zeros(150)
+        Input_data_xyzs = list(zip(x, y, z, s))
+
+
+        while(Error.all() != 0):
+            for i in range(150):
+                Distance = np.zeros(k_clusters)
+                for j in range(k_clusters):
+                    Distance[j] = Euclidean_distance(Input_data_xyzs[i], Centroids[j])
+                Lables[i] = Distance.argmin()
+            Centroids_Old = deepcopy(Centroids)
+            for i in range(k_clusters):
+                Points = [Input_data_xyzs[j] for j in range(len(Input_data_xyzs)) if Lables[j] == i]
+                Centroids[i] = np.mean(Points, axis=0)
+
+            for i in range(k_clusters):
+                Error[i] = Euclidean_distance(Centroids_Old[i],Centroids[i])
+
+        colors = ['r', 'g', 'b']
+        for i in range(k_clusters):
+            Points = np.array([Input_data_xyzs[j] for j in range(len(Input_data_xyzs)) if Lables[j] == i])
+            print(colors[i], "의 개수는", len(Points[:, 1]))
