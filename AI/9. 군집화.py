@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 from mpl_toolkits.mplot3d import Axes3D
 from copy import deepcopy
 
@@ -44,7 +45,8 @@ while True:
     print("1. 2개 속성")
     print("2. 3개 속성")
     print("3. 4개 속성")
-    print("4. 종료")
+    print("4. PCA")
+    print("5. 종료")
     Choose_num = input("옵션 선택 : ")
     print("1.SepalLength")
     print("2.SepalWidth")
@@ -63,17 +65,19 @@ while True:
         property_3 = input("세번째 속성 선택 : ")
         property_4 = input("네번째 속성 선택 : ")
     elif(Choose_num == '4'):
+        print("PCA")
+    elif (Choose_num == '5'):
         exit()
     else:
         print("잘못된 입력 재입력 하시오")
         continue
-
-    x = Iris[int(property_1) - 1]
-    y = Iris[int(property_2) - 1]
-    #선택한 속성 복사
-    Centroids_x = np.random.uniform(min(x), max(x), k_clusters)
-    Centroids_y = np.random.uniform(min(y), max(y), k_clusters)
-    #속성에서 제일 큰 값과 작은 값을 뽑아서 그 사이 값으로 3개의 랜덤좌표 생성(중심점)
+    if(Choose_num == '1' or Choose_num == '2' or Choose_num == '3'):
+        x = Iris[int(property_1) - 1]
+        y = Iris[int(property_2) - 1]
+        #선택한 속성 복사
+        Centroids_x = np.random.uniform(min(x), max(x), k_clusters)
+        Centroids_y = np.random.uniform(min(y), max(y), k_clusters)
+        #속성에서 제일 큰 값과 작은 값을 뽑아서 그 사이 값으로 3개의 랜덤좌표 생성(중심점)
     if(Choose_num == '1'):
         #속성 2개 선택
         Centroids = list(zip(Centroids_x, Centroids_y))
@@ -208,3 +212,53 @@ while True:
         for i in range(k_clusters):
             Points = np.array([Input_data_xyzs[j] for j in range(len(Input_data_xyzs)) if Lables[j] == i])
             print(colors[i], "의 개수는", len(Points[:, 1]))
+
+    elif (Choose_num == '4'):
+        X = np.array(list(zip(Iris[0], Iris[1], Iris[2], Iris[3])))
+        pca = PCA(n_components=2)
+        # PCA객체 생성, 2차원으로 지정
+        principal_components = pca.fit_transform(X)
+        # PCA모델 훈련후 데이터 반환
+        # PCA 결과를 데이터프레임으로 변환
+        df_pca = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+        x = df_pca['PC1'].values
+        y = df_pca['PC2'].values
+        
+        Centroids_x = np.random.uniform(min(x), max(x), k_clusters)
+        Centroids_y = np.random.uniform(min(y), max(y), k_clusters)
+
+        Centroids = list(zip(Centroids_x, Centroids_y))
+        Centroids = np.array(Centroids)
+        Centroids_Old = np.zeros(Centroids.shape)
+        Error = np.ones(k_clusters)
+        Lables = np.zeros(150)
+        Input_data_xy = np.array(list(zip(x, y)))
+        plt.scatter(x, y, alpha=0.5)
+        plt.scatter(Centroids_x, Centroids_y, alpha=0.5, c='red')
+        plt.show()
+
+        while (Error.all() != 0):
+            for i in range(150):
+                Distance = np.zeros(k_clusters)
+                for j in range(k_clusters):
+                    Distance[j] = Euclidean_distance(Input_data_xy[i], Centroids[j])
+                Lables[i] = Distance.argmin()
+            Centroids_Old = deepcopy(Centroids)
+            for i in range(k_clusters):
+                Points = [Input_data_xy[j] for j in range(len(Input_data_xy)) if Lables[j] == i]
+                Centroids[i] = np.mean(Points, axis=0)
+
+            plt.scatter(x, y, c=Lables, alpha=0.5)
+            plt.scatter(Centroids_Old[:, 0], Centroids_Old[:, 1], c='blue')
+            plt.scatter(Centroids[:, 0], Centroids[:, 1], c='red')
+            plt.show()
+            for i in range(k_clusters):
+                Error[i] = Euclidean_distance(Centroids_Old[i], Centroids[i])
+        colors = ['r', 'g', 'b']
+
+        for i in range(k_clusters):
+            Points = np.array([Input_data_xy[j] for j in range(len(Input_data_xy)) if Lables[j] == i])
+            plt.scatter(Points[:, 0], Points[:, 1], c=colors[i], alpha=0.5)
+            print(colors[i], "의 개수는", len(Points[:, 1]))
+        plt.scatter(Centroids[:, 0], Centroids[:, 1], marker='D', s=150)
+        plt.show()
