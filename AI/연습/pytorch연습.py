@@ -72,7 +72,7 @@ t2 = torch.tensor([[1, 2, 3],
 print(t2.ndim) #차원정보
 print(t2.shape)
 print(t2)
-
+print(torch.cuda.is_available())
 #3D Tensor
 t3 = torch.tensor([[[1, 2, 3],
                     [1, 2, 3],
@@ -86,3 +86,34 @@ t3 = torch.tensor([[[1, 2, 3],
 print(t3.ndim) #차원정보
 print(t3.shape)
 print(t3)
+#4D Tensor
+#4개의 축
+#컬러 이미지 데이터가 대표적
+#주로 샘플, 높이, 너비, 컬러채널을 가진 구조로 사용
+
+#5D Tensor
+#5개의 축
+#비디오 데이터가 대표적
+#주로 샘플, 프라임, 높이, 너비 , 컬러 채널을 가진 구조로 사용
+
+#텐서 연산
+import math
+
+a = torch.rand(1, 2) * 2 - 1
+print(a)
+print(torch.abs(a))
+print(torch.ceil(a)) #올림
+print(torch.floor(a)) #내림
+# print(torch.clamp((a, -0.5, 0.5))) #최소가 -0.5, 최대가 0.5로 바꿔버림(오버하거나 언더)
+print(torch.max(a))
+print(torch.min(a))
+#print(a.max(dim=0)) 0으로 설정하면 전체에서 제일큰 위치 반환, 1로하면 각 텐서에서 하나씩 위치 반환
+print(torch.mean(a))
+print(torch.std(a))
+print(torch.prod(a))
+print(torch.unique(torch.tensor([1,2,3,1,2,2])))
+#a+b 같은경우 torch.add(a,b)로 표현할 수 있는데 이때 3번째 인자에 out='이름'으로 하면 결과값을 '이름'에 넣어준다
+#inplace 방식으로는 y.add_(x)로 표현이 가능한데 _가 붙는 차이점이 있다 이러면 y = y + x와 같다
+#빼기는 torch.sub로 사용
+
+#38분47초
