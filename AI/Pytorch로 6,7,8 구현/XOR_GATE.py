@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import numpy as np
 #입력, 출력값 선언
 Input = torch.FloatTensor([[0, 0], [0, 1], [1, 0], [1, 1]])
 Output = torch.FloatTensor([[0], [1], [1], [0]])
@@ -33,3 +34,35 @@ for epoch in range(10001):
 Reselt = Model(Input)
 print('출력값: ', Reselt.detach().numpy())
 print('실제값: ', Output.numpy())
+
+def generate_surface():
+    X = np.linspace(0, 1, 121)
+    Y = np.linspace(0, 1, 121)
+    X, Y = np.meshgrid(X, Y)  # X, Y 그리드 생성
+
+    X_tensor = torch.from_numpy(X).float()
+    Y_tensor = torch.from_numpy(Y).float()
+
+    input_tensor = torch.stack((X_tensor, Y_tensor), dim=2).view(-1, 2)
+    result_tensor = Model(input_tensor)
+
+    Z = result_tensor.view(X.shape).detach().numpy()
+
+    return X, Y, Z
+
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+X, Y, Z = generate_surface()
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+ax.plot_surface(X, Y, Z, cmap='viridis')
+
+ax.set_xlabel('X1')
+ax.set_ylabel('X2')
+ax.set_zlabel('Output')
+
+plt.show()
