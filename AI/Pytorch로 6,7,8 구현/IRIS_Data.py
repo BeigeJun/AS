@@ -17,11 +17,11 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 class IrisNet(torch.nn.Module):
     def __init__(self):
         super(IrisNet, self).__init__()
-        self.fc1 = torch.nn.Linear(4, 16)
-        self.fc2 = torch.nn.Linear(16, 3)
+        self.fc1 = torch.nn.Linear(4, 7)
+        self.fc2 = torch.nn.Linear(7, 3)
 
     def forward(self, x):
-        x = torch.relu(self.fc1(x))
+        x = torch.sigmoid(self.fc1(x))
         x = self.fc2(x)
         return x
 
