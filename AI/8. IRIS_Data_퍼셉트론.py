@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.datasets import load_iris
 import pandas as pd
+from matplotlib import pyplot as plt
 
 def sigmoid(data):
     return 1.0 / (1.0 + np.exp(-data))
@@ -140,7 +141,7 @@ bias = 1.0
 error = 0.0
 total_error = 0.0
 lrate = 0.05
-epochs = 3000
+epochs = 3001
 
 def normalization():
     choose = int(input("학습 데이터 선택 : "))
@@ -265,14 +266,50 @@ def Backward_pass(data, target, w1, w2, w3, w4, b, out1, out2, out3, out_put, lr
     delta_3, w2, b = delta_rule(w2, w3, b, 1, delta_2, delta_3, lrate, out1, out2)
     delta_4, w1, b = delta_rule(w1, w2, b, 0, delta_3, delta_4, lrate, data, out1)
     return w1, w2, w3, w4, b
+graph_1 = []
+graph_2 = []
+graph_3 = []
+def test(w1, w2, w3, w4, b):
+    Correct = 0
+    Failed_to_hit_the_Target = 0
+    for i in range(150):
+        a, b, c, d = Forward_pass(Test[i], w1, w2, w3, w4, biases)
+        Max = d[0]
+        Max_num = 0
+        for j in range(len(d) - 1):
+            if (Max < d[j + 1]):
+                Max = d[j + 1]
+                Max_num = j + 1
+        if i < 50:
+            if Max_num == 0:
+                Correct += 1
+            else:
+                Failed_to_hit_the_Target += 1
+        elif i > 49 and i < 100:
+            if Max_num == 1:
+                Correct += 1
+            else:
+                Failed_to_hit_the_Target += 1
+        elif i > 99 and i < 150:
+            if Max_num == 2:
+                Correct += 1
 
+    x = (150 - Failed_to_hit_the_Target) / 150 * 100
+    return x
+
+def draw_graph(x_values, y_values, x_label="X-axis", y_label="Y-axis"):
+    plt.plot(x_values, y_values)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.grid(True)
+    plt.show()
 def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
     minimum_error = 10.0
     comparison_error = 10.0
     for epoch in range(epochs):
         total_error = 0.0
         for i in range(len(input_data)):
-            out_1, out_2, out_3, output = Forward_pass(input_data[i], w1, w2, w3,w4, b)
+            out_1, out_2, out_3, output = Forward_pass(input_data[i], w1, w2, w3, w4, b)
             error = 0.0
             for j in range(len(target_data[i])):
                 error += 0.5 * (target_data[i][j] - output[j]) ** 2
@@ -281,6 +318,10 @@ def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
         total_error = total_error / 150
         comparison_error = total_error
         if epoch % 100 == 0:
+            Reselt = test(w1, w2, w3, w4, b)
+            graph_1.append(total_error)
+            graph_2.append(Reselt)
+            graph_3.append(epoch)
             print("step : %4d    Error : %7.10f " % (epoch, total_error))
         if minimum_error > comparison_error:
             minimum_error = comparison_error
@@ -288,7 +329,12 @@ def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
             print(minimum_error)
 choose_iris, choose_target, Test = normalization()
 train(choose_iris, choose_target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
-
+print(graph_1)
+print(graph_2)
+print(graph_3)
+draw_graph(graph_1,graph_2,"totoal_error", "success_rate")
+draw_graph(graph_3,graph_2,"epoch", "success_rate")
+draw_graph(graph_3,graph_1,"epoch", "totoal_error")
 w1, w2, w3, w4, b1, b2, b3, b4 = weight_read()
 def forward_pass_(data, w, b, out):
     for i in range(len(w)):
