@@ -141,7 +141,7 @@ bias = 1.0
 error = 0.0
 total_error = 0.0
 lrate = 0.05
-epochs = 3001
+epochs = 1001
 
 def normalization():
     choose = int(input("학습 데이터 선택 : "))
@@ -329,9 +329,9 @@ def train(input_data, target_data, w1, w2, w3, w4, b, lrate, epochs):
             print(minimum_error)
 choose_iris, choose_target, Test = normalization()
 train(choose_iris, choose_target, weight_in_to_hid1, weight_hid1_to_hid2, weight_hid2_to_hid3, weight_hid3_to_out, biases, lrate, epochs)
-print(graph_1)
-print(graph_2)
-print(graph_3)
+
+
+
 draw_graph(graph_1,graph_2,"totoal_error", "success_rate")
 draw_graph(graph_3,graph_2,"epoch", "success_rate")
 draw_graph(graph_3,graph_1,"epoch", "totoal_error")
@@ -363,18 +363,18 @@ for i in range(150):
         if Max_num == 0 :
             Correct += 1
         else:
-            print("적중 실패 :",i)
+            print("적중 실패 데이터 인덱스 :",i)
             Failed_to_hit_the_Target += 1
     elif i > 49 and i < 100:
         if Max_num == 1 :
             Correct += 1
         else:
-            print("적중 실패 :",i)
+            print("적중 실패 데이터 인덱스:",i)
             Failed_to_hit_the_Target += 1
     elif i > 99 and i < 150:
         if Max_num == 2 :
             Correct += 1
         else:
-            print("적중 실패 :",i)
+            print("적중 실패 데이터 인덱스:",i)
 x = (150 - Failed_to_hit_the_Target)/150 * 100
 print("적중한 횟수 :", Correct, "성공 확률 :", x)
