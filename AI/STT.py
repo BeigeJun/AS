@@ -4,6 +4,7 @@ import json
 import base64
 import pyaudio
 import wave
+import csv
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 1  # 단일 채널(모노)
@@ -62,7 +63,19 @@ response = http.request(
     headers={"Content-Type": "application/json; charset=UTF-8", "Authorization": accessKey},
     body=json.dumps(requestJson)
 )
-
-print("[responseCode] " + str(response.status))
-print("[responBody]")
-print(str(response.data, "utf-8"))
+parsed_data = json.loads(response.data)
+recognized_text = parsed_data['return_object']['recognized']
+recognized_text = recognized_text.replace(" ","")
+slice_ = len(recognized_text) - 1
+icecream_name = recognized_text[:slice_]
+print(icecream_name)
+flag = False
+f = open('C:/Users/SeoJun/PycharmProjects/음성인식/아이스크림.csv', 'r', encoding='cp949')
+rdr = csv.reader(f)
+for line in rdr:
+    if(str(icecream_name) == line[0]):
+        print("이름 : ", line[0], "가격 : ", line[1], "수량 : ", line[2])
+        flag = True
+if(flag == False):
+    print("없는 아이스크림")
+f.close()
