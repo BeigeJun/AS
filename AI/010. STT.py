@@ -7,6 +7,18 @@ import wave
 import keyboard
 import csv
 accessKey = 
+
+class Queue:
+    def __init__(self):
+        self.queue = []
+    def enqueue(self, string):
+        self.queue.append(string)
+    def dequeue(self):
+        if len(self.queue) == 0:
+            return None
+        return self.queue.pop(0)
+    def size(self):
+        return len(self.queue)
 def recording():
     FORMAT = pyaudio.paInt16
     CHANNELS = 1  # 단일 채널(모노)
@@ -48,7 +60,7 @@ def recording():
 
 def transform(accessKey):
     openApiURL = "http://aiopen.etri.re.kr:8000/WiseASR/Recognition"
-    audioFilePath = "C:/Users/SeoJun/PycharmProjects/음성인식/output.wav"
+    audioFilePath = "C:/Users/wns20/PycharmProjects/음성인식/output.wav"
     languageCode = "korean"
 
     file = open(audioFilePath, "rb")
@@ -114,13 +126,24 @@ def split(accessKey, text):
     data = response.data
 
     data = json.loads(data)
-
+    for sentence_info in data["return_object"]["sentence"]:
+        for morpheme in sentence_info["morp"]:
+            if morpheme["type"] == "NNG" or morpheme["type"] == "NNP":
+                Icecream_name.enqueue(morpheme["lemma"])
     sentence_info = data["return_object"]["sentence"]
+    for word_info in sentence_info:
+        for morpheme in word_info["morp"]:
+            if morpheme["type"] == "MM" or morpheme["type"] == "NR":
+                Icecream_count.enqueue(morpheme["lemma"])
 
-    morphemes = [word_info["morp"] for word_info in sentence_info]
-    numerals = [morpheme["lemma"] for word_info in sentence_info for morpheme in word_info["morp"] if morpheme["type"] == "NR"]
-    print(numerals)
-
+Icecream_name = Queue()
+Icecream_count = Queue()
 recording()
 text = transform(accessKey)
 split(accessKey, text)
+for i in range(Icecream_name.size()):
+    name = Icecream_name.dequeue()
+    print(name)
+for i in range(Icecream_count.size()):
+    name = Icecream_count.dequeue()
+    print(name)
