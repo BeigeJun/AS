@@ -7,7 +7,9 @@ import wave
 import keyboard
 import csv
 accessKey = 
-
+num_dic = {"하나": 1, "두": 2, "세": 3, "네": 4, "다섯": 5, "여섯": 6, "일곱": 7, "여덜": 8, "아홉": 9, "열": 10,
+           "일": 1, "이": 2, "삼": 3, "사": 4, "오": 5, "육": 6, "칠": 7, "팔": 8, "구": 9, "십": 10,
+           "한": 1}
 class Queue:
     def __init__(self):
         self.queue = []
@@ -60,7 +62,7 @@ def recording():
 
 def transform(accessKey):
     openApiURL = "http://aiopen.etri.re.kr:8000/WiseASR/Recognition"
-    audioFilePath = "C:/Users/wns20/PycharmProjects/음성인식/output.wav"
+    audioFilePath = "C:/Users/SeoJun/PycharmProjects/음성인식/output.wav"
     languageCode = "korean"
 
     file = open(audioFilePath, "rb")
@@ -82,10 +84,7 @@ def transform(accessKey):
         body=json.dumps(requestJson)
     )
     parsed_data = json.loads(response.data)
-    recognized_text = parsed_data['return_object']['recognized']
-    recognized_text = recognized_text.replace(" "," ")
-    slice_ = len(recognized_text) - 1
-    text = recognized_text[:]
+    text = parsed_data['return_object']['recognized']
     print(text)
     return text
 # flag = False
@@ -135,6 +134,12 @@ def split(accessKey, text):
         for morpheme in word_info["morp"]:
             if morpheme["type"] == "MM" or morpheme["type"] == "NR":
                 Icecream_count.enqueue(morpheme["lemma"])
+def text_to_number(txt , dic):
+    if txt in dic:
+        return dic[txt]
+    else:
+        return "없는값"
+
 
 Icecream_name = Queue()
 Icecream_count = Queue()
@@ -145,5 +150,7 @@ for i in range(Icecream_name.size()):
     name = Icecream_name.dequeue()
     print(name)
 for i in range(Icecream_count.size()):
-    name = Icecream_count.dequeue()
-    print(name)
+    cnt = Icecream_count.dequeue()
+    print(cnt)
+    count = text_to_number(cnt, num_dic)
+    print(count)
