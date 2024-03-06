@@ -7,7 +7,8 @@ import wave
 import keyboard
 import csv
 import numpy as np
-accessKey =
+accessKey = 
+key = "C:/Users/SeoJun/PycharmProjects/음성인식/"
 num_dic = {"하나": 1, "두": 2, "세": 3, "네": 4, "다섯": 5, "여섯": 6, "일곱": 7, "여덜": 8, "아홉": 9, "열": 10,
            "일": 1, "이": 2, "삼": 3, "사": 4, "오": 5, "육": 6, "칠": 7, "팔": 8, "구": 9, "십": 10,
            "한": 1}
@@ -46,11 +47,11 @@ def recording():
                         frames_per_buffer=CHUNK)
     Keyboard_flag = False
     frames = []
-    keyboard.wait('space')
+    keyboard.wait('shift')
     print("Recording")
     Keyboard_flag = True
     while Keyboard_flag == True:
-        if keyboard.is_pressed('space'):
+        if keyboard.is_pressed('shift'):
             Keyboard_flag = True
         else:
             Keyboard_flag = False
@@ -68,9 +69,9 @@ def recording():
         wf.setframerate(RATE)
         wf.writeframes(b''.join(frames))
 
-def transform(accessKey):
+def transform(accessKey,key):
     openApiURL = "http://aiopen.etri.re.kr:8000/WiseASR/Recognition"
-    audioFilePath = "C:/Users/wns20/PycharmProjects/음성인식/output.wav"
+    audioFilePath =key + "output.wav"
     languageCode = "korean"
 
     file = open(audioFilePath, "rb")
@@ -136,15 +137,15 @@ def text_to_number(txt , dic):
     else:
         return "없는값"
 
-def List_save():
-    file_path = 'C:/Users/wns20/PycharmProjects/음성인식/아이스크림.csv'
+def List_save(key):
+    file_path = key + '아이스크림.csv'
     with open(file_path, 'r', encoding='cp949') as f:
         rdr = csv.reader(f)
         rows = list(rdr)
     return rows
-def Find_object(name, rows, count_Q):
+def Find_object(name, rows, count_Q,key):
     flag = False
-    file_path = 'C:/Users/wns20/PycharmProjects/음성인식/아이스크림.csv'
+    file_path = key + '아이스크림.csv'
     with open(file_path, 'w', newline='', encoding='cp949') as f:
         writer = csv.writer(f)
         for line in rows:
@@ -156,7 +157,7 @@ def Find_object(name, rows, count_Q):
                 count = text_to_number(cnt, num_dic)
                 if number >= count:
                     line[2] = str(number - count)
-                    print("선택하신 아이스크림 : ", line[0], "갯수 : ", count)
+                    print("선택하신 아이스크림 : ", line[0], "갯수 : ", count, "가격 : ",int(line[1])*count)
                 else:
                     print("재고가 선택하신 수량보다 적습니다.")
                     continue
@@ -199,16 +200,16 @@ while True:
     Icecream_count.Clear()
     Icecream_hold_name.Clear()
     Icecream_count.Clear()
-    print("Space를 누르면 녹음 됩니다.")
+    print("shift를 누르면 녹음 됩니다.")
     recording()
-    text = transform(accessKey)
+    text = transform(accessKey, key)
     split(accessKey, text)
-    List = List_save()
+    List = List_save(key)
     if(Icecream_name.size() == Icecream_count.size()):
         # print("정상적인 이름 찾기")
         for i in range(Icecream_name.size()):
             name = Icecream_name.dequeue()
-            Find_object(name, List, Icecream_count)
+            Find_object(name, List, Icecream_count,key)
         # print("------------------------")
         # print("아이스크림 이름들만 뽑아서 리스트 만들기")
         List_names = []
