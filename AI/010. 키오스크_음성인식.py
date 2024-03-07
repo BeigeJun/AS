@@ -36,7 +36,6 @@ def recording():
     CHANNELS = 1  # 단일 채널(모노)
     RATE = 16000  # 샘플링 레이트 (16kHz)
     CHUNK = 1024  # 버퍼 크기
-    RECORD_SECONDS = 5  # 녹음 시간 (초)
     WAVE_OUTPUT_FILENAME = "output.wav"
     # PyAudio 객체 생성
     audio = pyaudio.PyAudio()
@@ -45,7 +44,6 @@ def recording():
                         rate=RATE,
                         input=True,
                         frames_per_buffer=CHUNK)
-    Keyboard_flag = False
     frames = []
     keyboard.wait('shift')
     print("Recording")
@@ -69,9 +67,9 @@ def recording():
         wf.setframerate(RATE)
         wf.writeframes(b''.join(frames))
 
-def transform(accessKey,key):
+def transform(accessKey, key):
     openApiURL = "http://aiopen.etri.re.kr:8000/WiseASR/Recognition"
-    audioFilePath =key + "output.wav"
+    audioFilePath = key + "output.wav"
     languageCode = "korean"
 
     file = open(audioFilePath, "rb")
@@ -118,10 +116,10 @@ def split(accessKey, text):
 
     # print("[responseCode] " + str(response.status))
     # print("[responBody]")
-    # print(str(response.data, "utf-8"))
     data = response.data
-
     data = json.loads(data)
+    print(data["return_object"]["sentence"])
+
     for sentence_info in data["return_object"]["sentence"]:
         for morpheme in sentence_info["morp"]:
             if morpheme["type"] == "NNG" or morpheme["type"] == "NNP":
@@ -206,27 +204,24 @@ while True:
     split(accessKey, text)
     List = List_save(key)
     if(Icecream_name.size() == Icecream_count.size()):
-        # print("정상적인 이름 찾기")
+        #정상적인 이름 찾기
         for i in range(Icecream_name.size()):
             name = Icecream_name.dequeue()
             Find_object(name, List, Icecream_count,key)
-        # print("------------------------")
-        # print("아이스크림 이름들만 뽑아서 리스트 만들기")
+        # ------------------------
+        # 아이스크림 이름들만 뽑아서 리스트 만들기
         List_names = []
         for i in range(len(List)):
             List_names.append(List[i][0])
-        # print(List_names)
-        # print("------------------------")
-        # print("뽑아온 리스트들 분해하기")
+        # ------------------------
+        # 뽑아온 리스트들 분해하기
         List_names_split = []
         splited_List = []
         for i in range(len(List_names)):
             split_reselt = korean_decomposition(List_names[i])
             splited_List.append(split_reselt)
-        # print(splited_List)
-        # print("---------------------------")
-        # print("홀드 큐 갯수 :",Icecream_hold_name.size())
-        # print("매칭 안된 이름들 뽑아서 가장 비슷한 아이스크림 이름 출력")
+        # ---------------------------
+        # 매칭 안된 이름들 뽑아서 가장 비슷한 아이스크림 이름 출력
         for i in range(Icecream_hold_name.size()):
             name = Icecream_hold_name.dequeue()
             Icecream_ = korean_decomposition(name)
@@ -234,17 +229,15 @@ while True:
             Max_rate_num = 0
             for j in range(len(splited_List)):
                 rate = Korean_compare(Icecream_, splited_List[j])
-                # print(rate)
                 if(rate > Max_rate):
                     Max_rate = rate
                     Max_rate_num = j
             Icecream_hold_name.enqueue(List_names[Max_rate_num])
-            # print("찾은 이름 :",List_names[Max_rate_num])
-        # print("---------------------------")
-        # print("찾은 이름으로 다시 검색하기")
+        #---------------------------
+        #찾은 이름으로 다시 검색하기
         for i in range(Icecream_hold_name.size()):
             name = Icecream_hold_name.dequeue()
-            Find_object(name, List, Icecream_hold_count)
-        # print("---------------------------")
+            Find_object(name, List, Icecream_hold_count,key)
+        #---------------------------
     else:
         print("다시 시도해 주세요!")
