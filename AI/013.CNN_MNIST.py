@@ -17,9 +17,9 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=20, kernel_size=5, stride=1)
-        self.conv2 = nn.Conv2d(in_channels=20, out_channels=50, kernel_size=5, stride=1)
-        self.fc1 = nn.Linear(4 * 4 * 50, 500)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=9, kernel_size=3, stride=1)
+        self.conv2 = nn.Conv2d(in_channels=9, out_channels=18, kernel_size=3, stride=1)
+        self.fc1 = nn.Linear(5 * 5 * 18, 500)
         self.fc2 = nn.Linear(500, 10)
 
     def forward(self, x):
@@ -28,7 +28,7 @@ class CNN(nn.Module):
         x = F.relu(self.conv2(x))
         x = F.max_pool2d(x, kernel_size=2, stride=2)
 
-        x = x.view(-1, 4 * 4 * 50)
+        x = x.view(-1, 5 * 5 * 18)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
@@ -38,7 +38,7 @@ criterion = torch.nn.CrossEntropyLoss()
 optimizer = optim.SGD(cnn.parameters(), lr=0.01)
 
 cnn.train()
-for epoch in range(5):
+for epoch in range(10):
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
         inputs, labels = data
@@ -66,27 +66,41 @@ with torch.no_grad():
     First_pool_outputs = F.max_pool2d(First_conv_outputs, kernel_size=2, stride=2)
     Second_conv_outputs = F.relu(cnn.conv2(First_pool_outputs))
     Second_pool_outputs = F.max_pool2d(Second_conv_outputs, kernel_size=2, stride=2)
+    conv1_weights = cnn.conv1.weight.data
+    print(conv1_weights)
+    print(conv1_weights.shape)
+    conv2_weights = cnn.conv2.weight.data
+    print(conv2_weights)
+    print(conv2_weights.shape)
+    # fig, axs = plt.subplots(3, 3)
+    # fig.suptitle('Convolutional Layer 1 Weights')
+    # for i in range(3):
+    #     for j in range(3):
+    #         axs[i, j].imshow(conv1_weights[i + j].detach().numpy(), cmap='gray')
+    #         axs[i, j].axis('off')
+    # plt.show()
+
     plt.imshow(images[0][0].detach().numpy(), cmap='gray')
     plt.title("Original Image")
     plt.show()
     #앞이 배치 순서, 뒤가 배치에서의 순서
-    for i in range(20):
-        plt.subplot(5, 4, i + 1)
+    for i in range(9):
+        plt.subplot(3, 3, i + 1)
         plt.imshow(First_conv_outputs[0][i].squeeze().detach().numpy(), cmap='gray')
         plt.title("First Convolution Output")
     plt.show()
-    for i in range(20):
-        plt.subplot(5, 4, i + 1)
+    for i in range(9):
+        plt.subplot(3, 3, i + 1)
         plt.imshow(First_pool_outputs[0][i].squeeze().detach().numpy(), cmap='gray')
         plt.title("First Pooling Output")
     plt.show()
-    for i in range(50):
-        plt.subplot(10, 5, i + 1)
+    for i in range(18):
+        plt.subplot(3, 6, i + 1)
         plt.imshow(Second_conv_outputs[0][i].squeeze().detach().numpy(), cmap='gray')
         plt.title("Second Convolution Output")
     plt.show()
-    for i in range(50):
-        plt.subplot(10, 5, i + 1)
+    for i in range(18):
+        plt.subplot(3, 6, i + 1)
         plt.imshow(Second_pool_outputs[0][i].squeeze().detach().numpy(), cmap='gray')
         plt.title("Second Pooling Output")
     plt.show()
