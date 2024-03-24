@@ -1,3 +1,4 @@
+
 # -*- coding:utf-8 -*-
 import urllib3
 import json
@@ -8,7 +9,7 @@ import keyboard
 import csv
 import numpy as np
 accessKey = 
-key = "C:/Users/SeoJun/PycharmProjects/음성인식/"
+key = "C:/Users/wns20/PycharmProjects/음성인식/"
 num_dic = {"하나": 1, "두": 2, "세": 3, "네": 4, "다섯": 5, "여섯": 6, "일곱": 7, "여덜": 8, "아홉": 9, "열": 10,
            "일": 1, "이": 2, "삼": 3, "사": 4, "오": 5, "육": 6, "칠": 7, "팔": 8, "구": 9, "십": 10,
            "한": 1}
@@ -33,11 +34,10 @@ class Queue:
             self.queue.pop(0)
 def recording():
     FORMAT = pyaudio.paInt16
-    CHANNELS = 1  # 단일 채널(모노)
-    RATE = 16000  # 샘플링 레이트 (16kHz)
-    CHUNK = 1024  # 버퍼 크기
+    CHANNELS = 1
+    RATE = 16000
+    CHUNK = 1024
     WAVE_OUTPUT_FILENAME = "output.wav"
-    # PyAudio 객체 생성
     audio = pyaudio.PyAudio()
     stream = audio.open(format=FORMAT,
                         channels=CHANNELS,
@@ -92,20 +92,17 @@ def transform(accessKey, key):
     )
     parsed_data = json.loads(response.data)
     text = parsed_data['return_object']['recognized']
-    # print(text)
     return text
 
 def split(accessKey, text):
     openApiURL = "http://aiopen.etri.re.kr:8000/WiseNLU_spoken"
     analysisCode = "morp"
-
     requestJson = {
         "argument": {
             "text": text,
             "analysis_code": analysisCode
         }
     }
-
     http = urllib3.PoolManager()
     response = http.request(
         "POST",
@@ -113,22 +110,18 @@ def split(accessKey, text):
         headers={"Content-Type": "application/json; charset=UTF-8", "Authorization": accessKey},
         body=json.dumps(requestJson)
     )
-
-    # print("[responseCode] " + str(response.status))
-    # print("[responBody]")
     data = response.data
     data = json.loads(data)
     print(data["return_object"]["sentence"])
-
     for sentence_info in data["return_object"]["sentence"]:
         for morpheme in sentence_info["morp"]:
             if morpheme["type"] == "NNG" or morpheme["type"] == "NNP":
-                Icecream_name.enqueue(morpheme["lemma"])
+                name_Q.enqueue(morpheme["lemma"])
     sentence_info = data["return_object"]["sentence"]
     for word_info in sentence_info:
         for morpheme in word_info["morp"]:
             if morpheme["type"] == "MM" or morpheme["type"] == "NR":
-                Icecream_count.enqueue(morpheme["lemma"])
+                count_Q.enqueue(morpheme["lemma"])
 def text_to_number(txt , dic):
     if txt in dic:
         return dic[txt]
@@ -136,35 +129,34 @@ def text_to_number(txt , dic):
         return "없는값"
 
 def List_save(key):
-    file_path = key + '아이스크림.csv'
+    file_path = key + '물품.csv'
     with open(file_path, 'r', encoding='cp949') as f:
         rdr = csv.reader(f)
         rows = list(rdr)
     return rows
-def Find_object(name, rows, count_Q,key):
+def Find_object(name, rows, Count_Q,key):
     flag = False
-    file_path = key + '아이스크림.csv'
+    file_path = key + '물품.csv'
     with open(file_path, 'w', newline='', encoding='cp949') as f:
         writer = csv.writer(f)
         for line in rows:
             if str(name) == line[0]:
-                # print("이름 : ", line[0], "가격 : ", line[1], "수량 : ", line[2])
                 flag = True
-                cnt = count_Q.dequeue()
+                cnt = Count_Q.dequeue()
                 number = int(line[2])
                 count = text_to_number(cnt, num_dic)
                 if number >= count:
                     line[2] = str(number - count)
-                    print("선택하신 아이스크림 : ", line[0], "갯수 : ", count, "가격 : ",int(line[1])*count)
+                    print("선택하신 물품 : ", line[0], "갯수 : ", count, "가격 : ",int(line[1])*count)
                 else:
                     print("재고가 선택하신 수량보다 적습니다.")
                     continue
             writer.writerow(line)
 
         if not flag:
-            Icecream_hold_name.enqueue(name)
-            cnt = Icecream_count.dequeue()
-            Icecream_hold_count.enqueue(cnt)
+            hold_name_Q.enqueue(name)
+            cnt = count_Q.dequeue()
+            hold_count_Q.enqueue(cnt)
 
 def korean_decomposition(korean_word):
     reselt = []
@@ -189,27 +181,28 @@ def Korean_compare(word1, word2):
         return total_same / total
     else:
         return 0
-Icecream_name = Queue()
-Icecream_count = Queue()
-Icecream_hold_name = Queue()
-Icecream_hold_count = Queue()
+
+name_Q = Queue()
+count_Q = Queue()
+hold_name_Q = Queue()
+hold_count_Q = Queue()
 while True:
-    Icecream_name.Clear()
-    Icecream_count.Clear()
-    Icecream_hold_name.Clear()
-    Icecream_count.Clear()
+    name_Q.Clear()
+    count_Q.Clear()
+    hold_name_Q.Clear()
+    count_Q.Clear()
     print("shift를 누르면 녹음 됩니다.")
     recording()
     text = transform(accessKey, key)
     split(accessKey, text)
     List = List_save(key)
-    if(Icecream_name.size() == Icecream_count.size()):
+    if(name_Q.size() == count_Q.size()):
         #정상적인 이름 찾기
-        for i in range(Icecream_name.size()):
-            name = Icecream_name.dequeue()
-            Find_object(name, List, Icecream_count,key)
+        for i in range(name_Q.size()):
+            name = name_Q.dequeue()
+            Find_object(name, List, count_Q,key)
         # ------------------------
-        # 아이스크림 이름들만 뽑아서 리스트 만들기
+        # 물품 이름들만 뽑아서 리스트 만들기
         List_names = []
         for i in range(len(List)):
             List_names.append(List[i][0])
@@ -221,9 +214,9 @@ while True:
             split_reselt = korean_decomposition(List_names[i])
             splited_List.append(split_reselt)
         # ---------------------------
-        # 매칭 안된 이름들 뽑아서 가장 비슷한 아이스크림 이름 출력
-        for i in range(Icecream_hold_name.size()):
-            name = Icecream_hold_name.dequeue()
+        # 매칭 안된 이름들 뽑아서 가장 비슷한 물품 이름 출력
+        for i in range(hold_name_Q.size()):
+            name = hold_name_Q.dequeue()
             Icecream_ = korean_decomposition(name)
             Max_rate = 0
             Max_rate_num = 0
@@ -232,12 +225,12 @@ while True:
                 if(rate > Max_rate):
                     Max_rate = rate
                     Max_rate_num = j
-            Icecream_hold_name.enqueue(List_names[Max_rate_num])
+            hold_name_Q.enqueue(List_names[Max_rate_num])
         #---------------------------
         #찾은 이름으로 다시 검색하기
-        for i in range(Icecream_hold_name.size()):
-            name = Icecream_hold_name.dequeue()
-            Find_object(name, List, Icecream_hold_count,key)
+        for i in range(hold_name_Q.size()):
+            name = hold_name_Q.dequeue()
+            Find_object(name, List, hold_count_Q,key)
         #---------------------------
     else:
         print("다시 시도해 주세요!")
