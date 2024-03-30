@@ -18,31 +18,54 @@ transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-class CNN(nn.Module):
+class AlexNet(nn.Module):
     def __init__(self):
-        super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=9, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(in_channels=9, out_channels=18, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(in_channels=18, out_channels=27, kernel_size=3, stride=1, padding=1)
-        self.conv4 = nn.Conv2d(in_channels=27, out_channels=36, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(36, 100)
-        self.fc2 = nn.Linear(100, 2)
+        super().__init__()
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=96, kernel_size=11, stride=4, padding=0),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=3, stride=2)
+        )
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(96, 256, 5, 1, 2),  # in_channels: 96, out_channels: 256, kernel_size=5x5, stride=1, padding=2
+            nn.ReLU(),
+            nn.MaxPool2d(3, 2)
+        )
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(256, 384, 3, 1, 1),
+            nn.ReLU()
+        )
+        self.layer4 = nn.Sequential(
+            nn.Conv2d(384, 384, 3, 1, 1),
+            nn.ReLU()
+        )
+        self.layer5 = nn.Sequential(
+            nn.Conv2d(384, 256, 3, 1, 1),
+            nn.ReLU(),
+            nn.MaxPool2d(3, 2)
+        )
+        self.fc1 = nn.Linear(256 * 6 * 6, 4096)
+        self.fc2 = nn.Linear(4096, 4096)
+        self.fc3 = nn.Linear(4096, 10)
 
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, kernel_size=2, stride=2)
-        x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, kernel_size=2, stride=2)
-        x = F.relu(self.conv3(x))
-        x = F.max_pool2d(x, kernel_size=2, stride=2)
-        x = F.relu(self.conv4(x))
-        x = F.max_pool2d(x, kernel_size=2, stride=2)
-        x = F.relu(self.fc1(x.view(-1, 36)))
-        x = self.fc2(x)
-        x = F.softmax(x, dim=1)
-        return x
+    def forward(self, x):  # input size = 3x227x227
+        out = self.layer1(x)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.layer5(out)  # 64x4096x1x1
+        out = out.view(out.size(0), -1)  # 64x4096
 
-loaded_model = CNN()
+        out = F.relu(self.fc1(out))
+        out = F.dropout(out, 0.5)
+        out = F.relu(self.fc2(out))
+        out = F.dropout(out, 0.5)
+        out = self.fc3(out)
+        out = F.log_softmax(out, dim=1)
+
+        return out
+
+loaded_model = AlexNet()
 loaded_model.load_state_dict(torch.load('model_state_dict.pt'))
 
 
@@ -65,13 +88,20 @@ for rect in cand_rects:
     top = rect[1]
     right = left + rect[2]
     bottom = top + rect[3]
-
     cropped_image = img[top:bottom, left:right]  # 이미지 잘라내기
-    name = os.path.join(directory_path, 'cropped_image' + str(num) + '.jpg')
-    cv2.imwrite(name, cropped_image)
-    num += 1
-    img_rgb_copy = cv2.rectangle(img_rgb_copy, (left, top), (right, bottom), color=green_rgb, thickness=5)
+    cropped_image_gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)  # 컬러 이미지를 그레이스케일로 변환
+    cropped_image_tensor = torch.tensor(cropped_image_gray, dtype=torch.float32).unsqueeze(0).unsqueeze(0)  # 배치 차원 추가 및 텐서로 변환
 
+    output = loaded_model(cropped_image_tensor)
+    print(output[0][1])
+    print(output[0][0])
+    print("=============================")
+    if(output[0][1] > 0.95 or output[0][0] > 0.95):
+        name = os.path.join(directory_path, 'cropped_image' + str(num) + '.jpg')
+        cv2.imwrite(name, cropped_image)
+        num += 1
+        img_rgb_copy = cv2.rectangle(img_rgb_copy, (left, top), (right, bottom), color=green_rgb, thickness=5)
+        print("rec")
 plt.figure(figsize=(8, 8))
 plt.imshow(img_rgb_copy)
 plt.show()
