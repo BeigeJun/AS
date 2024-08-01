@@ -3,6 +3,12 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
+import os
+import selectivesearch
+import cv2
+import shutil
+import matplotlib.pyplot as plt
+import torch.nn.functional as F
 
 class AlexNet(nn.Module):
     def __init__(self, num_classes=10):
@@ -31,18 +37,21 @@ class AlexNet(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(4096, num_classes),
         )
+        self.bbox_regressor = nn.Linear(4096, 4)  # Bounding box prediction layer
 
     def forward(self, x):
         x = self.features(x)
         x = torch.flatten(x, 1)
         x = self.classifier(x)
-        return x
+        class_output = x
+        bbox_output = self.bbox_regressor(x)  # Bounding box prediction
+        return class_output, bbox_output
 
 def main():
     net = AlexNet(num_classes=10)
 
     transform = transforms.Compose([
-        transforms.Resize(224),
+        transforms.Resize((224, 224)),  # AlexNet의 입력 크기
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
@@ -64,15 +73,16 @@ def main():
 
             optimizer.zero_grad()
 
-            outputs = net(inputs)
-            loss = criterion(outputs, labels)
+            class_outputs, bbox_outputs = net(inputs)
+            loss = criterion(class_outputs, labels)
             loss.backward()
             optimizer.step()
 
             running_loss += loss.item()
 
-            print(f'Epoch {epoch + 1}, Batch {i + 1}, Loss: {running_loss / 100:.20f}')
-            running_loss = 0.0
+            if i % 100 == 99:  # print every 100 mini-batches
+                print(f'Epoch {epoch + 1}, Batch {i + 1}, Loss: {running_loss / 100:.20f}')
+                running_loss = 0.0
 
     print('Finished Training')
 
@@ -81,8 +91,8 @@ def main():
     with torch.no_grad():
         for data in testloader:
             images, labels = data
-            outputs = net(images)
-            _, predicted = torch.max(outputs.data, 1)
+            class_outputs, bbox_outputs = net(images)
+            _, predicted = torch.max(class_outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
